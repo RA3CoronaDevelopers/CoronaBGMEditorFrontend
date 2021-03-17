@@ -107,30 +107,12 @@ export default defineComponent({
   },
   methods: {
     async connect() {
-      const ws = new WebSocket("ws://127.0.0.1:19986", {
-        packMessage: (data) => JSON.stringify(data),
-        unpackMessage: async (data) => { 
-          console.log(data); 
-          if (data instanceof ArrayBuffer) {
-            throw new Error('Not implemented')
-          }
-          if (data instanceof Blob) {
-            data = await data.text()
-          }
-          return JSON.parse(data) 
-        },
-        attachRequestId: (data, requestId) =>
-          Object.assign({ id: requestId }, data), // attach requestId to message as `id` field
-        extractRequestId: (data) => data && data.id,
-      });
-
-      await ws.open();
-      const response = await ws.sendRequest({
+      const response = await this.$ws.sendRequest({
         method: "OpenFileDialog",
         title: "喵！",
         filters: "喵喵喵（*.*）|*.*",
       });
-      alert(JSON.stringify(response))
+      alert(JSON.stringify(response));
     },
   },
 });

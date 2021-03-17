@@ -1,6 +1,7 @@
 <template>
   <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/>
+  <HelloWorld v-if="$wsConnected.value" msg="Welcome to Your Vue.js + TypeScript App"/>
+  <div v-else>Connecting to websocket...</div>
 </template>
 
 <script lang="ts">
