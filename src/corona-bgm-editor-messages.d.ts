@@ -1,4 +1,5 @@
 // 这是一个自动生成的文件，不要手动编辑
+
 interface Track {
   id: string
   musicId: string
@@ -25,6 +26,7 @@ interface JumpTo {
   targetFadeInDuration: unknown /* NOT IMPLEMENTED System.TimeSpan */
 }
 
+// 输入类型
 interface InputMessage {
   method: string
 }
@@ -80,5 +82,40 @@ interface SaveFileDialog extends InputMessage {
   // id: string
   title: string
   filters: string
+}
+
+
+// 输出类型
+interface OutputMessage {
+  type: string
+}
+
+interface FileDialogResult extends OutputMessage {
+  type: 'FileDialogResult'
+  id: string
+  path: string
+}
+
+interface AllTracks extends OutputMessage {
+  type: 'AllTracks'
+  tracks: Track[]
+}
+
+interface AllMusics extends OutputMessage {
+  type: 'AllMusics'
+  musics: [string, string][]
+}
+
+interface CurrentMusicStatus extends OutputMessage {
+  type: 'CurrentMusicStatus'
+  playing: boolean
+  trackId: string
+  position: unknown /* NOT IMPLEMENTED System.TimeSpan */
+}
+
+interface CurrentFSMStatus extends OutputMessage {
+  type: 'CurrentFSMStatus'
+  state: string
+  playerIndex: number
 }
 
