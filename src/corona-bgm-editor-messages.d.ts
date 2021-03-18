@@ -31,33 +31,43 @@ interface InputMessage {
   method: string
 }
 
-interface Play extends InputMessage {
-  method: 'Play'
+interface GetProperty {
+  requestedProperty: 'Tracks'|'Musics'|'Playing'|'CurrentPosition'|'CurrentTrackId'|'State'|'CurrentPlayerIndex'
 }
 
-interface Stop extends InputMessage {
-  method: 'Stop'
+interface SetTracksProperty {
+  propertyToBeSet: 'Tracks'
+  value: Track[]
 }
 
-interface EditTrack extends InputMessage {
-  method: 'EditTrack'
-  track: Track
+interface SetMusicsProperty {
+  propertyToBeSet: 'Musics'
+  value: [string, string][]
 }
 
-interface RemoveTrack extends InputMessage {
-  method: 'RemoveTrack'
-  trackId: string
+interface SetPlayingProperty {
+  propertyToBeSet: 'Playing'
+  value: boolean
 }
 
-interface SetMusic extends InputMessage {
-  method: 'SetMusic'
-  musicId: string
-  musicPath: string
+interface SetCurrentPositionProperty {
+  propertyToBeSet: 'CurrentPosition'
+  value: unknown /* NOT IMPLEMENTED System.TimeSpan */
 }
 
-interface RemoveMusic extends InputMessage {
-  method: 'RemoveMusic'
-  musicId: string
+interface SetCurrentTrackIdProperty {
+  propertyToBeSet: 'CurrentTrackId'
+  value: string
+}
+
+interface SetStateProperty {
+  propertyToBeSet: 'State'
+  value: string
+}
+
+interface SetCurrentPlayerIndexProperty {
+  propertyToBeSet: 'CurrentPlayerIndex'
+  value: number
 }
 
 interface LoadXml extends InputMessage {
@@ -96,26 +106,38 @@ interface FileDialogResult extends OutputMessage {
   path: string
 }
 
-interface AllTracks extends OutputMessage {
-  type: 'AllTracks'
-  tracks: Track[]
+interface TracksMessage extends OutputMessage {
+  type: 'Tracks'
+  value: Track[]
 }
 
-interface AllMusics extends OutputMessage {
-  type: 'AllMusics'
-  musics: [string, string][]
+interface MusicsMessage extends OutputMessage {
+  type: 'Musics'
+  value: [string, string][]
 }
 
-interface CurrentMusicStatus extends OutputMessage {
-  type: 'CurrentMusicStatus'
-  playing: boolean
-  trackId: string
-  position: unknown /* NOT IMPLEMENTED System.TimeSpan */
+interface PlayingMessage extends OutputMessage {
+  type: 'Playing'
+  value: boolean
 }
 
-interface CurrentFSMStatus extends OutputMessage {
-  type: 'CurrentFSMStatus'
-  state: string
-  playerIndex: number
+interface CurrentPositionMessage extends OutputMessage {
+  type: 'CurrentPosition'
+  value: unknown /* NOT IMPLEMENTED System.TimeSpan */
+}
+
+interface CurrentTrackIdMessage extends OutputMessage {
+  type: 'CurrentTrackId'
+  value: string
+}
+
+interface StateMessage extends OutputMessage {
+  type: 'State'
+  value: string
+}
+
+interface CurrentPlayerIndexMessage extends OutputMessage {
+  type: 'CurrentPlayerIndex'
+  value: number
 }
 
