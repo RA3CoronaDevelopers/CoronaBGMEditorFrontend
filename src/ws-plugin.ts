@@ -6,11 +6,11 @@ export default (url: string, options: Options) => ({
   install: (app: App) => {
     const connected = ref(false)
     app.config.globalProperties.$wsConnected = connected
-    const ws = new WebSocketAsPromised(url, options);
+    const ws = new WebSocketAsPromised(url, options)
     ws.open().then(() => {
       connected.value = true
     })
-    app.config.globalProperties.$ws = ws;
+    app.config.globalProperties.$ws = ws
   }
 })
 

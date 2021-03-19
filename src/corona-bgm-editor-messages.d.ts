@@ -27,9 +27,6 @@ interface JumpTo {
 }
 
 // 输入类型
-interface InputMessage {
-  method: string
-}
 
 interface GetProperty {
   requestedProperty: 'Tracks'|'Musics'|'Playing'|'CurrentPosition'|'CurrentTrackId'|'State'|'CurrentPlayerIndex'
@@ -70,74 +67,74 @@ interface SetCurrentPlayerIndexProperty {
   value: number
 }
 
-interface LoadXml extends InputMessage {
+interface LoadXml {
   method: 'LoadXml'
   path: string
 }
 
-interface SaveXml extends InputMessage {
+interface SaveXml {
   method: 'SaveXml'
   path: string
 }
 
-interface OpenFileDialog extends InputMessage {
+interface OpenFileDialog {
   method: 'OpenFileDialog'
   // id: string
   title: string
   filters: string
 }
 
-interface SaveFileDialog extends InputMessage {
+interface SaveFileDialog {
   method: 'SaveFileDialog'
   // id: string
   title: string
   filters: string
 }
 
-
-// 输出类型
+type InputMessage = GetProperty | SetTracksProperty | SetMusicsProperty | SetPlayingProperty | SetCurrentPositionProperty | SetCurrentTrackIdProperty | SetStateProperty | SetCurrentPlayerIndexProperty | LoadXml | SaveXml | OpenFileDialog | SaveFileDialog// 输出类型
 interface OutputMessage {
   type: string
 }
 
-interface FileDialogResult extends OutputMessage {
+interface FileDialogResult {
   type: 'FileDialogResult'
   id: string
   path: string
 }
 
-interface TracksMessage extends OutputMessage {
+interface TracksMessage {
   type: 'Tracks'
   value: Track[]
 }
 
-interface MusicsMessage extends OutputMessage {
+interface MusicsMessage {
   type: 'Musics'
   value: [string, string][]
 }
 
-interface PlayingMessage extends OutputMessage {
+interface PlayingMessage {
   type: 'Playing'
   value: boolean
 }
 
-interface CurrentPositionMessage extends OutputMessage {
+interface CurrentPositionMessage {
   type: 'CurrentPosition'
   value: unknown /* NOT IMPLEMENTED System.TimeSpan */
 }
 
-interface CurrentTrackIdMessage extends OutputMessage {
+interface CurrentTrackIdMessage {
   type: 'CurrentTrackId'
   value: string
 }
 
-interface StateMessage extends OutputMessage {
+interface StateMessage {
   type: 'State'
   value: string
 }
 
-interface CurrentPlayerIndexMessage extends OutputMessage {
+interface CurrentPlayerIndexMessage {
   type: 'CurrentPlayerIndex'
   value: number
 }
 
+type OutputMessage = FileDialogResult | TracksMessage | MusicsMessage | PlayingMessage | CurrentPositionMessage | CurrentTrackIdMessage | StateMessage | CurrentPlayerIndexMessage

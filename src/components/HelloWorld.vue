@@ -92,6 +92,8 @@
       </li>
     </ul>
     <button @click="connect">喵！</button>
+    <textarea v-model="request" />
+    <button @click="send">喵喵！</button>
   </div>
 </template>
 
@@ -105,6 +107,14 @@ export default defineComponent({
   props: {
     msg: String,
   },
+  data: () => ({
+    request: ''
+  }),
+  created() {
+    this.$ws.onUnpackedMessage.addListener((data) => {
+      console.log(data);
+    })
+  },
   methods: {
     async connect() {
       const response = await this.$ws.sendRequest({
@@ -113,6 +123,15 @@ export default defineComponent({
         filters: "喵喵喵（*.*）|*.*",
       });
       alert(JSON.stringify(response));
+    },
+    async send() {
+      try {
+        this.request = JSON.stringify(JSON.parse(this.request))
+        this.$ws.send(this.request);
+      }
+      catch(e) {
+        this.request = `${e}`
+      }
     },
   },
 });
