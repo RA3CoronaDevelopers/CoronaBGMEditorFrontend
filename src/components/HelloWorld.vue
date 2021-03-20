@@ -92,47 +92,37 @@
       </li>
     </ul>
     <button @click="connect">喵！</button>
-    <textarea v-model="request" />
-    <button @click="send">喵喵！</button>
+    <br>
+    <tool-bar></tool-bar>
   </div>
 </template>
 
 <script lang="ts">
-import Options from "node_modules/websocket-as-promised/types/options";
-import { defineComponent } from "vue";
-import { default as WebSocket } from "websocket-as-promised";
+import { defineComponent, inject } from "vue"
+import ToolBar from "./ToolBar.vue";
 
 export default defineComponent({
+  components: { ToolBar },
   name: "HelloWorld",
   props: {
     msg: String,
   },
+  setup: () => {
+    const ws = inject('$connection')
+    return { ws }
+  },
   data: () => ({
     request: ''
   }),
-  created() {
-    this.$ws.onUnpackedMessage.addListener((data) => {
-      console.log(data);
-    })
-  },
   methods: {
     async connect() {
-      const response = await this.$ws.sendRequest({
+      const response = await this.ws.sendRequest({
         method: "OpenFileDialog",
         title: "喵！",
         filters: "喵喵喵（*.*）|*.*",
       });
       alert(JSON.stringify(response));
-    },
-    async send() {
-      try {
-        this.request = JSON.stringify(JSON.parse(this.request))
-        this.$ws.send(this.request);
-      }
-      catch(e) {
-        this.request = `${e}`
-      }
-    },
+    }
   },
 });
 </script>
