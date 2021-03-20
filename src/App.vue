@@ -1,18 +1,19 @@
 <template>
   <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld v-if="$wsConnected.value" msg="Welcome to Your Vue.js + TypeScript App"/>
+  <HelloWorld v-if="connected" msg="Welcome to Your Vue.js + TypeScript App"/>
   <div v-else>Connecting to websocket...</div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, inject } from 'vue';
 import HelloWorld from './components/HelloWorld.vue';
 
 export default defineComponent({
   name: 'App',
   components: {
     HelloWorld
-  }
+  },
+  setup: () => ({ connected: inject('$connected') })
 });
 </script>
 

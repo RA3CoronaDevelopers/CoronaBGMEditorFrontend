@@ -63,9 +63,19 @@ export default {
     const connected = ref(false)
     app.config.globalProperties.$wsConnected = connected
     const connection = new Connection(url)
-    connection.ws.open().then(() => {
-      connected.value = true
-    })
+
+    const connect = async () => {
+      try {
+        await connection.ws.open()
+        connected.value = true
+      }
+      catch {
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        await connect()
+      }
+    }
+    connect()
+    
     app.provide('$connection', connection)
     app.provide('$connected', connected)
   }
