@@ -92,10 +92,6 @@ interface SaveFileDialog {
 }
 
 type InputMessage = GetProperty | SetTracksProperty | SetMusicsProperty | SetPlayingProperty | SetCurrentPositionProperty | SetCurrentTrackIdProperty | SetStateProperty | SetCurrentPlayerIndexProperty | LoadXml | SaveXml | OpenFileDialog | SaveFileDialog// 输出类型
-interface OutputMessage {
-  type: string
-}
-
 interface FileDialogResult {
   type: 'FileDialogResult'
   id: string
