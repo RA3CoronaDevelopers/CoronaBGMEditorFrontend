@@ -1,29 +1,31 @@
 // 这是一个自动生成的文件，不要手动编辑
 
+interface TimeSpan { ticks: number }
+
 interface Track {
   id: string
   musicId: string
   checkPoints: CheckPoint[]
   defaultCheckPoint: CheckPoint
-  startOffset: unknown /* NOT IMPLEMENTED System.TimeSpan */
-  length: unknown /* NOT IMPLEMENTED System.TimeSpan */
+  startOffset: TimeSpan
+  length: TimeSpan
   beatsPerMinutes: number
   beatsPerBar: number
 }
 
 interface CheckPoint {
-  time: unknown /* NOT IMPLEMENTED System.TimeSpan */
+  time: TimeSpan
   destinations: [string, JumpTo[]][]
   defaultDestinations: JumpTo[]
 }
 
 interface JumpTo {
   targetTrackId: string
-  targetOffset: unknown /* NOT IMPLEMENTED System.TimeSpan */
-  fadeOutDelay: unknown /* NOT IMPLEMENTED System.TimeSpan */
-  fadeOutDuration: unknown /* NOT IMPLEMENTED System.TimeSpan */
-  targetFadeInDelay: unknown /* NOT IMPLEMENTED System.TimeSpan */
-  targetFadeInDuration: unknown /* NOT IMPLEMENTED System.TimeSpan */
+  targetOffset: TimeSpan
+  fadeOutDelay: TimeSpan
+  fadeOutDuration: TimeSpan
+  targetFadeInDelay: TimeSpan
+  targetFadeInDuration: TimeSpan
 }
 
 // 输入类型
@@ -49,7 +51,7 @@ interface SetPlayingProperty {
 
 interface SetCurrentPositionProperty {
   propertyToBeSet: 'CurrentPosition'
-  value: unknown /* NOT IMPLEMENTED System.TimeSpan */
+  value: TimeSpan
 }
 
 interface SetCurrentTrackIdProperty {
@@ -115,7 +117,7 @@ interface PlayingMessage {
 
 interface CurrentPositionMessage {
   type: 'CurrentPosition'
-  value: unknown /* NOT IMPLEMENTED System.TimeSpan */
+  value: TimeSpan
 }
 
 interface CurrentTrackIdMessage {
