@@ -1,4 +1,4 @@
-import { App, onBeforeUnmount, onMounted, Ref, ref } from "vue"
+import { App, inject, onBeforeUnmount, Ref, ref } from "vue"
 import WebSocketAsPromised from "websocket-as-promised"
 
 class Connection {
@@ -46,19 +46,23 @@ class Connection {
     this.ws.onUnpackedMessage.removeListener(handler)
   }
 
-  useMessageHandler<TKey extends string, TValue extends string>(
+  useMessageHandler<TKey extends keyof OutputMessage, TValue extends OutputMessage[TKey]>(
     key: TKey,
     value: TValue,
     handler: (message: Extract<OutputMessage, Record<TKey, TValue>>)
       // eslint-disable-next-line
       => any
   ) {
-    onMounted(() => this.addMessageHandler(key, value, handler))
+    this.addMessageHandler(key, value, handler)
     onBeforeUnmount(() => this.removeMessageHandler(handler))
   }
 }
 
-export default {
+const connectionSymbol = Symbol('WS Connection')
+const connectedSymbol = Symbol('WS Connection status')
+
+
+export const wsPlugin = {
   install: (app: App, url: string) => {
     const connected = ref(false)
     app.config.globalProperties.$wsConnected = connected
@@ -76,22 +80,10 @@ export default {
     }
     connect()
     
-    app.provide('$connection', connection)
-    app.provide('$connected', connected)
+    app.provide(connectionSymbol, connection)
+    app.provide(connectedSymbol, connected)
   }
 }
 
-/*
-declare module '@vue/runtime-core' {
-  //Bind to `this` keyword
-  interface ComponentCustomProperties {
-    $wsConnected: Ref<boolean>;
-    $ws: WebSocketAsPromised;
-  }
-}
-*/
-
-declare module 'vue' {
-  export function inject(key: '$connection'): Connection
-  export function inject(key: '$connected'): Ref<boolean>
-}
+export const useConnection = () => inject(connectionSymbol) as Connection
+export const useConnected = () => inject(connectedSymbol) as Ref<boolean>

@@ -7,13 +7,14 @@
 <script lang="ts">
 import { defineComponent, inject } from 'vue';
 import HelloWorld from './components/HelloWorld.vue';
+import { useConnected } from "./ws-plugin";
 
 export default defineComponent({
   name: 'App',
   components: {
     HelloWorld
   },
-  setup: () => ({ connected: inject('$connected') })
+  setup: () => ({ connected: useConnected() }),
 });
 </script>
 

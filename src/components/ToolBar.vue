@@ -7,11 +7,12 @@
 </template>
 <script lang="ts">
 import { useI18n } from "vue-i18n";
-import { computed, defineComponent, inject, ref } from "vue";
+import { computed, defineComponent, ref } from "vue";
+import { useConnection } from "@/ws-plugin";
 export default defineComponent({
   setup() {
     // IPC 连接
-    const ws = inject("$connection");
+    const ws = useConnection();
     // 翻译
     const { t } = useI18n();
 

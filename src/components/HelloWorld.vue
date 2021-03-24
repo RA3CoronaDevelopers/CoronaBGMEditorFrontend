@@ -98,7 +98,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, inject } from "vue"
+import { useConnection } from "@/ws-plugin";
 import ToolBar from "./ToolBar.vue";
 
 export default defineComponent({
@@ -108,7 +108,7 @@ export default defineComponent({
     msg: String,
   },
   setup: () => {
-    const ws = inject('$connection')
+    const ws = useConnection()
     return { ws }
   },
   data: () => ({
