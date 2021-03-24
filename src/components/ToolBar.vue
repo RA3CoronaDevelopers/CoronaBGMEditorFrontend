@@ -44,7 +44,7 @@ export default defineComponent({
     const playing = ref(false);
     const togglePlay = () => {
       ws.send({ propertyToBeSet: "Playing", value: !playing.value });
-    }
+    };
     ws.useMessageHandler("type", "Playing", (m) => (playing.value = m.value));
     const playText = computed(() => t(playing.value ? "play" : "stop"));
 

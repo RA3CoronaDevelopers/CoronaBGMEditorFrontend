@@ -99,6 +99,7 @@
 
 <script lang="ts">
 import { useConnection } from "@/ws-plugin";
+import { defineComponent } from "vue"
 import ToolBar from "./ToolBar.vue";
 
 export default defineComponent({
