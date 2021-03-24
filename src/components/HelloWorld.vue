@@ -94,6 +94,7 @@
     <button @click="connect">喵！</button>
     <br>
     <tool-bar></tool-bar>
+    <track-list></track-list>
   </div>
 </template>
 
@@ -101,9 +102,10 @@
 import { useConnection } from "@/ws-plugin";
 import { defineComponent } from "vue"
 import ToolBar from "./ToolBar.vue";
+import TrackList from "./TrackList.vue";
 
 export default defineComponent({
-  components: { ToolBar },
+  components: { ToolBar, TrackList },
   name: "HelloWorld",
   props: {
     msg: String,
