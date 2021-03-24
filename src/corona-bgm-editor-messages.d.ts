@@ -6,7 +6,7 @@ interface Track {
   id: string
   musicId: string
   checkPoints: CheckPoint[]
-  defaultCheckPoint: CheckPoint
+  defaultCheckPoint: CheckPoint | null
   startOffset: TimeSpan
   length: TimeSpan
   beatsPerMinutes: number
@@ -97,7 +97,7 @@ type InputMessage = GetProperty | SetTracksProperty | SetMusicsProperty | SetPla
 interface FileDialogResult {
   type: 'FileDialogResult'
   id: string
-  path: string
+  path: string | null
 }
 
 interface TracksMessage {
