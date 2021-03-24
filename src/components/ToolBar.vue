@@ -21,7 +21,7 @@ export default defineComponent({
       const response: FileDialogResult = await ws.sendRequest({
         method: "OpenFileDialog",
         title: t("loadXml"),
-        filters: t("xmlFilters"),
+        filters: `${t("xmlFiles")}|*.xml|${t("allFiles")}|*.*`
       });
       if (response.path) {
         ws.send({ method: "LoadXml", path: response.path });
@@ -64,7 +64,8 @@ export default defineComponent({
   "zh": {
     "loadXml": "打开…",
     "saveXml": "保存",
-    "xmlFilters": "XML 文件（*.xml）|*.xml|所有文件（*.*）|*.*",
+    "xmlFiles": "XML 文件（*.xml）",
+    "allFiles": "所有文件（*.*）",
     "play": "播放",
     "stop": "停止",
     "playSpeed": "播放速度",
