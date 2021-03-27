@@ -2,8 +2,9 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import { wsPlugin } from './ws-plugin'
 import i18n from './i18n'
-require('normalize.css')
-import 'golden-layout'
+import 'normalize.css'
+import 'golden-layout/dist/css/goldenlayout-base.css'
+import 'golden-layout/dist/css/themes/goldenlayout-dark-theme.css'
 
 const app = createApp(App)
   .use(i18n)
