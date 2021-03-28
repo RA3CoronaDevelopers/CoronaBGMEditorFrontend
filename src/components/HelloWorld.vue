@@ -91,42 +91,17 @@
         >
       </li>
     </ul>
-    <button @click="connect">喵！</button>
-    <br>
-    <tool-bar></tool-bar>
-    <track-list></track-list>
   </div>
 </template>
 
 <script lang="ts">
-import { useConnection } from "@/ws-plugin";
 import { defineComponent } from "vue"
-import ToolBar from "./ToolBar.vue";
-import TrackList from "./TrackList.vue";
 
 export default defineComponent({
-  components: { ToolBar, TrackList },
   name: "HelloWorld",
   props: {
     msg: String,
-  },
-  setup: () => {
-    const ws = useConnection()
-    return { ws }
-  },
-  data: () => ({
-    request: ''
-  }),
-  methods: {
-    async connect() {
-      const response = await this.ws.sendRequest({
-        method: "OpenFileDialog",
-        title: "喵！",
-        filters: "喵喵喵（*.*）|*.*",
-      });
-      alert(JSON.stringify(response));
-    }
-  },
+  }
 });
 </script>
 

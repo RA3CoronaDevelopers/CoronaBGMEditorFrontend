@@ -1,12 +1,15 @@
 <template>
-  <div ref="element" class="editor-container">
-    <teleport
-      v-for="{ id, type, element } in componentInstances"
-      :key="id"
-      :to="element"
-    >
-      <component :is="type"></component>
-    </teleport>
+  <div class="editor-container">
+    <tool-bar class="editor-head"></tool-bar>
+    <div ref="element" class="editor-body">
+      <teleport
+        v-for="{ id, type, element } in componentInstances"
+        :key="id"
+        :to="element"
+      >
+        <component :is="type"></component>
+      </teleport>
+    </div>
   </div>
 </template>
 <script lang="ts">
@@ -78,12 +81,23 @@ export default defineComponent({
   },
 });
 </script>
-<style lang="scss">
+<style>
 @import "~golden-layout/dist/css/goldenlayout-base.css";
 @import "~golden-layout/dist/css/themes/goldenlayout-dark-theme.css";
-
+</style>
+<style lang="scss" scoped>
 .editor-container {
-  width: 100%;
-  height: 75vh;
+  display: flex;
+  flex-flow: column;
+  height: 100%;
+  text-align: left;
+}
+
+.editor-head {
+  flex: 0 1 auto;
+}
+
+.editor-body {
+  flex: 1 1 auto;
 }
 </style>

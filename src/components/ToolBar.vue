@@ -72,3 +72,15 @@ export default defineComponent({
   }
 }
 </i18n>
+<style lang="scss" scoped>
+button {
+  margin: 2px 2px;
+  background: transparent;
+  color: inherit;
+  border: 1px solid gray;
+}
+button:hover {
+  background: white;
+  color: black;
+}
+</style>

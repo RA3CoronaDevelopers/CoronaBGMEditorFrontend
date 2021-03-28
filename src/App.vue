@@ -1,6 +1,6 @@
 <template>
   <editor v-if="connected"></editor>
-  <div v-else>
+  <div v-else style="padding-top: 60px;">
     <img alt="Vue logo" src="./assets/logo.png" />
     <hello-world msg="Connecting to WebSocket..." />
   </div>
@@ -23,11 +23,6 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-/** {
-  background-color: #2c3e50;
-  color: #eaeaea;
-}*/
-
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -35,6 +30,6 @@ export default defineComponent({
   text-align: center;
   background-color: #2c3e50;
   color: #eaeaea;
-  padding-top: 60px;
+  height: 100vh;
 }
 </style>
