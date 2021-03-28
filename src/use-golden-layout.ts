@@ -1,5 +1,5 @@
 import { GoldenLayout, LayoutConfig } from 'golden-layout'
-import { onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 
 const isClient = typeof window !== 'undefined'
 const isDocumentReady = () => isClient && document.readyState === 'complete' && document.body != null
@@ -35,6 +35,9 @@ export const useGoldenLayout = (
       throw new Error('Element must be set.')
     }
     const goldenLayout = new GoldenLayout(element.value)
+    const updateSize = () => goldenLayout.updateRootSize()
+    window.addEventListener('resize', updateSize)
+    onBeforeUnmount(() => window.removeEventListener('resize', updateSize))
 
     goldenLayout.getComponentEvent = (container, itemConfig) => {
       const { componentType } = itemConfig
