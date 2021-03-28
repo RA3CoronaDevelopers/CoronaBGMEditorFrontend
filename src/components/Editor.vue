@@ -11,7 +11,7 @@
 </template>
 <script lang="ts">
 import { useGoldenLayout } from "@/use-golden-layout";
-import { defineComponent, getCurrentInstance, ref } from "vue";
+import { defineComponent, ref } from "vue";
 import ToolBar from "./ToolBar.vue";
 import TrackList from "./TrackList.vue";
 
@@ -27,7 +27,7 @@ export default defineComponent({
     }
     let instanceId = 0;
     const componentTypes = new Set(Object.keys(components));
-    const componentInstances = ref([] as ComponentInstance[]);
+    const componentInstances = ref<ComponentInstance[]>([]);
 
     const createComponent = (type: string, element: HTMLElement) => {
       const component = componentTypes.has(type);
@@ -68,8 +68,7 @@ export default defineComponent({
 });
 </script>
 <style lang="scss">
-// @import '~golden-layout/dist/scss/goldenlayout-base.scss';
-@import "~golden-layout/dist/scss/goldenlayout-base.scss";
+@import "~golden-layout/dist/css/goldenlayout-base.css";
 @import "~golden-layout/dist/css/themes/goldenlayout-dark-theme.css";
 
 .editor-container {

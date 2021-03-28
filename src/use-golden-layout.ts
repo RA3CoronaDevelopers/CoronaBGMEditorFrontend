@@ -1,5 +1,5 @@
-import { GoldenLayout, LayoutConfig, LayoutManager } from 'golden-layout'
-import { Component, createVNode, onMounted, ref, render } from 'vue'
+import { GoldenLayout, LayoutConfig } from 'golden-layout'
+import { onMounted, ref } from 'vue'
 
 const isClient = typeof window !== 'undefined'
 const isDocumentReady = () => isClient && document.readyState === 'complete' && document.body != null
