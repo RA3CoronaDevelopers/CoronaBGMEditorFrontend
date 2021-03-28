@@ -12,10 +12,13 @@
 <script lang="ts">
 import { useGoldenLayout } from "@/use-golden-layout";
 import { defineComponent, ref } from "vue";
+import Assets from "./Assets.vue";
+import Inspector from "./Inspector.vue";
+import TimeLine from "./TimeLine.vue";
 import ToolBar from "./ToolBar.vue";
 import TrackList from "./TrackList.vue";
 
-const components = { ToolBar, TrackList };
+const components = { Assets, Inspector, TimeLine, ToolBar, TrackList };
 
 export default defineComponent({
   components,
@@ -49,16 +52,24 @@ export default defineComponent({
 
     const { element } = useGoldenLayout(createComponent, destroyComponent, {
       root: {
-        type: "column",
+        type: "row",
         content: [
           {
-            type: "component",
-            componentType: "ToolBar",
+            type: "column",
+            content: [
+              { 
+                type: "row",
+                content: [
+                  { type: "component", componentType: "TrackList", width: 35 },
+                  { type: "component", componentType: "TimeLine", width: 65 },
+                ],
+                height: 70
+              },
+              { type: "component", componentType: "Assets", height: 30 }
+            ],
+            width: 75
           },
-          {
-            type: "component",
-            componentType: "TrackList",
-          },
+          { type: "component", componentType: "Inspector", width: 25 },
         ],
       },
     });
