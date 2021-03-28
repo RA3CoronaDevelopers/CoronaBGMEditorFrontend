@@ -36,10 +36,7 @@ export const useGoldenLayout = (
     }
     const goldenLayout = new GoldenLayout(element.value)
 
-    const getComponentEvent: LayoutManager.GetComponentEventHandler = (
-      container,
-      itemConfig
-    ) => {
+    goldenLayout.getComponentEvent = (container, itemConfig) => {
       const { componentType } = itemConfig
       if (typeof componentType !== 'string') {
         throw new Error('Invalid component type.')
@@ -47,7 +44,9 @@ export const useGoldenLayout = (
 
       createComponent(componentType, container.element)
     }
-    goldenLayout.getComponentEvent = getComponentEvent
+    goldenLayout.releaseComponentEvent = container => {
+      destroyComponent(container.element)
+    }
 
     if (config != null) {
       goldenLayout.loadLayout(config)
