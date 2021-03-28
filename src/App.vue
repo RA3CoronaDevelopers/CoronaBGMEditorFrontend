@@ -1,8 +1,8 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png" />
-  <HelloWorld v-if="connected" msg="Welcome to Your Vue.js + TypeScript App" />
+  <editor v-if="connected"></editor>
   <div v-else>
-    <editor></editor>
+    <img alt="Vue logo" src="./assets/logo.png" />
+    <hello-world msg="Connecting to WebSocket..." />
   </div>
 </template>
 
@@ -35,6 +35,6 @@ export default defineComponent({
   text-align: center;
   background-color: #2c3e50;
   color: #eaeaea;
-  margin-top: 60px;
+  padding-top: 60px;
 }
 </style>
