@@ -74,7 +74,7 @@ export class TimeSpan {
       + '.'
       + milliseconds.padStart(3, '0')
       + (belowMilliseconds ?? '')
-    return result.replace(/[\.0]*$/, '')
+    return result.replace(/\.?0*$/, '')
   }
 
   public static parse(string: string) {

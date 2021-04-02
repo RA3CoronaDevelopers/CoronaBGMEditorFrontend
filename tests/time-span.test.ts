@@ -22,6 +22,7 @@ test('timespan arithmetic', () => {
 
 test('timespan string', () => {
     const t = TimeSpan.parse('0:0')
+    expect(`${t}`).toBe(`00:00`)
     t.seconds += 61
     expect(`${t}`).toBe(`01:01`)
     t.seconds += 61.3
@@ -30,4 +31,6 @@ test('timespan string', () => {
     expect(`${t}`).toBe(`02:02.3001`)
     t.seconds += 120
     expect(`${t}`).toBe(`04:02.3001`)
+    t.milliseconds -= 300
+    expect(`${t}`).toBe(`04:02.0001`)
 })
