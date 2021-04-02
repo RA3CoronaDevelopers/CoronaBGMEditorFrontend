@@ -1,5 +1,5 @@
 import { GoldenLayout, LayoutConfig } from 'golden-layout'
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref, shallowRef } from 'vue'
 
 const isClient = typeof window !== 'undefined'
 const isDocumentReady = () => isClient && document.readyState === 'complete' && document.body != null
@@ -26,8 +26,8 @@ export const useGoldenLayout = (
   destroyComponent: (container: HTMLElement) => void,
   config?: LayoutConfig
 ) => {
-  const element = ref<HTMLElement | null>(null)
-  const layout = ref<GoldenLayout | null>(null)
+  const element = shallowRef<HTMLElement | null>(null)
+  const layout = shallowRef<GoldenLayout | null>(null)
   const initialized = ref(false)
 
   useDocumentReady(() => {

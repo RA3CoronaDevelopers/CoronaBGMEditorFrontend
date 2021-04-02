@@ -14,7 +14,7 @@
 </template>
 <script lang="ts">
 import { useGoldenLayout } from "@/use-golden-layout";
-import { defineComponent, ref } from "vue";
+import { defineComponent, shallowRef } from "vue";
 import Assets from "./Assets.vue";
 import Inspector from "./Inspector.vue";
 import TimeLine from "./TimeLine.vue";
@@ -33,7 +33,7 @@ export default defineComponent({
     }
     let instanceId = 0;
     const componentTypes = new Set(Object.keys(components));
-    const componentInstances = ref<ComponentInstance[]>([]);
+    const componentInstances = shallowRef<ComponentInstance[]>([]);
 
     const createComponent = (type: string, element: HTMLElement) => {
       const component = componentTypes.has(type);
