@@ -34,13 +34,21 @@ export default defineComponent({
   padding: 4px;
   position: relative;
   color: rgb(209, 209, 209);
-  
+
   .track-id-button-overlay {
     position: absolute;
     left: 0;
     top: 0;
     bottom: 0;
     right: 0;
+
+    &:hover {
+      background: gray;
+    }
+
+    &:active {
+      background: black;
+    }
   }
   .track-id-button-inner {
     position: relative;
