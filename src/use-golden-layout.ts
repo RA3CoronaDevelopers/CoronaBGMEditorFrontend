@@ -22,7 +22,7 @@ const useDocumentReady = (func: () => void) => {
 }
 
 export const useGoldenLayout = (
-  createComponent: (type: string, container: HTMLElement) => void,
+  createComponent: (container: HTMLElement, type: string, data: unknown) => void,
   destroyComponent: (container: HTMLElement) => void,
   config?: LayoutConfig
 ) => {
@@ -44,8 +44,7 @@ export const useGoldenLayout = (
       if (typeof componentType !== 'string') {
         throw new Error('Invalid component type.')
       }
-
-      createComponent(componentType, container.element)
+      createComponent(container.element, componentType, itemConfig.componentState)
     }
     goldenLayout.releaseComponentEvent = container => {
       destroyComponent(container.element)

@@ -3,17 +3,24 @@
     <tool-bar class="editor-head"></tool-bar>
     <div ref="element" class="editor-body">
       <teleport
-        v-for="{ id, type, element } in componentInstances"
+        v-for="{ id, type, element, props, events } in componentInstances"
         :key="id"
         :to="element"
       >
-        <component :is="type"></component>
+        <component :is="type" v-bind="props" v-on="events"></component>
       </teleport>
     </div>
   </div>
 </template>
 <script lang="ts">
 import { useGoldenLayout } from "@/use-golden-layout";
+import {
+  ComponentItem,
+  ContentItem,
+  GoldenLayout,
+  LayoutConfig,
+  LayoutManager,
+} from "golden-layout";
 import { defineComponent, shallowRef } from "vue";
 import Assets from "./Assets.vue";
 import Inspector from "./Inspector.vue";
@@ -31,6 +38,39 @@ const components = {
   TrackList,
 };
 
+const initialLayout: LayoutConfig = {
+  root: {
+    type: "row",
+    content: [
+      {
+        type: "column",
+        content: [
+          {
+            type: "row",
+            content: [
+              {
+                type: "component",
+                componentType: "TrackList",
+                width: 35,
+                componentState: {},
+              },
+              {
+                type: "component",
+                componentType: "TimeLineContainer",
+                width: 65,
+              },
+            ],
+            height: 70,
+          },
+          { type: "component", componentType: "Assets", height: 30 },
+        ],
+        width: 75,
+      },
+      { type: "component", componentType: "Inspector", width: 25 },
+    ],
+  },
+};
+
 export default defineComponent({
   components,
   setup() {
@@ -38,52 +78,104 @@ export default defineComponent({
       id: number;
       type: string;
       element: HTMLElement;
+      props?: object;
+      events?: object;
     }
     let instanceId = 0;
     const componentTypes = new Set(Object.keys(components));
     const componentInstances = shallowRef<ComponentInstance[]>([]);
 
-    const createComponent = (type: string, element: HTMLElement) => {
+    const defaultProps = (type: string) => {
+      return {};
+    };
+    const defaultEvents = (type: string) => {
+      if (type === "TrackList") {
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        return { openTrack };
+      }
+      return {};
+    };
+
+    const createComponent = (
+      element: HTMLElement,
+      type: string,
+      data: unknown
+    ) => {
       const component = componentTypes.has(type);
       if (component == null) {
         throw new Error(`Component not found: '${type}'`);
       }
+      type Data = {
+        props?: object;
+        events?: object;
+      };
+      const { props, events }: Data =
+        data && typeof data === "object" ? data : {};
+
       ++instanceId;
       componentInstances.value = componentInstances.value.concat({
         id: instanceId,
         type,
         element,
+        props: { ...defaultProps(type), ...props },
+        events: { ...defaultEvents(type), ...events },
       });
     };
     const destroyComponent = (toBeRemoved: HTMLElement) => {
       componentInstances.value = componentInstances.value.filter(
-        ({ element }) => element == toBeRemoved
+        ({ element }) => element !== toBeRemoved
       );
     };
 
-    const { element } = useGoldenLayout(createComponent, destroyComponent, {
-      root: {
-        type: "row",
-        content: [
-          {
-            type: "column",
-            content: [
-              { 
-                type: "row",
-                content: [
-                  { type: "component", componentType: "TrackList", width: 35 },
-                  { type: "component", componentType: "TimeLine", width: 65 },
-                ],
-                height: 70
-              },
-              { type: "component", componentType: "Assets", height: 30 }
-            ],
-            width: 75
-          },
-          { type: "component", componentType: "Inspector", width: 25 },
-        ],
-      },
-    });
+    const { element, layout } = useGoldenLayout(
+      createComponent,
+      destroyComponent,
+      initialLayout
+    );
+
+    // 创建一个组件，并把它放到相同类型组件的旁边
+    const createComponentItem = (type: string, componentState?: {}) => {
+      const l = (layout.value as unknown) as GoldenLayout | null;
+      if (!l) {
+        throw new Error(`Golden Layout is null`);
+      }
+
+      // 寻找相同类型组件
+      const findComponentContainer = (node?: ContentItem) => {
+        const result: ComponentItem[] = [];
+        if (!node) {
+          return result;
+        }
+        const isChildCompatible = (child: ComponentItem) =>
+          child.componentType == type;
+        for (const child of node.contentItems) {
+          if (ContentItem.isComponentItem(child) && isChildCompatible(child)) {
+            result.push(child);
+          }
+          result.push(...findComponentContainer(child));
+        }
+        return result;
+      };
+      // 假如找到的话，把焦点设在找到的同类型组件上
+      const candidates = findComponentContainer(l.rootItem);
+      candidates[0]?.focus();
+      // 然后创建新组件，Golden Layout 将会尝试把组件创建在有焦点的组件旁边
+      const locationSelector = LayoutManager.afterFocusedItemIfPossibleLocationSelectors.map(
+        (x) => ({ ...x })
+      );
+      l.newComponentAtLocation(
+        type,
+        componentState,
+        undefined,
+        locationSelector
+      )?.focus();
+    };
+
+    const openTrack = (trackId: string) => {
+      createComponentItem("TimeLineContainer", {
+        props: { tracks: [trackId] },
+      });
+    };
 
     return { element, componentInstances };
   },
