@@ -56,7 +56,7 @@ export const useGoldenLayout = (
     }
 
     // https://github.com/microsoft/TypeScript/issues/34933
-    // eslint-disable-next-line
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     layout.value = goldenLayout as any
 
     initialized.value = true

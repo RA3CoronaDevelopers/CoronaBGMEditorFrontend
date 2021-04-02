@@ -19,7 +19,7 @@ export default defineComponent({
     ws.useMessageHandler("type", "Tracks", (m) => {
       trackIds.value = m.value.map((t) => t.id);
     });
-    ws.send({ requestedProperty: "Tracks" })
+    ws.send({ requestedProperty: "Tracks" });
     const openTrack = (id: string) => emit("open-track", id);
 
     return { trackIds, openTrack };
