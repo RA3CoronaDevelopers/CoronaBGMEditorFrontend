@@ -18,10 +18,18 @@ import { defineComponent, shallowRef } from "vue";
 import Assets from "./Assets.vue";
 import Inspector from "./Inspector.vue";
 import TimeLine from "./TimeLine.vue";
+import TimeLineContainer from "./TimeLineContainer.vue";
 import ToolBar from "./ToolBar.vue";
 import TrackList from "./TrackList.vue";
 
-const components = { Assets, Inspector, TimeLine, ToolBar, TrackList };
+const components = {
+  Assets,
+  Inspector,
+  TimeLineContainer,
+  TimeLine,
+  ToolBar,
+  TrackList,
+};
 
 export default defineComponent({
   components,
