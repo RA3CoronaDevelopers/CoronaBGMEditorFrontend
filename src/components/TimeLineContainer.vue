@@ -20,6 +20,7 @@ export default defineComponent({
 <style lang="scss" scoped>
 .timeline-container {
   overflow-x: auto;
+  position: relative;
   width: 100%;
   height: 100%;
 }
