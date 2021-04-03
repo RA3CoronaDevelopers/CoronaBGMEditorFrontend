@@ -52,7 +52,7 @@ export default defineComponent({
     const seconds = computed(
       () => new TimeSpan(track.value?.length.ticks ?? 0).totalSeconds
     );
-    const width = computed(() => `${props.scale * seconds.value}px`);
+    const width = computed(() => `${props.scale * 8 * seconds.value}px`);
 
     const checkPoints = computed(() =>
       (track.value?.checkPoints ?? []).map((c) => {
