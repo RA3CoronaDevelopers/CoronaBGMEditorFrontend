@@ -1,5 +1,9 @@
 <template>
-  <div class="timeline" :style="{ width }">
+  <div
+    class="timeline"
+    :style="{ width }"
+    :class="{ 'timeline-active': isActive }"
+  >
     <template v-if="track">
       <div
         class="checkpoint"
@@ -26,6 +30,10 @@ export default defineComponent({
       default: 1,
     },
     trackId: String,
+    isActive: {
+      type: Boolean,
+      default: false,
+    },
   },
   setup(props, { emit }) {
     const ws = useConnection();
@@ -70,10 +78,14 @@ export default defineComponent({
     box-sizing: border-box;
     position: absolute;
     height: 100%;
-    border-left: 2px solid lawngreen;
+    border-left: 1px solid lawngreen;
     .checkpoint-content {
       background: green;
     }
   }
+}
+
+.timeline-active {
+  background: darkslategray;
 }
 </style>
