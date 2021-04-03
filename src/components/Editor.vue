@@ -28,6 +28,7 @@ import TimeLine from "./TimeLine.vue";
 import TimeLineContainer from "./TimeLineContainer.vue";
 import ToolBar from "./ToolBar.vue";
 import TrackList from "./TrackList.vue";
+import { ExtractProp } from "@/utils";
 
 const components = {
   Assets,
@@ -150,14 +151,37 @@ export default defineComponent({
       }
 
       // 寻找相同类型组件
+      let existingComponent: ComponentItem | undefined;
       const candidates: ComponentItem[] = [];
       traverseLayout((c) => {
         if (ContentItem.isComponentItem(c) && c.componentType === type) {
           candidates.push(c);
+          // 时间轴容器的特殊处理
+          if (type === "TimeLineContainer") {
+            // 用现有时间轴的参数，以及新的时间轴的参数，进行比较……
+            type PropData = {
+              props?: Partial<ExtractProp<typeof TimeLineContainer>>;
+            };
+            const { props: existing } = c.component as PropData;
+            const { props: input } = (componentState || {}) as PropData;
+            // 假如要打开的轨道已经存在于现有的时间轴
+            if (input?.tracks?.every((t) => existing?.tracks?.includes(t))) {
+              // 那么就直接使用现有的时间轴
+              existingComponent = c;
+              return false;
+            }
+          }
         }
         return true;
       });
-      // 假如找到的话，把焦点设在找到的同类型组件上
+      // 假如找到完全符合的现有的组件，那么就不需要创建新组件了
+      if (existingComponent) {
+        // 直接把焦点设在现有的组件上即可
+        existingComponent.focus();
+        return;
+      }
+
+      // 假如找到相同类型组件，把焦点设在找到的同类型组件上
       candidates[0]?.focus();
       // 然后创建新组件，Golden Layout 将会尝试把组件创建在有焦点的组件旁边
       const locationSelector = LayoutManager.afterFocusedItemIfPossibleLocationSelectors.map(
