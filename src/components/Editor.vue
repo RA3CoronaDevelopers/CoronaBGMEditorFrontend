@@ -74,12 +74,15 @@ const initialLayout: LayoutConfig = {
 export default defineComponent({
   components,
   setup() {
-    interface ComponentInstance {
+    type ComponentData = {
+      props?: object;
+      events?: object;
+    };
+
+    interface ComponentInstance extends ComponentData {
       id: number;
       type: string;
       element: HTMLElement;
-      props?: object;
-      events?: object;
     }
     let instanceId = 0;
     const componentTypes = new Set(Object.keys(components));
@@ -105,11 +108,8 @@ export default defineComponent({
       if (component == null) {
         throw new Error(`Component not found: '${type}'`);
       }
-      type Data = {
-        props?: object;
-        events?: object;
-      };
-      const { props, events }: Data =
+
+      const { props, events }: ComponentData =
         data && typeof data === "object" ? data : {};
 
       ++instanceId;
@@ -140,7 +140,10 @@ export default defineComponent({
     );
 
     // 创建一个组件，并把它放到相同类型组件的旁边
-    const createComponentItem = (type: string, componentState?: {}) => {
+    const createComponentItem = (
+      type: string,
+      componentState?: ComponentData
+    ) => {
       const l = (layout.value as unknown) as GoldenLayout | null;
       if (!l) {
         throw new Error(`Golden Layout is null`);
