@@ -44,7 +44,7 @@ export const useGoldenLayout = (
       if (typeof componentType !== 'string') {
         throw new Error('Invalid component type.')
       }
-      createComponent(container.element, componentType, itemConfig.componentState)
+      return createComponent(container.element, componentType, itemConfig.componentState)
     }
     goldenLayout.releaseComponentEvent = container => {
       destroyComponent(container.element)

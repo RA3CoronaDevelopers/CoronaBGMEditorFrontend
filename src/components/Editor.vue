@@ -113,13 +113,19 @@ export default defineComponent({
         data && typeof data === "object" ? data : {};
 
       ++instanceId;
-      componentInstances.value = componentInstances.value.concat({
+      const componentInstance = {
         id: instanceId,
         type,
         element,
         props: { ...defaultProps(type), ...props },
         events: { ...defaultEvents(type), ...events },
-      });
+      };
+      componentInstances.value = componentInstances.value.concat(
+        componentInstance
+      );
+      // TODO: 也许以后会有需要动态调整 prop 的情况，那样就得改成响应式了
+      // 包括下面使用 ExtractProp<T> 的地方也得留意一下？可能实际上并不需要留意（
+      return componentInstance;
     };
     const destroyComponent = (toBeRemoved: HTMLElement) => {
       componentInstances.value = componentInstances.value.filter(
