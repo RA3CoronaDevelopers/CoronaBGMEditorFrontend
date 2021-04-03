@@ -1,4 +1,4 @@
-import { GoldenLayout, LayoutConfig } from 'golden-layout'
+import { ContentItem, GoldenLayout, LayoutConfig } from 'golden-layout'
 import { onBeforeUnmount, onMounted, ref, shallowRef } from 'vue'
 
 const isClient = typeof window !== 'undefined'
@@ -61,5 +61,28 @@ export const useGoldenLayout = (
     initialized.value = true
   })
 
-  return { element, initialized, layout }
+  const traverseComponentTree = (visitor: (c: ContentItem) => boolean, root: ContentItem) => {
+    if (!visitor(root)) {
+      return false
+    }
+    for (const child of root.contentItems) {
+      if (!traverseComponentTree(visitor, child)) {
+        return false
+      }
+    }
+    return true
+  }
+
+  const traverseLayout = (visitor: (c: ContentItem) => boolean) => {
+    const l = layout.value
+    if (!l) {
+      throw new Error(`Golden Layout is not initialized`);
+    }
+    if (!l.rootItem) {
+      throw new Error(`Golden Layout does not have root`)
+    }
+    return traverseComponentTree(visitor, l.rootItem)
+  }
+
+  return { element, initialized, layout, traverseComponentTree, traverseLayout }
 }

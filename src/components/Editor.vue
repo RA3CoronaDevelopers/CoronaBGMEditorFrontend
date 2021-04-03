@@ -127,7 +127,7 @@ export default defineComponent({
       );
     };
 
-    const { element, layout } = useGoldenLayout(
+    const { element, layout, traverseLayout } = useGoldenLayout(
       createComponent,
       destroyComponent,
       initialLayout
@@ -141,23 +141,14 @@ export default defineComponent({
       }
 
       // 寻找相同类型组件
-      const findComponentContainer = (node?: ContentItem) => {
-        const result: ComponentItem[] = [];
-        if (!node) {
-          return result;
+      const candidates: ComponentItem[] = [];
+      traverseLayout((c) => {
+        if (ContentItem.isComponentItem(c) && c.componentType === type) {
+          candidates.push(c);
         }
-        const isChildCompatible = (child: ComponentItem) =>
-          child.componentType == type;
-        for (const child of node.contentItems) {
-          if (ContentItem.isComponentItem(child) && isChildCompatible(child)) {
-            result.push(child);
-          }
-          result.push(...findComponentContainer(child));
-        }
-        return result;
-      };
+        return true;
+      });
       // 假如找到的话，把焦点设在找到的同类型组件上
-      const candidates = findComponentContainer(l.rootItem);
       candidates[0]?.focus();
       // 然后创建新组件，Golden Layout 将会尝试把组件创建在有焦点的组件旁边
       const locationSelector = LayoutManager.afterFocusedItemIfPossibleLocationSelectors.map(
