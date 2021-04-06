@@ -29,6 +29,8 @@ import TimeLineContainer from "./TimeLineContainer.vue";
 import ToolBar from "./ToolBar.vue";
 import TrackList from "./TrackList.vue";
 import { ExtractProp } from "@/utils";
+import { useConnection } from "@/ws-plugin";
+import { useStore } from "@/store";
 
 const components = {
   Assets,
@@ -75,6 +77,15 @@ const initialLayout: LayoutConfig = {
 export default defineComponent({
   components,
   setup() {
+    // 获取数据
+    const store = useStore()
+    const connection = useConnection()
+    connection.useMessageHandler('type', 'Tracks', tracks => {
+      store.commit('setTracks', tracks.value)
+    })
+    connection.send({ requestedProperty: 'Tracks' });
+
+    // 设置组件
     type ComponentData = {
       props?: object;
       events?: object;

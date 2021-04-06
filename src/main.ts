@@ -3,7 +3,7 @@ import App from './App.vue'
 import { wsPlugin } from './ws-plugin'
 import i18n from './i18n'
 import 'normalize.css'
-import store from './store'
+import { store } from './store'
 
 const app = createApp(App)
   .use(store)

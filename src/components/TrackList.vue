@@ -9,17 +9,15 @@
   </div>
 </template>
 <script lang="ts">
-import { useConnection } from "@/ws-plugin";
-import { defineComponent, ref } from "vue";
+import { useStore } from "@/store";
+import { computed, defineComponent } from "vue";
 export default defineComponent({
   setup(_, { emit }) {
-    const ws = useConnection();
+    const store = useStore();
 
-    const trackIds = ref([] as string[]);
-    ws.useMessageHandler("type", "Tracks", (m) => {
-      trackIds.value = m.value.map((t) => t.id);
-    });
-    ws.send({ requestedProperty: "Tracks" });
+    const trackIds = computed(() =>
+      Array.from(store.state.tracks.entries()).map(([id]) => id)
+    );
     const openTrack = (id: string) => emit("open-track", id);
 
     return { trackIds, openTrack };

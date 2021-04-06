@@ -19,9 +19,9 @@
   </div>
 </template>
 <script lang="ts">
+import { useStore } from "@/store";
 import { TimeSpan } from "@/time-span";
-import { useConnection } from "@/ws-plugin";
-import { computed, defineComponent, reactive, ref, watchEffect } from "vue";
+import { computed, defineComponent } from "vue";
 
 export default defineComponent({
   props: {
@@ -35,19 +35,13 @@ export default defineComponent({
       default: false,
     },
   },
-  setup(props, { emit }) {
-    const ws = useConnection();
-
-    let filter: string | undefined;
-    const track = ref<Track | null>(null);
-    ws.useMessageHandler("type", "Tracks", (tracks) => {
-      const filtered = tracks.value.filter(({ id }) => id === filter);
-      track.value = filtered.length > 0 ? reactive(filtered[0]) : null;
-    });
-    watchEffect(() => {
-      filter = props.trackId;
-      ws.sendRequest({ requestedProperty: "Tracks" });
-    });
+  setup(props) {
+    const store = useStore();
+    const track = computed(() =>
+      props.trackId === undefined
+        ? undefined
+        : store.state.tracks.get(props.trackId)
+    );
 
     const seconds = computed(
       () => new TimeSpan(track.value?.length.ticks ?? 0).totalSeconds
