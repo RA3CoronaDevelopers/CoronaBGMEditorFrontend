@@ -13,24 +13,24 @@
   </div>
 </template>
 <script lang="ts">
-import { useGoldenLayout } from "@/use-golden-layout";
+import { useGoldenLayout } from '@/use-golden-layout'
 import {
   ComponentItem,
   ContentItem,
   GoldenLayout,
   LayoutConfig,
   LayoutManager,
-} from "golden-layout";
-import { defineComponent, shallowRef } from "vue";
-import Assets from "./Assets.vue";
-import Inspector from "./Inspector.vue";
-import TimeLine from "./TimeLine.vue";
-import TimeLineContainer from "./TimeLineContainer.vue";
-import ToolBar from "./ToolBar.vue";
-import TrackList from "./TrackList.vue";
-import { ExtractProp } from "@/utils";
-import { useConnection } from "@/ws-plugin";
-import { useStore } from "@/store";
+} from 'golden-layout'
+import { defineComponent, shallowRef } from 'vue'
+import Assets from './Assets.vue'
+import Inspector from './Inspector.vue'
+import TimeLine from './TimeLine.vue'
+import TimeLineContainer from './TimeLineContainer.vue'
+import ToolBar from './ToolBar.vue'
+import TrackList from './TrackList.vue'
+import { ExtractProp } from '@/utils'
+import { useConnection } from '@/ws-plugin'
+import { useStore } from '@/store'
 
 const components = {
   Assets,
@@ -39,40 +39,40 @@ const components = {
   TimeLine,
   ToolBar,
   TrackList,
-};
+}
 
 const initialLayout: LayoutConfig = {
   root: {
-    type: "row",
+    type: 'row',
     content: [
       {
-        type: "column",
+        type: 'column',
         content: [
           {
-            type: "row",
+            type: 'row',
             content: [
               {
-                type: "component",
-                componentType: "TrackList",
+                type: 'component',
+                componentType: 'TrackList',
                 width: 35,
                 componentState: {},
               },
               {
-                type: "component",
-                componentType: "TimeLineContainer",
+                type: 'component',
+                componentType: 'TimeLineContainer',
                 width: 65,
               },
             ],
             height: 70,
           },
-          { type: "component", componentType: "Assets", height: 30 },
+          { type: 'component', componentType: 'Assets', height: 30 },
         ],
         width: 75,
       },
-      { type: "component", componentType: "Inspector", width: 25 },
+      { type: 'component', componentType: 'Inspector', width: 25 },
     ],
   },
-};
+}
 
 export default defineComponent({
   components,
@@ -83,142 +83,142 @@ export default defineComponent({
     connection.useMessageHandler('type', 'Tracks', tracks => {
       store.commit('setTracks', tracks.value)
     })
-    connection.send({ requestedProperty: 'Tracks' });
+    connection.send({ requestedProperty: 'Tracks' })
 
     // 设置组件
     type ComponentData = {
-      props?: object;
-      events?: object;
-    };
+      props?: object
+      events?: object
+    }
 
     interface ComponentInstance extends ComponentData {
-      id: number;
-      type: string;
-      element: HTMLElement;
+      id: number
+      type: string
+      element: HTMLElement
     }
-    let instanceId = 0;
-    const componentTypes = new Set(Object.keys(components));
-    const componentInstances = shallowRef<ComponentInstance[]>([]);
+    let instanceId = 0
+    const componentTypes = new Set(Object.keys(components))
+    const componentInstances = shallowRef<ComponentInstance[]>([])
 
     const defaultProps = (type: string) => {
-      return {};
-    };
+      return {}
+    }
     const defaultEvents = (type: string) => {
-      if (type === "TrackList") {
+      if (type === 'TrackList') {
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        return { openTrack };
+        return { openTrack }
       }
-      return {};
-    };
+      return {}
+    }
 
     const createComponent = (
       element: HTMLElement,
       type: string,
       data: unknown
     ) => {
-      const component = componentTypes.has(type);
+      const component = componentTypes.has(type)
       if (component == null) {
-        throw new Error(`Component not found: '${type}'`);
+        throw new Error(`Component not found: '${type}'`)
       }
 
       const { props, events }: ComponentData =
-        data && typeof data === "object" ? data : {};
+        data && typeof data === 'object' ? data : {}
 
-      ++instanceId;
+      ++instanceId
       const componentInstance = {
         id: instanceId,
         type,
         element,
         props: { ...defaultProps(type), ...props },
         events: { ...defaultEvents(type), ...events },
-      };
+      }
       componentInstances.value = componentInstances.value.concat(
         componentInstance
-      );
+      )
       // TODO: 也许以后会有需要动态调整 prop 的情况，那样就得改成响应式了
       // 包括下面使用 ExtractProp<T> 的地方也得留意一下？可能实际上并不需要留意（
-      return componentInstance;
-    };
+      return componentInstance
+    }
     const destroyComponent = (toBeRemoved: HTMLElement) => {
       componentInstances.value = componentInstances.value.filter(
         ({ element }) => element !== toBeRemoved
-      );
-    };
+      )
+    }
 
     const { element, layout, traverseLayout } = useGoldenLayout(
       createComponent,
       destroyComponent,
       initialLayout
-    );
+    )
 
     // 创建一个组件，并把它放到相同类型组件的旁边
     const createComponentItem = (
       type: string,
       componentState?: ComponentData
     ) => {
-      const l = (layout.value as unknown) as GoldenLayout | null;
+      const l = (layout.value as unknown) as GoldenLayout | null
       if (!l) {
-        throw new Error(`Golden Layout is null`);
+        throw new Error(`Golden Layout is null`)
       }
 
       // 寻找相同类型组件
-      let existingComponent: ComponentItem | undefined;
-      const candidates: ComponentItem[] = [];
-      traverseLayout((c) => {
+      let existingComponent: ComponentItem | undefined
+      const candidates: ComponentItem[] = []
+      traverseLayout(c => {
         if (ContentItem.isComponentItem(c) && c.componentType === type) {
-          candidates.push(c);
+          candidates.push(c)
           // 时间轴容器的特殊处理
-          if (type === "TimeLineContainer") {
+          if (type === 'TimeLineContainer') {
             // 用现有时间轴的参数，以及新的时间轴的参数，进行比较……
             type PropData = {
-              props?: Partial<ExtractProp<typeof TimeLineContainer>>;
-            };
-            const { props: existing } = c.component as PropData;
-            const { props: input } = (componentState || {}) as PropData;
+              props?: Partial<ExtractProp<typeof TimeLineContainer>>
+            }
+            const { props: existing } = c.component as PropData
+            const { props: input } = (componentState || {}) as PropData
             // 假如要打开的轨道已经存在于现有的时间轴
-            if (input?.tracks?.every((t) => existing?.tracks?.includes(t))) {
+            if (input?.tracks?.every(t => existing?.tracks?.includes(t))) {
               // 那么就直接使用现有的时间轴
-              existingComponent = c;
-              return false;
+              existingComponent = c
+              return false
             }
           }
         }
-        return true;
-      });
+        return true
+      })
       // 假如找到完全符合的现有的组件，那么就不需要创建新组件了
       if (existingComponent) {
         // 直接把焦点设在现有的组件上即可
-        existingComponent.focus();
-        return;
+        existingComponent.focus()
+        return
       }
 
       // 假如找到相同类型组件，把焦点设在找到的同类型组件上
-      candidates[0]?.focus();
+      candidates[0]?.focus()
       // 然后创建新组件，Golden Layout 将会尝试把组件创建在有焦点的组件旁边
       const locationSelector = LayoutManager.afterFocusedItemIfPossibleLocationSelectors.map(
-        (x) => ({ ...x })
-      );
+        x => ({ ...x })
+      )
       l.newComponentAtLocation(
         type,
         componentState,
         undefined,
         locationSelector
-      )?.focus();
-    };
+      )?.focus()
+    }
 
     const openTrack = (trackId: string) => {
-      createComponentItem("TimeLineContainer", {
+      createComponentItem('TimeLineContainer', {
         props: { tracks: [trackId] },
-      });
-    };
+      })
+    }
 
-    return { element, componentInstances };
+    return { element, componentInstances }
   },
-});
+})
 </script>
 <style>
-@import "~golden-layout/dist/css/goldenlayout-base.css";
-@import "~golden-layout/dist/css/themes/goldenlayout-dark-theme.css";
+@import '~golden-layout/dist/css/goldenlayout-base.css';
+@import '~golden-layout/dist/css/themes/goldenlayout-dark-theme.css';
 </style>
 <style lang="scss" scoped>
 .editor-container {

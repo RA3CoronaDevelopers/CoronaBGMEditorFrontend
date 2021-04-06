@@ -4,10 +4,13 @@ export const has = <K extends string>(
   object: unknown,
   key: K
 ): object is Record<K, unknown> => {
-  return typeof object === 'object' && object !== null && object.hasOwnProperty(key)
+  return (
+    typeof object === 'object' && object !== null && object.hasOwnProperty(key)
+  )
 }
 
-export const isString = (object: unknown): object is string => typeof object === 'string'
+export const isString = (object: unknown): object is string =>
+  typeof object === 'string'
 
 export const isArray = <T>(
   object: unknown,
@@ -16,4 +19,6 @@ export const isArray = <T>(
   return Array.isArray(object) && object.every(x => checker(x))
 }
 
-export type ExtractProp<Type> = Type extends ComponentOptions<infer Props> ? Props : never
+export type ExtractProp<Type> = Type extends ComponentOptions<infer Props>
+  ? Props
+  : never

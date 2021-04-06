@@ -1,52 +1,52 @@
 <template>
   <div>
-    <button @click="loadXml">{{ t("loadXml") }}</button>
-    <button @click="saveXml">{{ t("saveXml") }}</button>
+    <button @click="loadXml">{{ t('loadXml') }}</button>
+    <button @click="saveXml">{{ t('saveXml') }}</button>
     <button @click="togglePlay">{{ playText }}</button>
   </div>
 </template>
 <script lang="ts">
-import { useI18n } from "vue-i18n";
-import { computed, defineComponent, ref } from "vue";
-import { useConnection } from "@/ws-plugin";
+import { useI18n } from 'vue-i18n'
+import { computed, defineComponent, ref } from 'vue'
+import { useConnection } from '@/ws-plugin'
 export default defineComponent({
   setup() {
     // IPC 连接
-    const ws = useConnection();
+    const ws = useConnection()
     // 翻译
-    const { t } = useI18n();
+    const { t } = useI18n()
 
     // 加载 XML 文件
     const loadXml = async () => {
       const response: FileDialogResult = await ws.sendRequest({
-        method: "OpenFileDialog",
-        title: t("loadXml"),
-        filters: `${t("xmlFiles")}|*.xml|${t("allFiles")}|*.*`
-      });
+        method: 'OpenFileDialog',
+        title: t('loadXml'),
+        filters: `${t('xmlFiles')}|*.xml|${t('allFiles')}|*.*`,
+      })
       if (response.path) {
-        ws.send({ method: "LoadXml", path: response.path });
+        ws.send({ method: 'LoadXml', path: response.path })
       }
-    };
+    }
 
     // 保存 XML 文件
     const saveXml = async () => {
       const response: FileDialogResult = await ws.sendRequest({
-        method: "SaveFileDialog",
-        title: t("saveXml"),
-        filters: t("xmlFilters"),
-      });
+        method: 'SaveFileDialog',
+        title: t('saveXml'),
+        filters: t('xmlFilters'),
+      })
       if (response.path) {
-        ws.send({ method: "SaveXml", path: response.path });
+        ws.send({ method: 'SaveXml', path: response.path })
       }
-    };
+    }
 
     // 播放以及暂停
-    const playing = ref(false);
+    const playing = ref(false)
     const togglePlay = () => {
-      ws.send({ propertyToBeSet: "Playing", value: !playing.value });
-    };
-    ws.useMessageHandler("type", "Playing", (m) => (playing.value = m.value));
-    const playText = computed(() => t(playing.value ? "play" : "stop"));
+      ws.send({ propertyToBeSet: 'Playing', value: !playing.value })
+    }
+    ws.useMessageHandler('type', 'Playing', m => (playing.value = m.value))
+    const playText = computed(() => t(playing.value ? 'play' : 'stop'))
 
     return {
       t,
@@ -55,9 +55,9 @@ export default defineComponent({
       playing,
       togglePlay,
       playText,
-    };
+    }
   },
-});
+})
 </script>
 <i18n>
 {

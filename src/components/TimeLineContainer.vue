@@ -10,8 +10,8 @@
   </div>
 </template>
 <script lang="ts">
-import { defineComponent, ref } from "vue";
-import TimeLine from "./TimeLine.vue";
+import { defineComponent, ref } from 'vue'
+import TimeLine from './TimeLine.vue'
 
 export default defineComponent({
   components: { TimeLine },
@@ -22,12 +22,12 @@ export default defineComponent({
     },
   },
   setup() {
-    const activeTrackId = ref<string | null>(null);
+    const activeTrackId = ref<string | null>(null)
     return {
       activeTrackId,
-    };
+    }
   },
-});
+})
 </script>
 <style lang="scss" scoped>
 .timeline-container {

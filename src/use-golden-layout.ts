@@ -2,14 +2,14 @@ import { ContentItem, GoldenLayout, LayoutConfig } from 'golden-layout'
 import { onBeforeUnmount, onMounted, ref, shallowRef } from 'vue'
 
 const isClient = typeof window !== 'undefined'
-const isDocumentReady = () => isClient && document.readyState === 'complete' && document.body != null
+const isDocumentReady = () =>
+  isClient && document.readyState === 'complete' && document.body != null
 
 const useDocumentReady = (func: () => void) => {
   onMounted(() => {
     if (isDocumentReady()) {
       func()
-    }
-    else {
+    } else {
       document.addEventListener(
         'readystatechange',
         () => isDocumentReady() && func(),
@@ -22,7 +22,11 @@ const useDocumentReady = (func: () => void) => {
 }
 
 export const useGoldenLayout = (
-  createComponent: (container: HTMLElement, type: string, data: unknown) => void,
+  createComponent: (
+    container: HTMLElement,
+    type: string,
+    data: unknown
+  ) => void,
   destroyComponent: (container: HTMLElement) => void,
   config?: LayoutConfig
 ) => {
@@ -44,7 +48,11 @@ export const useGoldenLayout = (
       if (typeof componentType !== 'string') {
         throw new Error('Invalid component type.')
       }
-      return createComponent(container.element, componentType, itemConfig.componentState)
+      return createComponent(
+        container.element,
+        componentType,
+        itemConfig.componentState
+      )
     }
     goldenLayout.releaseComponentEvent = container => {
       destroyComponent(container.element)
@@ -61,7 +69,10 @@ export const useGoldenLayout = (
     initialized.value = true
   })
 
-  const traverseComponentTree = (visitor: (c: ContentItem) => boolean, root: ContentItem) => {
+  const traverseComponentTree = (
+    visitor: (c: ContentItem) => boolean,
+    root: ContentItem
+  ) => {
     if (!visitor(root)) {
       return false
     }
@@ -76,7 +87,7 @@ export const useGoldenLayout = (
   const traverseLayout = (visitor: (c: ContentItem) => boolean) => {
     const l = layout.value
     if (!l) {
-      throw new Error(`Golden Layout is not initialized`);
+      throw new Error(`Golden Layout is not initialized`)
     }
     if (!l.rootItem) {
       throw new Error(`Golden Layout does not have root`)

@@ -19,9 +19,9 @@
   </div>
 </template>
 <script lang="ts">
-import { useStore } from "@/store";
-import { TimeSpan } from "@/time-span";
-import { computed, defineComponent } from "vue";
+import { useStore } from '@/store'
+import { TimeSpan } from '@/time-span'
+import { computed, defineComponent } from 'vue'
 
 export default defineComponent({
   props: {
@@ -36,31 +36,31 @@ export default defineComponent({
     },
   },
   setup(props) {
-    const store = useStore();
+    const store = useStore()
     const track = computed(() =>
       props.trackId === undefined
         ? undefined
         : store.state.tracks.get(props.trackId)
-    );
+    )
 
     const seconds = computed(
       () => new TimeSpan(track.value?.length.ticks ?? 0).totalSeconds
-    );
-    const width = computed(() => `${props.scale * 8 * seconds.value}px`);
+    )
+    const width = computed(() => `${props.scale * 8 * seconds.value}px`)
 
     const checkPoints = computed(() =>
-      (track.value?.checkPoints ?? []).map((c) => {
-        const time = new TimeSpan(c.time.ticks);
+      (track.value?.checkPoints ?? []).map(c => {
+        const time = new TimeSpan(c.time.ticks)
         return {
           time,
           left: `${(time.totalSeconds * 100) / seconds.value}%`,
-        };
+        }
       })
-    );
+    )
 
-    return { track, width, checkPoints };
+    return { track, width, checkPoints }
   },
-});
+})
 </script>
 <style lang="scss" scoped>
 .timeline {

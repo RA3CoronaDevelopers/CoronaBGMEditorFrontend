@@ -1,5 +1,5 @@
-const millisecondsMultiplier = 10000
-const secondsMultiplier = millisecondsMultiplier * 1000
+const msMultiplier = 10000
+const secondsMultiplier = msMultiplier * 1000
 const minutesMultiplier = secondsMultiplier * 60
 
 // similiar to .NET TimeSpan
@@ -11,10 +11,10 @@ export class TimeSpan {
   }
 
   public get totalMilliseconds() {
-    return this.ticks / millisecondsMultiplier
+    return this.ticks / msMultiplier
   }
   public set totalMilliseconds(value) {
-    this.ticks = value * millisecondsMultiplier
+    this.ticks = value * msMultiplier
   }
 
   public get totalSeconds() {
@@ -32,10 +32,10 @@ export class TimeSpan {
   }
 
   public get milliseconds() {
-    return this.splitted.msPart / millisecondsMultiplier
+    return this.splitted.msPart / msMultiplier
   }
   public set milliseconds(value) {
-    this.splitted = { ...this.splitted, msPart: value * millisecondsMultiplier }
+    this.splitted = { ...this.splitted, msPart: value * msMultiplier }
   }
 
   public get seconds() {
@@ -67,13 +67,14 @@ export class TimeSpan {
     const { msPart, sPart, sOther } = this.splitted
     const minutes = `${sOther / minutesMultiplier}`
     const seconds = `${sPart / secondsMultiplier}`
-    const [milliseconds, belowMilliseconds] = `${msPart / millisecondsMultiplier}`.split('.')
-    const result = minutes.padStart(2, '0')
-      + ':'
-      + seconds.padStart(2, '0')
-      + '.'
-      + milliseconds.padStart(3, '0')
-      + (belowMilliseconds ?? '')
+    const [milliseconds, belowMs] = `${msPart / msMultiplier}`.split('.')
+    const result =
+      minutes.padStart(2, '0') +
+      ':' +
+      seconds.padStart(2, '0') +
+      '.' +
+      milliseconds.padStart(3, '0') +
+      (belowMs ?? '')
     return result.replace(/\.?0*$/, '')
   }
 
@@ -83,7 +84,8 @@ export class TimeSpan {
       throw new Error(`Unexpecteed timespan string: ${string}`)
     }
     const [minutes, seconds] = splitted.map(x => parseFloat(x))
-    return new TimeSpan(minutes * minutesMultiplier + seconds * secondsMultiplier)
+    return new TimeSpan(
+      minutes * minutesMultiplier + seconds * secondsMultiplier
+    )
   }
-
 }
