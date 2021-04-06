@@ -2,11 +2,11 @@ import {
   createStore,
   MutationTree,
   Store as VuexStore,
-  useStore as vuexUseStore,
+  useStore as vuexUseStore
 } from 'vuex'
 
 const state = {
-  tracks: new Map<string, Track>(),
+  tracks: new Map<string, Track>()
 }
 
 const declareMutations = <T extends MutationTree<typeof state>>(t: T) => t
@@ -16,14 +16,14 @@ const mutations = declareMutations({
   },
   updateTrack(state, track: Track) {
     state.tracks.set(track.id, track)
-  },
+  }
 })
 
 export const store = createStore({
   state,
   mutations,
   actions: {},
-  modules: {},
+  modules: {}
 })
 
 type State = typeof state
