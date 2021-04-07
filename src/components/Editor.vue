@@ -193,7 +193,7 @@ export default defineComponent({
       }
 
       // 假如找到相同类型组件，把焦点设在找到的同类型组件上
-      candidates[0]?.focus()
+      candidates[candidates.length - 1]?.focus()
       // 然后创建新组件，Golden Layout 将会尝试把组件创建在有焦点的组件旁边
       const locationSelector = LayoutManager.afterFocusedItemIfPossibleLocationSelectors.map(
         x => ({ ...x })
