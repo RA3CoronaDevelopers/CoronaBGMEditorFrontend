@@ -28,6 +28,7 @@ import TimeLine from './TimeLine.vue'
 import TimeLineContainer from './TimeLineContainer.vue'
 import ToolBar from './ToolBar.vue'
 import TrackList from './TrackList.vue'
+import TrackProperties from './TrackProperties.vue'
 import { ExtractProp } from '@/utils'
 import { useConnection } from '@/ws-plugin'
 import { useStore } from '@/store'
@@ -39,6 +40,7 @@ const components = {
   TimeLine,
   ToolBar,
   TrackList,
+  TrackProperties,
 }
 type Components = typeof components
 
@@ -157,26 +159,57 @@ export default defineComponent({
       let existingComponent: ComponentItem | undefined
       const candidates: ComponentItem[] = []
       traverseLayout(c => {
-        if (ContentItem.isComponentItem(c) && c.componentType === data.type) {
+        if (!ContentItem.isComponentItem(c)) {
+          // 返回 true 以继续遍历
+          return true
+        }
+
+        if (c.componentType === 'Inspector') {
+          // 属性页面默认创建在 Inspector 附近
+          if (data.type === 'TrackProperties') {
+            candidates.push(c)
+          }
+        }
+
+        if (c.componentType === data.type) {
           candidates.push(c)
 
           const getComponentProps = <T extends UnionValues>() => {
             return (c.component as { props?: Partial<T['props']> }).props
           }
 
-          // 时间轴容器的特殊处理
-          if (data.type === 'TimeLineContainer') {
-            // 用现有时间轴的参数，以及新的时间轴的参数，进行比较……
-            const existing = getComponentProps<typeof data>()
-            const inputTracks = data.props.tracks
-            // 假如要打开的轨道已经存在于现有的时间轴
-            if (inputTracks.every(t => existing?.tracks?.includes(t))) {
-              // 那么就直接使用现有的时间轴
-              existingComponent = c
-              return false
+          switch (data.type) {
+            // 时间轴容器的特殊处理
+            case 'TimeLineContainer': {
+              // 用现有时间轴的参数，以及新的时间轴的参数，进行比较……
+              const existingProps = getComponentProps<typeof data>()
+              const inputTracks = data.props.tracks
+              // 假如要打开的轨道 已经存在于现有的时间轴
+              if (inputTracks.every(t => existingProps?.tracks?.includes(t))) {
+                // 那么就直接使用现有的时间轴
+                existingComponent = c
+                // 停止遍历
+                return false
+              }
+              break
+            }
+            // 属性页面的特殊处理
+            case 'TrackProperties': {
+              // 用现有属性页面的参数，以及新的时间轴的参数，进行比较……
+              const existing = getComponentProps<typeof data>()
+              const inputTrackId = data.props.track.id
+              // 假如要打开的轨道 已经存在于现有的属性页面
+              if (existing?.track?.id === inputTrackId) {
+                // 那么就直接使用现有的属性页面
+                existingComponent = c
+                // 停止遍历
+                return false
+              }
+              break
             }
           }
         }
+        // 返回 true 以继续遍历
         return true
       })
       // 假如找到完全符合的现有的组件，那么就不需要创建新组件了
@@ -210,6 +243,13 @@ export default defineComponent({
         type: 'TimeLineContainer',
         props: { tracks: [trackId] },
       })
+      const track = store.state.tracks.get(trackId)
+      if (track) {
+        createComponentItem({
+          type: 'TrackProperties',
+          props: { track },
+        })
+      }
     }
 
     const unWatch = store.watch(
