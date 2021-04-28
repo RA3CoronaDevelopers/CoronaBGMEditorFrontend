@@ -3,11 +3,11 @@
     <tool-bar class="editor-head"></tool-bar>
     <div ref="element" class="editor-body">
       <teleport
-        v-for="{ id, type, element, props, events } in componentInstances"
+        v-for="{ id, type, element, props } in componentInstances"
         :key="id"
         :to="element"
       >
-        <component :is="type" v-bind="props" v-on="events"></component>
+        <component :is="type" v-bind="props"></component>
       </teleport>
     </div>
   </div>
@@ -21,7 +21,7 @@ import {
   LayoutConfig,
   LayoutManager,
 } from 'golden-layout'
-import { defineComponent, shallowRef } from 'vue'
+import { defineComponent, onBeforeUnmount, shallowRef } from 'vue'
 import Assets from './Assets.vue'
 import Inspector from './Inspector.vue'
 import TimeLine from './TimeLine.vue'
@@ -40,6 +40,7 @@ const components = {
   ToolBar,
   TrackList,
 }
+type Components = typeof components
 
 const initialLayout: LayoutConfig = {
   root: {
@@ -88,7 +89,6 @@ export default defineComponent({
     // 设置组件
     type ComponentData = {
       props?: object
-      events?: object
     }
 
     interface ComponentInstance extends ComponentData {
@@ -100,17 +100,6 @@ export default defineComponent({
     const componentTypes = new Set(Object.keys(components))
     const componentInstances = shallowRef<ComponentInstance[]>([])
 
-    const defaultProps = (type: string) => {
-      return {}
-    }
-    const defaultEvents = (type: string) => {
-      if (type === 'TrackList') {
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        return { openTrack }
-      }
-      return {}
-    }
-
     const createComponent = (
       element: HTMLElement,
       type: string,
@@ -121,7 +110,7 @@ export default defineComponent({
         throw new Error(`Component not found: '${type}'`)
       }
 
-      const { props, events }: ComponentData =
+      const { props }: ComponentData =
         data && typeof data === 'object' ? data : {}
 
       ++instanceId
@@ -129,8 +118,7 @@ export default defineComponent({
         id: instanceId,
         type,
         element,
-        props: { ...defaultProps(type), ...props },
-        events: { ...defaultEvents(type), ...events },
+        props: { ...props },
       }
       componentInstances.value = componentInstances.value.concat(
         componentInstance
@@ -151,11 +139,15 @@ export default defineComponent({
       initialLayout
     )
 
+    type Union = {
+      [K in keyof Components]: {
+        type: K
+        props: ExtractProp<Components[K]>
+      }
+    }
+    type UnionValues = Union[keyof Union]
     // 创建一个组件，并把它放到相同类型组件的旁边
-    const createComponentItem = (
-      type: string,
-      componentState?: ComponentData
-    ) => {
+    const createComponentItem = (data: UnionValues) => {
       const l = (layout.value as unknown) as GoldenLayout | null
       if (!l) {
         throw new Error(`Golden Layout is null`)
@@ -165,18 +157,20 @@ export default defineComponent({
       let existingComponent: ComponentItem | undefined
       const candidates: ComponentItem[] = []
       traverseLayout(c => {
-        if (ContentItem.isComponentItem(c) && c.componentType === type) {
+        if (ContentItem.isComponentItem(c) && c.componentType === data.type) {
           candidates.push(c)
+
+          const getComponentProps = <T extends UnionValues>() => {
+            return (c.component as { props?: Partial<T['props']> }).props
+          }
+
           // 时间轴容器的特殊处理
-          if (type === 'TimeLineContainer') {
+          if (data.type === 'TimeLineContainer') {
             // 用现有时间轴的参数，以及新的时间轴的参数，进行比较……
-            type PropData = {
-              props?: Partial<ExtractProp<typeof TimeLineContainer>>
-            }
-            const { props: existing } = c.component as PropData
-            const { props: input } = (componentState || {}) as PropData
+            const existing = getComponentProps<typeof data>()
+            const inputTracks = data.props.tracks
             // 假如要打开的轨道已经存在于现有的时间轴
-            if (input?.tracks?.every(t => existing?.tracks?.includes(t))) {
+            if (inputTracks.every(t => existing?.tracks?.includes(t))) {
               // 那么就直接使用现有的时间轴
               existingComponent = c
               return false
@@ -198,16 +192,29 @@ export default defineComponent({
       const locationSelector = LayoutManager.afterFocusedItemIfPossibleLocationSelectors.map(
         x => ({ ...x })
       )
-      l.newComponentAtLocation(
-        type,
-        componentState,
+      const newComponent = l.newComponentAtLocation(
+        data.type,
+        data,
         undefined,
         locationSelector
-      )?.focus()
+      )
+      if (!newComponent) {
+        throw new Error('Unexpected undefined new component')
+      }
+      // 把焦点设在新的组件上
+      newComponent.focus()
+      return newComponent
     }
 
+    const unWatch = store.watch(
+      t => t.lastActiveTrackId,
+      t => t !== null && openTrack(t)
+    )
+    onBeforeUnmount(unWatch)
+
     const openTrack = (trackId: string) => {
-      createComponentItem('TimeLineContainer', {
+      createComponentItem({
+        type: 'TimeLineContainer',
         props: { tracks: [trackId] },
       })
     }

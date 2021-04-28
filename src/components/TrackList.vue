@@ -12,13 +12,13 @@
 import { useStore } from '@/store'
 import { computed, defineComponent } from 'vue'
 export default defineComponent({
-  setup(_, { emit }) {
+  setup() {
     const store = useStore()
 
     const trackIds = computed(() =>
       Array.from(store.state.tracks.entries()).map(([id]) => id)
     )
-    const openTrack = (id: string) => emit('open-track', id)
+    const openTrack = (id: string) => store.commit('setActiveTrack', id)
 
     return { trackIds, openTrack }
   },
