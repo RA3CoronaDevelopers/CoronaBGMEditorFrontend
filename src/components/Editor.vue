@@ -205,18 +205,18 @@ export default defineComponent({
       newComponent.focus()
     }
 
-    const unWatch = store.watch(
-      store => store.lastActiveTrackId,
-      trackId => trackId !== null && openTrack(trackId)
-    )
-    onBeforeUnmount(unWatch)
-
     const openTrack = (trackId: string) => {
       createComponentItem({
         type: 'TimeLineContainer',
         props: { tracks: [trackId] },
       })
     }
+
+    const unWatch = store.watch(
+      store => store.lastActiveTrackId,
+      trackId => trackId !== null && openTrack(trackId)
+    )
+    onBeforeUnmount(unWatch)
 
     return { element, componentInstances }
   },
