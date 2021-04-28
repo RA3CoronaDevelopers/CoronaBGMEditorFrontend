@@ -203,12 +203,11 @@ export default defineComponent({
       }
       // 把焦点设在新的组件上
       newComponent.focus()
-      return newComponent
     }
 
     const unWatch = store.watch(
-      t => t.lastActiveTrackId,
-      t => t !== null && openTrack(t)
+      store => store.lastActiveTrackId,
+      trackId => trackId !== null && openTrack(trackId)
     )
     onBeforeUnmount(unWatch)
 
