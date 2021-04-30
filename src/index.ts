@@ -2,11 +2,14 @@ import { createServer } from 'http';
 import * as Koa from 'koa';
 import * as ws from 'ws';
 import * as bodyParserMiddleware from 'koa-bodyparser';
+import * as staticMiddleware from 'koa-static';
+import { join } from 'path';
 
 import { clientSideMiddleware } from './webpack';
 
 const app = new Koa();
 app.use(bodyParserMiddleware());
+app.use(staticMiddleware(join(__dirname, '../res')));
 app.use(async (
   ctx: Koa.Context,
   next: () => Promise<void>
@@ -20,11 +23,11 @@ const server = createServer(app.callback()).listen(
   process.env.HOST || undefined
 );
 
-let wsConnectionReceiver = (_msg: any) => { };
+let wsConnectionReceiver = (_msg: any) => { return; };
 export function setWsConnectionReceiver(receiver: (msg: any) => void) {
   wsConnectionReceiver = receiver;
 }
-export let wsConnectionSender = (_msg: string) => { };
+export let wsConnectionSender = (_msg: string) => { return; };
 const wss = new ws.Server({ server });
 wss.on('connection', (ws, req) => {
   const ip = req.socket.remoteAddress;
