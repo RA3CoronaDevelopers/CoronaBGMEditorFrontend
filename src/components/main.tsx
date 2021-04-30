@@ -1,12 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Typography, IconButton } from '@material-ui/core';
 import { css } from '@emotion/css';
 import { Icon } from '@mdi/react';
 import { mdiDotsVertical } from '@mdi/js';
 
 import { Player } from './player';
+import { FileSelector } from './fileSelector';
 
 export function Main() {
+  const [openSelectFileDialog, setOpenSelectFileDialog] = useState(false);
+
+  const [basicTrackXmlPath, setBasicTrackXmlPath] = useState('');
+
   return <div className={css`
     width: 100%;
     height: 100%;
@@ -38,8 +43,11 @@ export function Main() {
         `}>
           <Typography variant='body2' className={css`
             margin-right: 16px;
-          `}>{`未打开文件`}</Typography>
-          <IconButton size='small'>
+            ${basicTrackXmlPath === '' ? 'user-select: none;' : ''}
+          `}>
+            {basicTrackXmlPath === '' ? `未打开文件` : basicTrackXmlPath}
+          </Typography>
+          <IconButton size='small' onClick={() => setOpenSelectFileDialog(true)}>
             <Icon path={mdiDotsVertical} size={0.5} />
           </IconButton>
         </div>
@@ -54,5 +62,10 @@ export function Main() {
         <Player />
       </div>
     </div>
+    {/* 子窗口 */}
+    <FileSelector open={openSelectFileDialog} onClose={(path?: string) => (
+      setOpenSelectFileDialog(false),
+      setBasicTrackXmlPath(path || basicTrackXmlPath)
+    )} />
   </div>
 }
