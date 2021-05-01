@@ -23,21 +23,28 @@ const server = createServer(app.callback()).listen(
   process.env.HOST || undefined
 );
 
-let wsConnectionReceiver = (_msg: any) => { return; };
+let wsReceiver = (_msg: any) => { return; };
 export function setWsConnectionReceiver(receiver: (msg: any) => void) {
-  wsConnectionReceiver = receiver;
+  wsReceiver = receiver;
 }
-export let wsConnectionSender = (_msg: string) => { return; };
+let wsSender;
+export let wsConnectionSender = (msg: string) => {
+  wsSender(msg);
+};
 const wss = new ws.Server({ server });
 wss.on('connection', (ws, req) => {
   const ip = req.socket.remoteAddress;
   console.log(`New WS connection(${ip})`);
 
-  wsConnectionSender = (msg: any) => ws.send(JSON.stringify(msg));
+  wsSender = (msg: any) => {
+    console.log(`WS(${ip}) Send:`, msg.type);
+    ws.send(JSON.stringify(msg));
+  };
   ws.on('message', (msg: string) => {
     try {
-      console.log(`WS(${ip}):`, JSON.parse(msg));
-      wsConnectionReceiver(JSON.parse(msg));
+      const obj = JSON.parse(msg);
+      console.log(`WS(${ip}) Receive:`, obj.type);
+      wsReceiver(obj);
     } catch (e) {
       console.error(e);
     }

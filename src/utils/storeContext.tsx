@@ -5,12 +5,14 @@ interface IStore {
     trackXmlPath: string
   },
   state: {
-    fileSelectorOpen: boolean
+    fileSelectorOpen: boolean,
+    fileSelectorPath: string,
+    fileSelectorDirContent: { [name: string]: 'dir' | 'file' }
   }
 }
 
 export const StoreContext = createContext({} as IStore & {
-  setStore(obj: Partial<IStore>): void
+  setStore(func: (obj: IStore) => IStore): void
 });
 
 export function Store({ children }: any) {
@@ -19,12 +21,14 @@ export function Store({ children }: any) {
       trackXmlPath: ''
     },
     state: {
-      fileSelectorOpen: false
+      fileSelectorOpen: false,
+      fileSelectorPath: '',
+      fileSelectorDirContent: {}
     }
   } as IStore);
   return <StoreContext.Provider value={{
     ...store,
-    setStore: (obj: Partial<IStore>) => setStore({ ...store, ...obj })
+    setStore
   }}>
     {children}
   </StoreContext.Provider>
