@@ -15,15 +15,17 @@ export function receive(type: string, callback: (obj: any) => void) {
   receivers[type] = callback;
 }
 
-wsConnection.addEventListener('open', _e => {
+wsConnection.onopen = () => {
+  console.log('WS Connected');
   for (const obj of sendCache) {
     wsConnection.send(JSON.stringify(obj));
   }
-  wsConnection.addEventListener('message', e => {
-    const obj = JSON.parse(e.data);
-    console.log('WS Receive:', obj);
-    if (receivers[obj.type]) {
-      receivers[obj.type](obj);
-    }
-  });
-});
+};
+
+wsConnection.onmessage = e => {
+  const obj = JSON.parse(e.data);
+  console.log('WS Receive:', obj);
+  if (receivers[obj.type]) {
+    receivers[obj.type](obj);
+  }
+};
