@@ -1,20 +1,30 @@
 import React, { createContext, useState } from 'react';
 
 interface IStore {
-  trackXmlPath: string
+  data: {
+    trackXmlPath: string
+  },
+  state: {
+    fileSelectorOpen: boolean
+  }
 }
 
 export const StoreContext = createContext({} as IStore & {
-  setStore(obj: { [key: string]: any }): void
+  setStore(obj: Partial<IStore>): void
 });
 
 export function Store({ children }: any) {
   const [store, setStore] = useState({
-    trackXmlPath: ''
+    data: {
+      trackXmlPath: ''
+    },
+    state: {
+      fileSelectorOpen: false
+    }
   } as IStore);
   return <StoreContext.Provider value={{
     ...store,
-    setStore: (obj: { [key: string]: any }) => setStore({ ...store, ...obj })
+    setStore: (obj: Partial<IStore>) => setStore({ ...store, ...obj })
   }}>
     {children}
   </StoreContext.Provider>

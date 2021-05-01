@@ -9,8 +9,9 @@ import { Player } from './player';
 import { FileSelector } from './fileSelector';
 
 export function Main() {
-  const { setStore, trackXmlPath } = useContext(StoreContext);
-  const [openSelectFileDialog, setOpenSelectFileDialog] = useState(false);
+  const { setStore, data: {
+    trackXmlPath
+  } } = useContext(StoreContext);
 
   return <div className={css`
     width: 100%;
@@ -47,7 +48,9 @@ export function Main() {
           `}>
             {trackXmlPath === '' ? `未打开文件` : trackXmlPath}
           </Typography>
-          <IconButton size='small' onClick={() => setOpenSelectFileDialog(true)}>
+          <IconButton size='small' onClick={() => setStore({
+            state: { fileSelectorOpen: true }
+          })}>
             <Icon path={mdiDotsVertical} size={0.5} />
           </IconButton>
         </div>
@@ -63,11 +66,6 @@ export function Main() {
       </div>
     </div>
     {/* 子窗口 */}
-    <FileSelector open={openSelectFileDialog} onClose={(path?: string) => (
-      setOpenSelectFileDialog(false),
-      setStore({
-        trackXmlPath: path || trackXmlPath
-      })
-    )} />
+    <FileSelector />
   </div>
 }

@@ -5,12 +5,12 @@ import { CSSTransition } from 'react-transition-group';
 import { StoreContext } from '../utils/storeContext';
 import { send, receive } from '../utils/websocketClient';
 
-export function FileSelector({ open, onClose }: {
-  open: boolean, onClose: (path?: string) => void
-}) {
-  const { setStore, trackXmlPath } = useContext(StoreContext);
+export function FileSelector() {
+  const { setStore, state: {
+    fileSelectorOpen
+  } } = useContext(StoreContext);
 
-  return <CSSTransition in={open} timeout={200} unmountOnExit classNames={{
+  return <CSSTransition in={fileSelectorOpen} timeout={200} unmountOnExit classNames={{
     enter: css`opacity: 0;`,
     enterActive: css`opacity: 1; transition: opacity .2s`,
     exit: css`opacity: 1;`,
@@ -51,7 +51,9 @@ export function FileSelector({ open, onClose }: {
           right: 16px;
           bottom: 16px;
         `}>
-          <Button onClick={() => onClose()}>{'取消'}</Button>
+          <Button onClick={() => (
+            setStore({ state: { fileSelectorOpen: false } })
+          )}>{'取消'}</Button>
         </div>
       </div>
     </div>
