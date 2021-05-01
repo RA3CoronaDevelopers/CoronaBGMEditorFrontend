@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Typography, IconButton } from '@material-ui/core';
 import { css } from '@emotion/css';
 import { Icon } from '@mdi/react';
 import { mdiDotsVertical } from '@mdi/js';
 
+import { StoreContext } from '../utils/storeContext';
 import { Player } from './player';
 import { FileSelector } from './fileSelector';
 
 export function Main() {
+  const { setStore, trackXmlPath } = useContext(StoreContext);
   const [openSelectFileDialog, setOpenSelectFileDialog] = useState(false);
-
-  const [basicTrackXmlPath, setBasicTrackXmlPath] = useState('');
 
   return <div className={css`
     width: 100%;
@@ -43,9 +43,9 @@ export function Main() {
         `}>
           <Typography variant='body2' className={css`
             margin-right: 16px;
-            ${basicTrackXmlPath === '' ? 'user-select: none;' : ''}
+            ${trackXmlPath === '' ? 'user-select: none;' : ''}
           `}>
-            {basicTrackXmlPath === '' ? `未打开文件` : basicTrackXmlPath}
+            {trackXmlPath === '' ? `未打开文件` : trackXmlPath}
           </Typography>
           <IconButton size='small' onClick={() => setOpenSelectFileDialog(true)}>
             <Icon path={mdiDotsVertical} size={0.5} />
@@ -65,7 +65,9 @@ export function Main() {
     {/* 子窗口 */}
     <FileSelector open={openSelectFileDialog} onClose={(path?: string) => (
       setOpenSelectFileDialog(false),
-      setBasicTrackXmlPath(path || basicTrackXmlPath)
+      setStore({
+        trackXmlPath: path || trackXmlPath
+      })
     )} />
   </div>
 }

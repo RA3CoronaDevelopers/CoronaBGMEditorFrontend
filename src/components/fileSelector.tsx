@@ -1,11 +1,15 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Typography, Button } from '@material-ui/core';
 import { css } from '@emotion/css';
 import { CSSTransition } from 'react-transition-group';
+import { StoreContext } from '../utils/storeContext';
+import { send, receive } from '../utils/websocketClient';
 
 export function FileSelector({ open, onClose }: {
   open: boolean, onClose: (path?: string) => void
 }) {
+  const { setStore, trackXmlPath } = useContext(StoreContext);
+
   return <CSSTransition in={open} timeout={200} unmountOnExit classNames={{
     enter: css`opacity: 0;`,
     enterActive: css`opacity: 1; transition: opacity .2s`,
@@ -39,7 +43,7 @@ export function FileSelector({ open, onClose }: {
           <Typography variant='h5' className={css`
             user-select: none;
           `}>{'选择入口 track.xml 文件'}</Typography>
-          <Typography variant='body2'>{`C:/`}</Typography>
+          <Typography variant='body2'>{`正在获取编辑器路径`}</Typography>
         </div>
         {/* 动作栏 */}
         <div className={css`
