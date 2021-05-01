@@ -46,11 +46,12 @@ export function Main() {
             margin-right: 16px;
             ${trackXmlPath === '' ? 'user-select: none;' : ''}
           `}>
-            {trackXmlPath === '' ? `未打开文件` : trackXmlPath}
+            {trackXmlPath === '' ? `未打开文件，点击右侧以打开配置文件` : trackXmlPath}
           </Typography>
-          <IconButton size='small' onClick={() => setStore({
-            state: { fileSelectorOpen: true }
-          })}>
+          <IconButton size='small' onClick={() => setStore(store => ({
+            ...store,
+            state: { ...store.state, fileSelectorOpen: true }
+          }))}>
             <Icon path={mdiDotsVertical} size={0.5} />
           </IconButton>
         </div>
