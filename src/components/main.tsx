@@ -5,6 +5,7 @@ import { Icon } from '@mdi/react';
 import { mdiDotsVertical } from '@mdi/js';
 
 import { StoreContext } from '../utils/storeContext';
+import { Panel } from './panel';
 import { Player } from './player';
 import { FileSelector } from './fileSelector';
 
@@ -12,6 +13,7 @@ export function Main() {
   const { setStore, data: {
     trackXmlPath
   } } = useContext(StoreContext);
+  const [trackXmlSelectorOpen, setTrackXmlSelectorOpen] = useState(false);
 
   return <div className={css`
     width: 100%;
@@ -48,13 +50,19 @@ export function Main() {
           `}>
             {trackXmlPath === '' ? `未打开文件，点击右侧以打开配置文件` : trackXmlPath}
           </Typography>
-          <IconButton size='small' onClick={() => setStore(store => ({
-            ...store,
-            state: { ...store.state, fileSelectorOpen: true }
-          }))}>
+          <IconButton size='small' onClick={() => setTrackXmlSelectorOpen(true)}>
             <Icon path={mdiDotsVertical} size={0.5} />
           </IconButton>
         </div>
+      </div>
+      {/* 控制面板 */}
+      <div className={css`
+        position: absolute;
+        left: 24px;
+        right: 24px;
+        top: 72px;
+      `}>
+        <Panel />
       </div>
       {/* 可视化音频区域 */}
       <div className={css`
@@ -67,6 +75,16 @@ export function Main() {
       </div>
     </div>
     {/* 子窗口 */}
-    <FileSelector />
+    <FileSelector
+      fileNameRegExp={/\.xml$/}
+      open={trackXmlSelectorOpen}
+      onSelect={path => setStore(store => ({
+        ...store,
+        data: {
+          trackXmlPath: path
+        }
+      }))}
+      onClose={() => setTrackXmlSelectorOpen(false)}
+    />
   </div>
 }

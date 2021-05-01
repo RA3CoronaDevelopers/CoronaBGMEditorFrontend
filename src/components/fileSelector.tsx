@@ -1,22 +1,29 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
-  Typography, Button,
+  Typography, Button, Popover,
   List, ListItem, ListItemText, ListItemIcon, IconButton
 } from '@material-ui/core';
 import { css } from '@emotion/css';
 import { CSSTransition } from 'react-transition-group';
 import { Scrollbars } from 'react-custom-scrollbars';
 import { Icon } from '@mdi/react';
-import { mdiFolderOutline, mdiFileOutline, mdiChevronRight, mdiArrowUp } from '@mdi/js';
+import {
+  mdiFolderOutline, mdiFileOutline, mdiChevronRight, mdiArrowUp, mdiServerNetwork
+} from '@mdi/js';
 import { StoreContext } from '../utils/storeContext';
 import { send, receive } from '../utils/websocketClient';
 
-export function FileSelector() {
+export function FileSelector({ fileNameRegExp, open, onSelect, onClose }: {
+  fileNameRegExp: RegExp, open: boolean,
+  onSelect: (path: string) => void, onClose: () => void
+}) {
   const { setStore, state: {
-    fileSelectorOpen,
     fileSelectorPath,
-    fileSelectorDirContent
+    fileSelectorDirContent,
+    fileSelectorDiskList
   } } = useContext(StoreContext);
+  const [diskSelectorAnchorEl, setDiskSelectorAnchorEl] =
+    useState<HTMLButtonElement | undefined>(undefined);
 
   useEffect(() => {
     receive('setFileSelectorDir', ({ path, dirContent }) => setStore(store => ({
@@ -27,10 +34,28 @@ export function FileSelector() {
         fileSelectorDirContent: dirContent
       }
     })));
+    receive('setTrackXmlPath', ({ path }) => setStore(store => ({
+      data: {
+        ...store.data,
+        trackXmlPath: path
+      },
+      state: {
+        ...store.state,
+        fileSelectorOpen: false
+      }
+    })));
+    receive('setDiskList', ({ disks }) => setStore(store => ({
+      ...store,
+      state: {
+        ...store.state,
+        fileSelectorDiskList: disks
+      }
+    })));
     send({ type: 'getProcessDir' });
+    send({ type: 'getDiskList' });
   }, []);
 
-  return <CSSTransition in={fileSelectorOpen} timeout={200} unmountOnExit classNames={{
+  return <CSSTransition in={open} timeout={200} unmountOnExit classNames={{
     enter: css`opacity: 0;`,
     enterActive: css`opacity: 1; transition: opacity .2s`,
     exit: css`opacity: 1;`,
@@ -62,7 +87,7 @@ export function FileSelector() {
         `}>
           <Typography variant='h5' className={css`
             user-select: none;
-          `}>{'选择入口 track.xml 文件'}</Typography>
+          `}>{'选择文件'}</Typography>
           <div className={css`
             margin-top: 8px;
             display: flex;
@@ -70,14 +95,61 @@ export function FileSelector() {
             align-items: center;
           `}>
             <div className={css`
+              position: relative;
+              margin-right: 8px;
+            `}>
+              <IconButton
+                size='small'
+                onClick={e => setDiskSelectorAnchorEl(e.currentTarget)}
+              >
+                <Icon path={mdiServerNetwork} size={0.8} />
+              </IconButton>
+              <Popover
+                open={!!diskSelectorAnchorEl}
+                anchorEl={diskSelectorAnchorEl}
+                onClose={() => setDiskSelectorAnchorEl(undefined)}
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'right',
+                }}
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'center',
+                }}
+              >
+                <List>
+                  {fileSelectorDiskList.map(name => <ListItem
+                    button
+                    onClick={() => (
+                      send({
+                        type: 'getDir',
+                        path: name
+                      }),
+                      setDiskSelectorAnchorEl(undefined)
+                    )}
+                  >
+                    <ListItemText primary={name} />
+                  </ListItem>)}
+                </List>
+                {fileSelectorDiskList.length === 0 && <div className={css`
+                  margin: 8px;
+                `}>
+                  <Typography variant='body1'>
+                    {'请稍等，磁盘信息正在获取'}
+                  </Typography>
+                </div>}
+              </Popover>
+            </div>
+            <div className={css`
               margin-right: 8px;
             `}>
               <IconButton
                 size='small'
                 onClick={() => send({
-                  type: 'getPreviousLevelDir',
+                  type: 'getPreviousDir',
                   path: fileSelectorPath
                 })}
+                disabled={/^[A-Z]:[\\\/]$/.test(fileSelectorPath)}
               >
                 <Icon path={mdiArrowUp} size={0.8} />
               </IconButton>
@@ -98,7 +170,7 @@ export function FileSelector() {
                   <Icon path={mdiChevronRight} size={0.5} />
                 </div>] : []),
                 button
-              ], [])}
+              ], []).reverse().slice(0, 6).reverse()}
           </div>
         </div>
         {/* 文件列表 */}
@@ -118,10 +190,12 @@ export function FileSelector() {
                 button
                 onClick={() => fileSelectorDirContent[name] === 'dir'
                   ? send({
-                    type: 'getNextLevelDir',
-                    path: fileSelectorPath,
+                    type: 'getDir',
+                    path: `${fileSelectorPath}\\${name}`,
                     dirName: name
-                  }) : void 0}
+                  }) : fileNameRegExp.test(name)
+                    ? (onSelect(`${fileSelectorPath}\\${name}`), onClose())
+                    : undefined}
               >
                 <ListItemIcon>
                   <Icon
@@ -129,6 +203,8 @@ export function FileSelector() {
                       ? mdiFolderOutline
                       : mdiFileOutline}
                     size={1}
+                    color={fileNameRegExp.test(name) && fileSelectorDirContent[name] === 'file'
+                      ? '#399' : '#000'}
                   />
                 </ListItemIcon>
                 <ListItemText primary={name} />
@@ -142,27 +218,9 @@ export function FileSelector() {
           right: 16px;
           bottom: 16px;
         `}>
-          <Button onClick={() => (
-            setStore(store => ({
-              ...store, state: {
-                ...store.state, fileSelectorOpen: false
-              }
-            }))
-          )}>{'在该位置写入模板XML'}</Button>
-          <Button onClick={() => (
-            setStore(store => ({
-              ...store, state: {
-                ...store.state, fileSelectorOpen: false
-              }
-            }))
-          )}>{'新建文件夹'}</Button>
-          <Button onClick={() => (
-            setStore(store => ({
-              ...store, state: {
-                ...store.state, fileSelectorOpen: false
-              }
-            }))
-          )}>{'取消'}</Button>
+          <Button onClick={() => onClose()} disabled>{'在该位置写入模板XML'}</Button>
+          <Button onClick={() => onClose()} disabled>{'新建文件夹'}</Button>
+          <Button onClick={() => onClose()}>{'取消'}</Button>
         </div>
       </div>
     </div>

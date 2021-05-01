@@ -5,9 +5,11 @@ interface IStore {
     trackXmlPath: string
   },
   state: {
-    fileSelectorOpen: boolean,
     fileSelectorPath: string,
-    fileSelectorDirContent: { [name: string]: 'dir' | 'file' }
+    fileSelectorDirContent: { [name: string]: 'dir' | 'file' },
+    fileSelectorDiskList: string[],
+
+    editorSituation: string
   }
 }
 
@@ -21,9 +23,11 @@ export function Store({ children }: any) {
       trackXmlPath: ''
     },
     state: {
-      fileSelectorOpen: false,
       fileSelectorPath: '',
-      fileSelectorDirContent: {}
+      fileSelectorDirContent: {},
+      fileSelectorDiskList: [],
+
+      editorSituation: 'Mute'
     }
   } as IStore);
   return <StoreContext.Provider value={{

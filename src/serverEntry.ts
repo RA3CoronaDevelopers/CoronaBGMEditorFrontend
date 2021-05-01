@@ -5,12 +5,14 @@ declare global {
 
 export { };
 
+import { diskinfo } from '@dropb/diskinfo';
 import { readdirSync, statSync } from 'fs';
 import { join } from 'path';
 
 const middlewares: {
   [type: string]: (data: any) => Promise<void>
 } = {
+  // 文件选取器窗口的工具函数
   async getProcessDir(_data) {
     send({
       type: 'setFileSelectorDir',
@@ -19,7 +21,7 @@ const middlewares: {
         ...obj,
         [name]: (() => {
           try {
-            return statSync(join(process.cwd())).isDirectory() ? 'dir' : 'file';
+            return statSync(join(process.cwd(), name)).isDirectory() ? 'dir' : 'file';
           } catch (_e) {
             return 'file';
           }
@@ -27,7 +29,23 @@ const middlewares: {
       }), {})
     });
   },
-  async getAbsoluteDir({ path }) {
+  async getPreviousDir({ path }) {
+    send({
+      type: 'setFileSelectorDir',
+      path: join(path, '../'),
+      dirContent: (readdirSync(join(path, '../'))).reduce((obj, name) => ({
+        ...obj,
+        [name]: (() => {
+          try {
+            return statSync(join(path, '../', name)).isDirectory() ? 'dir' : 'file';
+          } catch (_e) {
+            return 'file';
+          }
+        })()
+      }), {})
+    });
+  },
+  async getDir({ path }) {
     send({
       type: 'setFileSelectorDir',
       path: join(path),
@@ -43,37 +61,11 @@ const middlewares: {
       }), {})
     });
   },
-  async getNextLevelDir({ path, dirName }) {
+  async getDiskList() {
     send({
-      type: 'setFileSelectorDir',
-      path: join(path, dirName),
-      dirContent: (readdirSync(join(path, dirName))).reduce((obj, name) => ({
-        ...obj,
-        [name]: (() => {
-          try {
-            return statSync(join(path, dirName)).isDirectory() ? 'dir' : 'file';
-          } catch (_e) {
-            return 'file';
-          }
-        })()
-      }), {})
-    });
-  },
-  async getPreviousLevelDir({ path }) {
-    send({
-      type: 'setFileSelectorDir',
-      path: join(path, '../'),
-      dirContent: (readdirSync(join(path, '../'))).reduce((obj, name) => ({
-        ...obj,
-        [name]: (() => {
-          try {
-            return statSync(join(path, '../', name)).isDirectory() ? 'dir' : 'file';
-          } catch (_e) {
-            return 'file';
-          }
-        })()
-      }), {})
-    });
+      type: 'setDiskList',
+      disks: (await diskinfo()).map(n => join(n.target + '/'))
+    })
   }
 };
 receive((msg: any) => {
