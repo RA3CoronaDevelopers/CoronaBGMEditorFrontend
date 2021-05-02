@@ -10,6 +10,7 @@ import { Icon } from '@mdi/react';
 import {
   mdiFolderOutline, mdiFileOutline, mdiChevronRight, mdiArrowUp, mdiServerNetwork
 } from '@mdi/js';
+import { useSnackbar } from 'notistack';
 import { StoreContext } from '../utils/storeContext';
 import { send, receive } from '../utils/websocketClient';
 
@@ -89,6 +90,7 @@ export function FileSelector({ fileNameRegExp, open, onSelect, onClose }: {
   fileNameRegExp: RegExp, open: boolean,
   onSelect: (path: string) => void, onClose: () => void
 }) {
+  const { enqueueSnackbar } = useSnackbar();
   const { setStore, state: {
     fileSelectorPath,
     fileSelectorDirContent,
@@ -98,8 +100,6 @@ export function FileSelector({ fileNameRegExp, open, onSelect, onClose }: {
     useState<HTMLButtonElement | undefined>(undefined);
   const [createFileDialogOpen, setCreateFileDialogOpen] = useState(undefined);
   const [createFolderDialogOpen, setCreateFolderDialogOpen] = useState(undefined);
-  const [createFileDialogErrorState, setCreateFileDialogErrorState] = useState(undefined);
-  const [createFolderDialogErrorState, setCreateFolderDialogErrorState] = useState(undefined);
   const [createFileDialogValue, setCreateFileDialogValue] = useState(DEFAULT_XML_NAME);
   const [createFolderDialogValue, setCreateFolderDialogValue] = useState('');
 
@@ -131,11 +131,11 @@ export function FileSelector({ fileNameRegExp, open, onSelect, onClose }: {
       }
     })));
     receive('createFileCallback', ({ hasSuccess, reason }) => hasSuccess
-      ? setCreateFileDialogOpen(false)
-      : setCreateFileDialogErrorState(reason));
+      ? (setCreateFileDialogOpen(false), enqueueSnackbar(`文件创建成功`, { variant: 'success' }))
+      : enqueueSnackbar(`文件创建失败： ${reason}`, { variant: 'error' }));
     receive('createFolderCallback', ({ hasSuccess, reason }) => hasSuccess
-      ? setCreateFolderDialogOpen(false)
-      : setCreateFolderDialogErrorState(reason));
+      ? (setCreateFolderDialogOpen(false), enqueueSnackbar(`文件夹创建成功`, { variant: 'success' }))
+      : enqueueSnackbar(`文件夹创建失败： ${reason}`, { variant: 'error' }));
     send({ type: 'getProcessDir' });
     send({ type: 'getDiskList' });
   }, []);
@@ -357,8 +357,6 @@ export function FileSelector({ fileNameRegExp, open, onSelect, onClose }: {
             `}>
               <TextField
                 label='文件名' variant='filled' fullWidth
-                error={createFileDialogErrorState}
-                helperText={createFileDialogErrorState || ''}
                 value={createFileDialogValue}
                 onChange={e => setCreateFileDialogValue(e.target.value)}
               />
@@ -435,8 +433,6 @@ export function FileSelector({ fileNameRegExp, open, onSelect, onClose }: {
             `}>
               <TextField
                 label='文件夹名' variant='filled' fullWidth
-                error={createFolderDialogErrorState}
-                helperText={createFolderDialogErrorState || ''}
                 value={createFolderDialogValue}
                 onChange={e => setCreateFolderDialogValue(e.target.value)}
               />
