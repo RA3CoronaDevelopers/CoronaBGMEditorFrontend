@@ -6,7 +6,9 @@ declare global {
 export { };
 
 import { diskinfo } from '@dropb/diskinfo';
-import { readdirSync, statSync } from 'fs';
+import {
+  readdirSync, mkdirSync,
+  statSync, existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
 const middlewares: {
@@ -66,6 +68,82 @@ const middlewares: {
       type: 'setDiskList',
       disks: (await diskinfo()).map(n => join(n.target + '/'))
     })
+  },
+  async createFile({ path, name, initContent }) {
+    if (existsSync(join(path, name))) {
+      send({
+        type: 'createFileCallback',
+        hasSuccess: false,
+        reason: '文件已存在'
+      });
+    } else {
+      try {
+        writeFileSync(join(path, name), initContent);
+      } catch(e) {
+        send({
+          type: 'createFileCallback',
+          hasSuccess: false,
+          reason: `${e}`
+        });
+      } finally {
+        send({
+          type: 'createFileCallback',
+          hasSuccess: true
+        });
+        send({
+          type: 'setFileSelectorDir',
+          path: join(path),
+          dirContent: (readdirSync(join(path))).reduce((obj, name) => ({
+            ...obj,
+            [name]: (() => {
+              try {
+                return statSync(join(path, name)).isDirectory() ? 'dir' : 'file';
+              } catch (_e) {
+                return 'file';
+              }
+            })()
+          }), {})
+        });
+      }
+    }
+  },
+  async createFolder({ path, name }) {
+    if (existsSync(join(path, name))) {
+      send({
+        type: 'createFolderCallback',
+        hasSuccess: false,
+        reason: '文件夹已存在'
+      });
+    } else {
+      try {
+        mkdirSync(join(path, name));
+      } catch(e) {
+        send({
+          type: 'createFolderCallback',
+          hasSuccess: false,
+          reason: `${e}`
+        });
+      } finally {
+        send({
+          type: 'createFolderCallback',
+          hasSuccess: true
+        });
+        send({
+          type: 'setFileSelectorDir',
+          path: join(path),
+          dirContent: (readdirSync(join(path))).reduce((obj, name) => ({
+            ...obj,
+            [name]: (() => {
+              try {
+                return statSync(join(path, name)).isDirectory() ? 'dir' : 'file';
+              } catch (_e) {
+                return 'file';
+              }
+            })()
+          }), {})
+        });
+      }
+    }
   }
 };
 receive((msg: any) => {

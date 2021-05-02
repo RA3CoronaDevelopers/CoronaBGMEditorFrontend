@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import {
-  Typography, Button, Popover,
-  List, ListItem, ListItemText, ListItemIcon, IconButton
+  Typography, Button, Popover, Tooltip,
+  List, ListItem, ListItemText, ListItemIcon, IconButton, TextField
 } from '@material-ui/core';
 import { css } from '@emotion/css';
 import { CSSTransition } from 'react-transition-group';
@@ -12,6 +12,78 @@ import {
 } from '@mdi/js';
 import { StoreContext } from '../utils/storeContext';
 import { send, receive } from '../utils/websocketClient';
+
+const FADE_TRANSITION_CSS_MAP = {
+  enter: css`opacity: 0;`,
+  enterActive: css`opacity: 1; transition: opacity .2s`,
+  exit: css`opacity: 1;`,
+  exitActive: css`opacity: 0; transition: opacity .2s;`
+};
+const DEFAULT_XML_NAME = 'Tracks.xml';
+const DEFAULT_XML_VALUE = `<?xml version="1.0" encoding="utf-8"?>
+<!--
+  【轨道配置文件说明】
+  【Includes - 引用列表】
+  子标签：
+  - Include：引用其他文件
+
+  【Include - 引用其他 XML 文件】
+  属性：
+  - Path：文件路径，可以是相对路径
+
+  【MusicFile - 引用音乐文件】
+  属性：
+  - MusicId：音乐ID
+  - Path：音乐路径，可以是相对路径
+
+  【Track - 定义音乐轨道】
+  属性：
+  - Id：轨道 ID
+  - MusicId: 轨道对应的音乐。多个轨道可以使用同一首音乐
+  - Length：轨道时长
+  子标签：
+  - DefaultCheckPoint：默认检查点，只能有一个
+  - CheckPoint：普通检查点，可以有多个
+  - StartOffset：起始偏移时间
+  - BeatsPerMinutes：节拍器每分钟多少拍
+  - BeatsPerBar：节拍器一小节多少拍
+
+  【DefaultCheckPoint - 默认检查点】
+  用来在任意时刻决定是否跳转到另一个音乐轨道。
+  子标签：
+  - Destinations：跳转目标列表
+
+  【CheckPoint - 普通检查点】
+  用来在某一个特定时刻决定是否跳转到另一个音乐轨道。
+  属性：
+  - Time：检查点触发的时间，不应大于轨道时长；在 XML 里，每个检查点应该按照各自的时间先后排列
+  子标签：
+  - DefaultDestinations：默认跳转列表
+  - Destinations：跳转目标列表
+
+  【DefaultDestinations - 默认跳转列表】
+  假如定义了默认跳转列表，并且检查点里没有其他符合条件的跳转目标的话，就会按照默认列表执行跳转。
+  子标签：
+  - JumpTo：跳转目标。假如列表里有多个跳转目标，那么跳转时会随机选择一个
+
+  【Destinations - 跳转列表】
+  属性：
+  - Condition：此跳转列表应该在哪个条件下触发
+  子标签：
+  - JumpTo：跳转目标。假如列表里有多个跳转目标，那么跳转时会随机选择一个
+
+
+  【JumpTo - 跳转目标】
+  属性：
+  - TargetTrackId：目标轨道 ID。假如 ID 是小写 default 的话，将会跳转到当前设置的默认轨道
+  - TargetOffset：跳转到几分几秒
+  - FadeOutDelay：当前的轨道还要继续正常播放多长时间，假如是 0，会立即开始淡出
+  - FadeOutDuration：当前的轨道正常播放完毕之后，淡出要持续多长时间，假如是 0，会立即停止播放
+  - TargetFadeInDelay：目标轨道还要等待多长时间之后才开始播放，假如是 0，会立即开始播放
+  - TargetFadeInDuration：目标轨道开始播放之后，要花多长时间淡入
+-->
+<XmlBgmData xmlns="clr-namespace:CoronaBGMPlayer;assembly=CoronaBGMPlayer">
+</XmlBgmData>`;
 
 export function FileSelector({ fileNameRegExp, open, onSelect, onClose }: {
   fileNameRegExp: RegExp, open: boolean,
@@ -24,6 +96,13 @@ export function FileSelector({ fileNameRegExp, open, onSelect, onClose }: {
   } } = useContext(StoreContext);
   const [diskSelectorAnchorEl, setDiskSelectorAnchorEl] =
     useState<HTMLButtonElement | undefined>(undefined);
+  const [createFileDialogOpen, setCreateFileDialogOpen] = useState(undefined);
+  const [createFolderDialogOpen, setCreateFolderDialogOpen] = useState(undefined);
+  const [createFileDialogErrorState, setCreateFileDialogErrorState] = useState(undefined);
+  const [createFolderDialogErrorState, setCreateFolderDialogErrorState] = useState(undefined);
+  const [createFileDialogValue, setCreateFileDialogValue] = useState(DEFAULT_XML_NAME);
+  const [createFolderDialogValue, setCreateFolderDialogValue] = useState('');
+
 
   useEffect(() => {
     receive('setFileSelectorDir', ({ path, dirContent }) => setStore(store => ({
@@ -51,16 +130,19 @@ export function FileSelector({ fileNameRegExp, open, onSelect, onClose }: {
         fileSelectorDiskList: disks
       }
     })));
+    receive('createFileCallback', ({ hasSuccess, reason }) => hasSuccess
+      ? setCreateFileDialogOpen(false)
+      : setCreateFileDialogErrorState(reason));
+    receive('createFolderCallback', ({ hasSuccess, reason }) => hasSuccess
+      ? setCreateFolderDialogOpen(false)
+      : setCreateFolderDialogErrorState(reason));
     send({ type: 'getProcessDir' });
     send({ type: 'getDiskList' });
   }, []);
 
-  return <CSSTransition in={open} timeout={200} unmountOnExit classNames={{
-    enter: css`opacity: 0;`,
-    enterActive: css`opacity: 1; transition: opacity .2s`,
-    exit: css`opacity: 1;`,
-    exitActive: css`opacity: 0; transition: opacity .2s;`
-  }}>
+  return <CSSTransition
+    in={open} timeout={200} unmountOnExit classNames={FADE_TRANSITION_CSS_MAP}
+  >
     <div className={css`
       position: fixed;
       width: 100%;
@@ -98,12 +180,14 @@ export function FileSelector({ fileNameRegExp, open, onSelect, onClose }: {
               position: relative;
               margin-right: 8px;
             `}>
-              <IconButton
-                size='small'
-                onClick={e => setDiskSelectorAnchorEl(e.currentTarget)}
-              >
-                <Icon path={mdiServerNetwork} size={0.8} />
-              </IconButton>
+              <Tooltip title='选择驱动器'>
+                <IconButton
+                  size='small'
+                  onClick={e => setDiskSelectorAnchorEl(e.currentTarget)}
+                >
+                  <Icon path={mdiServerNetwork} size={0.8} />
+                </IconButton>
+              </Tooltip>
               <Popover
                 open={!!diskSelectorAnchorEl}
                 anchorEl={diskSelectorAnchorEl}
@@ -143,16 +227,18 @@ export function FileSelector({ fileNameRegExp, open, onSelect, onClose }: {
             <div className={css`
               margin-right: 8px;
             `}>
-              <IconButton
-                size='small'
-                onClick={() => send({
-                  type: 'getPreviousDir',
-                  path: fileSelectorPath
-                })}
-                disabled={/^[A-Z]:[\\\/]$/.test(fileSelectorPath)}
-              >
-                <Icon path={mdiArrowUp} size={0.8} />
-              </IconButton>
+              <Tooltip title='返回上一级'>
+                <IconButton
+                  size='small'
+                  onClick={() => send({
+                    type: 'getPreviousDir',
+                    path: fileSelectorPath
+                  })}
+                  disabled={/^[A-Z]:[\\\/]$/.test(fileSelectorPath)}
+                >
+                  <Icon path={mdiArrowUp} size={0.8} />
+                </IconButton>
+              </Tooltip>
             </div>
             {fileSelectorPath.split(/[\\\/]/).filter(n => n.length > 0).map(name =>
               <Typography
@@ -218,11 +304,166 @@ export function FileSelector({ fileNameRegExp, open, onSelect, onClose }: {
           right: 16px;
           bottom: 16px;
         `}>
-          <Button onClick={() => onClose()} disabled>{'在该位置写入模板XML'}</Button>
-          <Button onClick={() => onClose()} disabled>{'新建文件夹'}</Button>
+          <Button onClick={() => setCreateFileDialogOpen(true)}>{'新建XML模板文件'}</Button>
+          <Button onClick={() => setCreateFolderDialogOpen(true)}>{'新建文件夹'}</Button>
           <Button onClick={() => onClose()}>{'取消'}</Button>
         </div>
       </div>
+      {/* 新建文件的命名窗口 */}
+      <CSSTransition
+        in={createFileDialogOpen} timeout={200} unmountOnExit
+        classNames={FADE_TRANSITION_CSS_MAP}
+      >
+        <div
+          className={css`
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          `}
+          onClick={() => (
+            setCreateFileDialogOpen(false),
+            setCreateFileDialogValue(DEFAULT_XML_NAME)
+          )}>
+          <div
+            className={css`
+              width: 240px;
+              height: 160px;
+              background: rgba(255, 255, 255, 0.6);
+              border-radius: 4px;
+              position: relative;
+            `}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* 标题栏 */}
+            <div className={css`
+              position: absolute;
+              left: 16px;
+              top: 8px;
+            `}>
+              <Typography variant='h5' className={css`
+                user-select: none;
+              `}>{'新建XML模板文件'}</Typography>
+            </div>
+            {/* 输入栏 */}
+            <div className={css`
+              position: absolute;
+              left: 16px;
+              right: 16px;
+              top: 40px;
+            `}>
+              <TextField
+                label='文件名' variant='filled' fullWidth
+                error={createFileDialogErrorState}
+                helperText={createFileDialogErrorState || ''}
+                value={createFileDialogValue}
+                onChange={e => setCreateFileDialogValue(e.target.value)}
+              />
+            </div>
+            {/* 动作栏 */}
+            <div className={css`
+              position: absolute;
+              right: 16px;
+              bottom: 16px;
+            `}>
+              <Button onClick={() => (send({
+                type: 'createFile',
+                path: fileSelectorPath,
+                name: createFileDialogValue,
+                initContent: DEFAULT_XML_VALUE
+              }), setCreateFileDialogValue(DEFAULT_XML_NAME))}>
+                {'创建'}
+              </Button>
+              <Button onClick={() => (
+                setCreateFileDialogOpen(false),
+                setCreateFileDialogValue(DEFAULT_XML_NAME)
+              )}>
+                {'取消'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </CSSTransition>
+      {/* 新建文件夹的命名窗口 */}
+      <CSSTransition
+        in={createFolderDialogOpen} timeout={200} unmountOnExit
+        classNames={FADE_TRANSITION_CSS_MAP}
+      >
+        <div
+          className={css`
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          `}
+          onClick={() => (
+            setCreateFolderDialogOpen(false),
+            setCreateFolderDialogValue('')
+          )}>
+          <div
+            className={css`
+              width: 240px;
+              height: 160px;
+              background: rgba(255, 255, 255, 0.6);
+              border-radius: 4px;
+              position: relative;
+            `}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* 标题栏 */}
+            <div className={css`
+              position: absolute;
+              left: 16px;
+              top: 8px;
+            `}>
+              <Typography variant='h5' className={css`
+                user-select: none;
+              `}>{'新建文件夹'}</Typography>
+            </div>
+            {/* 输入栏 */}
+            <div className={css`
+              position: absolute;
+              left: 16px;
+              right: 16px;
+              top: 40px;
+            `}>
+              <TextField
+                label='文件夹名' variant='filled' fullWidth
+                error={createFolderDialogErrorState}
+                helperText={createFolderDialogErrorState || ''}
+                value={createFolderDialogValue}
+                onChange={e => setCreateFolderDialogValue(e.target.value)}
+              />
+            </div>
+            {/* 动作栏 */}
+            <div className={css`
+              position: absolute;
+              right: 16px;
+              bottom: 16px;
+            `}>
+              <Button onClick={() => (send({
+                type: 'createFolder',
+                path: fileSelectorPath,
+                name: createFolderDialogValue
+              }), setCreateFolderDialogValue(DEFAULT_XML_NAME))}>
+                {'创建'}
+              </Button>
+              <Button onClick={() => (
+                setCreateFolderDialogOpen(false),
+                setCreateFolderDialogValue(DEFAULT_XML_NAME)
+              )}>
+                {'取消'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </CSSTransition>
     </div>
   </CSSTransition>;
 }
