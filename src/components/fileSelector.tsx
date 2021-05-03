@@ -3,6 +3,7 @@ import {
   Typography, Button, Popover, Tooltip, Drawer,
   List, ListItem, ListItemText, ListItemIcon, IconButton, TextField
 } from '@material-ui/core';
+import { green } from '@material-ui/core/colors';
 import { css } from '@emotion/css';
 import { Scrollbars } from 'react-custom-scrollbars';
 import { Icon } from '@mdi/react';
@@ -286,7 +287,7 @@ export function FileSelector({ fileNameRegExp, open, onSelect, onClose }: {
                     : mdiFileOutline}
                   size={1}
                   color={fileNameRegExp.test(name) && fileSelectorDirContent[name] === 'file'
-                    ? '#399' : '#000'}
+                    ? green[500] : '#fff'}
                 />
               </ListItemIcon>
               <ListItemText primary={name} />
