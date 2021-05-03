@@ -1,25 +1,18 @@
 import React, { useContext, useEffect, useState } from 'react';
 import {
-  Typography, Button, Popover, Tooltip,
+  Typography, Button, Popover, Tooltip, Drawer,
   List, ListItem, ListItemText, ListItemIcon, IconButton, TextField
 } from '@material-ui/core';
 import { css } from '@emotion/css';
-import { CSSTransition } from 'react-transition-group';
 import { Scrollbars } from 'react-custom-scrollbars';
 import { Icon } from '@mdi/react';
 import {
-  mdiFolderOutline, mdiFileOutline, mdiChevronRight, mdiArrowUp, mdiServerNetwork
+  mdiFolderOutline, mdiFileOutline, mdiChevronRight, mdiArrowUp, mdiServerNetwork, mdiRefresh
 } from '@mdi/js';
 import { useSnackbar } from 'notistack';
 import { StoreContext } from '../utils/storeContext';
 import { send, receive } from '../utils/websocketClient';
 
-const FADE_TRANSITION_CSS_MAP = {
-  enter: css`opacity: 0;`,
-  enterActive: css`opacity: 1; transition: opacity .2s`,
-  exit: css`opacity: 1;`,
-  exitActive: css`opacity: 0; transition: opacity .2s;`
-};
 const DEFAULT_XML_NAME = 'Tracks.xml';
 const DEFAULT_XML_VALUE = `<?xml version="1.0" encoding="utf-8"?>
 <!--
@@ -140,326 +133,284 @@ export function FileSelector({ fileNameRegExp, open, onSelect, onClose }: {
     send({ type: 'getDiskList' });
   }, []);
 
-  return <CSSTransition
-    in={open} timeout={200} unmountOnExit classNames={FADE_TRANSITION_CSS_MAP}
-  >
+  return <Drawer anchor='right' open={open} onClose={onClose}>
     <div className={css`
-      position: fixed;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.8);
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      width: 60vw;
+      height: 100vh;
     `}>
       <div className={css`
-        max-width: 36em;
-        max-height: 32em;
-        width: calc(100% - 16px);
-        height: calc(100% - 16px);
-        background: rgba(255, 255, 255, 0.6);
-        border-radius: 4px;
-        position: relative;
+        position: absolute;
+        left: 16px;
+        top: 16px;
       `}>
-        {/* 标题栏 */}
+        <Typography variant='h5' className={css`
+          user-select: none;
+        `}>{'选择文件'}</Typography>
         <div className={css`
-          position: absolute;
-          left: 16px;
-          top: 8px;
+          margin-top: 8px;
+          display: flex;
+          flex-direction: row;
+          align-items: center;
         `}>
-          <Typography variant='h5' className={css`
-            user-select: none;
-          `}>{'选择文件'}</Typography>
           <div className={css`
-            margin-top: 8px;
-            display: flex;
-            flex-direction: row;
-            align-items: center;
+            position: relative;
+            margin-right: 8px;
           `}>
-            <div className={css`
-              position: relative;
-              margin-right: 8px;
-            `}>
-              <Tooltip title='选择驱动器'>
-                <IconButton
-                  size='small'
-                  onClick={e => setDiskSelectorAnchorEl(e.currentTarget)}
-                >
-                  <Icon path={mdiServerNetwork} size={0.8} />
-                </IconButton>
-              </Tooltip>
-              <Popover
-                open={!!diskSelectorAnchorEl}
-                anchorEl={diskSelectorAnchorEl}
-                onClose={() => setDiskSelectorAnchorEl(undefined)}
-                anchorOrigin={{
-                  vertical: 'bottom',
-                  horizontal: 'right',
-                }}
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'center',
-                }}
+            <Tooltip title='选择驱动器'>
+              <IconButton
+                size='small'
+                onClick={e => setDiskSelectorAnchorEl(e.currentTarget)}
               >
-                <List>
-                  {fileSelectorDiskList.map(name => <ListItem
-                    button
-                    onClick={() => (
-                      send({
-                        type: 'getDir',
-                        path: name
-                      }),
-                      setDiskSelectorAnchorEl(undefined)
-                    )}
-                  >
-                    <ListItemText primary={name} />
-                  </ListItem>)}
-                </List>
-                {fileSelectorDiskList.length === 0 && <div className={css`
-                  margin: 8px;
-                `}>
-                  <Typography variant='body1'>
-                    {'请稍等，磁盘信息正在获取'}
-                  </Typography>
-                </div>}
-              </Popover>
-            </div>
-            <div className={css`
-              margin-right: 8px;
-            `}>
-              <Tooltip title='返回上一级'>
-                <IconButton
-                  size='small'
-                  onClick={() => send({
-                    type: 'getPreviousDir',
-                    path: fileSelectorPath
-                  })}
-                  disabled={/^[A-Z]:[\\\/]$/.test(fileSelectorPath)}
+                <Icon path={mdiServerNetwork} size={0.8} />
+              </IconButton>
+            </Tooltip>
+            <Popover
+              open={!!diskSelectorAnchorEl}
+              anchorEl={diskSelectorAnchorEl}
+              onClose={() => setDiskSelectorAnchorEl(undefined)}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'right',
+              }}
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'center',
+              }}
+            >
+              <List>
+                {fileSelectorDiskList.map(name => <ListItem
+                  button
+                  onClick={() => (
+                    send({
+                      type: 'getDir',
+                      path: name
+                    }),
+                    setDiskSelectorAnchorEl(undefined)
+                  )}
                 >
-                  <Icon path={mdiArrowUp} size={0.8} />
-                </IconButton>
-              </Tooltip>
-            </div>
-            {fileSelectorPath.split(/[\\\/]/).filter(n => n.length > 0).map(name =>
-              <Typography
-                className={css`
-                  user-select: none;
-                `}
-                variant='body2'
-              >
-                {name}
-              </Typography>).reduce((arr, button, index) => [
-                ...arr,
-                ...(index > 0 ? [<div className={css`
-                  margin: 0px 4px;
-                `}>
-                  <Icon path={mdiChevronRight} size={0.5} />
-                </div>] : []),
-                button
-              ], []).reverse().slice(0, 6).reverse()}
+                  <ListItemText primary={name} />
+                </ListItem>)}
+              </List>
+              {fileSelectorDiskList.length === 0 && <div className={css`
+                margin: 8px;
+              `}>
+                <Typography variant='body1'>
+                  {'请稍等，磁盘信息正在获取'}
+                </Typography>
+              </div>}
+            </Popover>
           </div>
-        </div>
-        {/* 文件列表 */}
-        <div className={css`
-          position: absolute;
-          left: 16px;
-          right: 16px;
-          top: 80px;
-          bottom: 64px;
-        `}>
-          <Scrollbars className={css`
-            width: 100%;
-            height: 100%;
+          <div className={css`
+            margin-right: 8px;
           `}>
-            <List>
-              {Object.keys(fileSelectorDirContent).map(name => <ListItem
-                button
-                onClick={() => fileSelectorDirContent[name] === 'dir'
-                  ? send({
-                    type: 'getDir',
-                    path: `${fileSelectorPath}\\${name}`,
-                    dirName: name
-                  }) : fileNameRegExp.test(name)
-                    ? (onSelect(`${fileSelectorPath}\\${name}`), onClose())
-                    : undefined}
+            <Tooltip title='返回上一级'>
+              <IconButton
+                size='small'
+                onClick={() => send({
+                  type: 'getPreviousDir',
+                  path: fileSelectorPath
+                })}
+                disabled={/^[A-Z]:[\\\/]$/.test(fileSelectorPath)}
               >
-                <ListItemIcon>
-                  <Icon
-                    path={fileSelectorDirContent[name] === 'dir'
-                      ? mdiFolderOutline
-                      : mdiFileOutline}
-                    size={1}
-                    color={fileNameRegExp.test(name) && fileSelectorDirContent[name] === 'file'
-                      ? '#399' : '#000'}
-                  />
-                </ListItemIcon>
-                <ListItemText primary={name} />
-              </ListItem>)}
-            </List>
-          </Scrollbars>
-        </div>
-        {/* 动作栏 */}
-        <div className={css`
-          position: absolute;
-          right: 16px;
-          bottom: 16px;
-        `}>
-          <Button onClick={() => setCreateFileDialogOpen(true)}>{'新建XML模板文件'}</Button>
-          <Button onClick={() => setCreateFolderDialogOpen(true)}>{'新建文件夹'}</Button>
-          <Button onClick={() => onClose()}>{'取消'}</Button>
+                <Icon path={mdiArrowUp} size={0.8} />
+              </IconButton>
+            </Tooltip>
+          </div>
+          <div className={css`
+            margin-right: 8px;
+          `}>
+            <Tooltip title='刷新'>
+              <IconButton
+                size='small'
+                onClick={() => send({
+                  type: 'getDir',
+                  path: fileSelectorPath
+                })}
+              >
+                <Icon path={mdiRefresh} size={0.8} />
+              </IconButton>
+            </Tooltip>
+          </div>
+          {fileSelectorPath.split(/[\\\/]/).filter(n => n.length > 0).map(name =>
+            <Typography
+              className={css`
+                user-select: none;
+              `}
+              variant='body2'
+            >
+              {name}
+            </Typography>).reduce((arr, button, index) => [
+              ...arr,
+              ...(index > 0 ? [<div className={css`
+                margin: 0px 4px;
+              `}>
+                <Icon path={mdiChevronRight} size={0.5} />
+              </div>] : []),
+              button
+            ], []).reverse().slice(0, 6).reverse()}
         </div>
       </div>
+      <div className={css`
+        position: absolute;
+        left: 16px;
+        right: 16px;
+        top: 80px;
+        bottom: 64px;
+      `}>
+        <Scrollbars className={css`
+          width: 100%;
+          height: 100%;
+        `}>
+          <List>
+            {Object.keys(fileSelectorDirContent).map(name => <ListItem
+              button
+              onClick={() => fileSelectorDirContent[name] === 'dir'
+                ? send({
+                  type: 'getDir',
+                  path: `${fileSelectorPath}\\${name}`,
+                  dirName: name
+                }) : fileNameRegExp.test(name)
+                  ? (onSelect(`${fileSelectorPath}\\${name}`), onClose())
+                  : undefined}
+            >
+              <ListItemIcon>
+                <Icon
+                  path={fileSelectorDirContent[name] === 'dir'
+                    ? mdiFolderOutline
+                    : mdiFileOutline}
+                  size={1}
+                  color={fileNameRegExp.test(name) && fileSelectorDirContent[name] === 'file'
+                    ? '#399' : '#000'}
+                />
+              </ListItemIcon>
+              <ListItemText primary={name} />
+            </ListItem>)}
+          </List>
+        </Scrollbars>
+      </div>
+      {/* 动作栏 */}
+      <div className={css`
+        position: absolute;
+        right: 16px;
+        bottom: 16px;
+      `}>
+        <Button onClick={() => setCreateFileDialogOpen(true)}>{'新建XML模板文件'}</Button>
+        <Button onClick={() => setCreateFolderDialogOpen(true)}>{'新建文件夹'}</Button>
+        <Button onClick={() => onClose()}>{'取消'}</Button>
+      </div>
       {/* 新建文件的命名窗口 */}
-      <CSSTransition
-        in={createFileDialogOpen} timeout={200} unmountOnExit
-        classNames={FADE_TRANSITION_CSS_MAP}
-      >
-        <div
-          className={css`
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-          `}
-          onClick={() => (
-            setCreateFileDialogOpen(false),
-            setCreateFileDialogValue(DEFAULT_XML_NAME)
-          )}>
-          <div
-            className={css`
-              width: 240px;
-              height: 160px;
-              background: rgba(255, 255, 255, 0.6);
-              border-radius: 4px;
-              position: relative;
-            `}
-            onClick={e => e.stopPropagation()}
-          >
-            {/* 标题栏 */}
-            <div className={css`
-              position: absolute;
-              left: 16px;
-              top: 8px;
+      <Drawer anchor='bottom' open={createFileDialogOpen} onClose={() => (
+        setCreateFileDialogOpen(false),
+        setCreateFileDialogValue(DEFAULT_XML_NAME)
+      )}>
+        <div className={css`
+          width: 100%;
+          height: 160px;
+        `}>
+          {/* 标题栏 */}
+          <div className={css`
+            position: absolute;
+            left: 16px;
+            top: 8px;
+          `}>
+            <Typography variant='h5' className={css`
+              user-select: none;
             `}>
-              <Typography variant='h5' className={css`
-                user-select: none;
-              `}>{'新建XML模板文件'}</Typography>
-            </div>
-            {/* 输入栏 */}
-            <div className={css`
-              position: absolute;
-              left: 16px;
-              right: 16px;
-              top: 40px;
-            `}>
-              <TextField
-                label='文件名' variant='filled' fullWidth
-                value={createFileDialogValue}
-                onChange={e => setCreateFileDialogValue(e.target.value)}
-              />
-            </div>
-            {/* 动作栏 */}
-            <div className={css`
-              position: absolute;
-              right: 16px;
-              bottom: 16px;
-            `}>
-              <Button onClick={() => (send({
-                type: 'createFile',
-                path: fileSelectorPath,
-                name: createFileDialogValue,
-                initContent: DEFAULT_XML_VALUE
-              }), setCreateFileDialogValue(DEFAULT_XML_NAME))}>
-                {'创建'}
-              </Button>
-              <Button onClick={() => (
-                setCreateFileDialogOpen(false),
-                setCreateFileDialogValue(DEFAULT_XML_NAME)
-              )}>
-                {'取消'}
-              </Button>
-            </div>
+              {'新建XML模板文件'}
+            </Typography>
+          </div>
+          {/* 输入栏 */}
+          <div className={css`
+            position: absolute;
+            left: 16px;
+            right: 16px;
+            top: 48px;
+          `}>
+            <TextField
+              label='文件名' variant='filled' fullWidth
+              value={createFileDialogValue}
+              onChange={e => setCreateFileDialogValue(e.target.value)}
+            />
+          </div>
+          {/* 动作栏 */}
+          <div className={css`
+            position: absolute;
+            right: 16px;
+            bottom: 16px;
+          `}>
+            <Button onClick={() => (send({
+              type: 'createFile',
+              path: fileSelectorPath,
+              name: createFileDialogValue,
+              initContent: DEFAULT_XML_VALUE
+            }), setCreateFileDialogValue(DEFAULT_XML_NAME))}>
+              {'创建'}
+            </Button>
+            <Button onClick={() => (
+              setCreateFileDialogOpen(false),
+              setCreateFileDialogValue(DEFAULT_XML_NAME)
+            )}>
+              {'取消'}
+            </Button>
           </div>
         </div>
-      </CSSTransition>
+      </Drawer>
       {/* 新建文件夹的命名窗口 */}
-      <CSSTransition
-        in={createFolderDialogOpen} timeout={200} unmountOnExit
-        classNames={FADE_TRANSITION_CSS_MAP}
-      >
-        <div
-          className={css`
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-          `}
-          onClick={() => (
-            setCreateFolderDialogOpen(false),
-            setCreateFolderDialogValue('')
-          )}>
-          <div
-            className={css`
-              width: 240px;
-              height: 160px;
-              background: rgba(255, 255, 255, 0.6);
-              border-radius: 4px;
-              position: relative;
-            `}
-            onClick={e => e.stopPropagation()}
-          >
-            {/* 标题栏 */}
-            <div className={css`
-              position: absolute;
-              left: 16px;
-              top: 8px;
+      <Drawer anchor='bottom' open={createFolderDialogOpen} onClose={() => (
+        setCreateFolderDialogOpen(false),
+        setCreateFolderDialogValue('')
+      )}>
+        <div className={css`
+          width: 100%;
+          height: 160px;
+        `}>
+          {/* 标题栏 */}
+          <div className={css`
+            position: absolute;
+            left: 16px;
+            top: 8px;
+          `}>
+            <Typography variant='h5' className={css`
+              user-select: none;
             `}>
-              <Typography variant='h5' className={css`
-                user-select: none;
-              `}>{'新建文件夹'}</Typography>
-            </div>
-            {/* 输入栏 */}
-            <div className={css`
-              position: absolute;
-              left: 16px;
-              right: 16px;
-              top: 40px;
-            `}>
-              <TextField
-                label='文件夹名' variant='filled' fullWidth
-                value={createFolderDialogValue}
-                onChange={e => setCreateFolderDialogValue(e.target.value)}
-              />
-            </div>
-            {/* 动作栏 */}
-            <div className={css`
-              position: absolute;
-              right: 16px;
-              bottom: 16px;
-            `}>
-              <Button onClick={() => (send({
-                type: 'createFolder',
-                path: fileSelectorPath,
-                name: createFolderDialogValue
-              }), setCreateFolderDialogValue(DEFAULT_XML_NAME))}>
-                {'创建'}
-              </Button>
-              <Button onClick={() => (
-                setCreateFolderDialogOpen(false),
-                setCreateFolderDialogValue(DEFAULT_XML_NAME)
-              )}>
-                {'取消'}
-              </Button>
-            </div>
+              {'新建文件夹'}
+            </Typography>
+          </div>
+          {/* 输入栏 */}
+          <div className={css`
+            position: absolute;
+            left: 16px;
+            right: 16px;
+            top: 48px;
+          `}>
+            <TextField
+              label='文件夹名' variant='filled' fullWidth
+              value={createFolderDialogValue}
+              onChange={e => setCreateFolderDialogValue(e.target.value)}
+            />
+          </div>
+          {/* 动作栏 */}
+          <div className={css`
+            position: absolute;
+            right: 16px;
+            bottom: 16px;
+          `}>
+            <Button onClick={() => (send({
+              type: 'createFolder',
+              path: fileSelectorPath,
+              name: createFolderDialogValue
+            }), setCreateFolderDialogValue(DEFAULT_XML_NAME))}>
+              {'创建'}
+            </Button>
+            <Button onClick={() => (
+              setCreateFolderDialogOpen(false),
+              setCreateFolderDialogValue(DEFAULT_XML_NAME)
+            )}>
+              {'取消'}
+            </Button>
           </div>
         </div>
-      </CSSTransition>
+      </Drawer>
     </div>
-  </CSSTransition>;
+  </Drawer>;
 }

@@ -5,7 +5,7 @@ import {
 } from '@material-ui/core';
 import { css } from '@emotion/css';
 import { Icon } from '@mdi/react';
-import { mdiDotsVertical } from '@mdi/js';
+import { mdiFileSettingsOutline } from '@mdi/js';
 import { useSnackbar } from 'notistack';
 
 import { StoreContext } from '../utils/storeContext';
@@ -50,15 +50,18 @@ export function Main() {
           flex-direction: row;
           align-items: center;
         `}>
+          <div className={css`
+            margin-right: 8px;
+          `}>
+            <IconButton size='small' onClick={e => setXmlSelectMenuAnchorEl(e.currentTarget)}>
+              <Icon path={mdiFileSettingsOutline} size={0.5} />
+            </IconButton>
+          </div>
           <Typography variant='body2' className={css`
-            margin-right: 16px;
             ${trackXmlPath === '' ? 'user-select: none;' : ''}
           `}>
-            {trackXmlPath === '' ? `未打开文件，点击右侧以打开配置文件` : trackXmlPath}
+            {trackXmlPath === '' ? `未打开文件，点击左侧按钮以打开配置文件` : trackXmlPath}
           </Typography>
-          <IconButton size='small' onClick={e => setXmlSelectMenuAnchorEl(e.currentTarget)}>
-            <Icon path={mdiDotsVertical} size={0.5} />
-          </IconButton>
           <Popover
             open={!!xmlSelectMenuAnchorEl}
             anchorEl={xmlSelectMenuAnchorEl}
