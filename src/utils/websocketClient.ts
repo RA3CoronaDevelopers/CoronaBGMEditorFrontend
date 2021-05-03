@@ -1,18 +1,24 @@
+import { generate } from 'shortid';
 const wsConnection = new WebSocket(`ws://${window.location.host}/corona-bgm-editor`);
 
 let sendCache = [];
-export function send(obj: { type: string, [key: string]: any }) {
-  console.log('WS Send:', obj);
-  if (wsConnection.readyState < 1) {
-    sendCache.push(obj);
-  } else {
-    wsConnection.send(JSON.stringify(obj));
-  }
-}
+let receivers: { [id: string]: (obj: any) => void } = {};
 
-let receivers: { [type: string]: (obj: any) => void } = {};
-export function receive(type: string, callback: (obj: any) => void) {
-  receivers[type] = callback;
+export async function send(type: string, data: { [key: string]: any }) {
+  const id = generate();
+  console.log('WS Send:', type, id);
+  return new Promise(receiveFunc => {
+    receivers[id] = receiveFunc;
+    if (wsConnection.readyState < 1) {
+      sendCache.push({
+        type, id, data
+      });
+    } else {
+      wsConnection.send(JSON.stringify({
+        type, id, data
+      }));
+    }
+  });
 }
 
 wsConnection.onopen = () => {
@@ -24,8 +30,9 @@ wsConnection.onopen = () => {
 
 wsConnection.onmessage = e => {
   const obj = JSON.parse(e.data);
-  console.log('WS Receive:', obj);
-  if (receivers[obj.type]) {
-    receivers[obj.type](obj);
+  console.log('WS Receive:', obj.type, obj.id);
+  if (receivers[obj.id]) {
+    receivers[obj.id](obj.data);
+    delete receivers[obj.id];
   }
 };

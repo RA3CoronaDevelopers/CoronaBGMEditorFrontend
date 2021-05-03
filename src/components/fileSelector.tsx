@@ -11,7 +11,7 @@ import {
 } from '@mdi/js';
 import { useSnackbar } from 'notistack';
 import { StoreContext } from '../utils/storeContext';
-import { send, receive } from '../utils/websocketClient';
+import { send } from '../utils/websocketClient';
 
 const DEFAULT_XML_NAME = 'Tracks.xml';
 const DEFAULT_XML_VALUE = `<?xml version="1.0" encoding="utf-8"?>
@@ -98,7 +98,7 @@ export function FileSelector({ fileNameRegExp, open, onSelect, onClose }: {
 
 
   useEffect(() => {
-    receive('setFileSelectorDir', ({ path, dirContent }) => setStore(store => ({
+    send('getProcessDir', {}).then(({ path, dirContent }) => setStore(store => ({
       ...store,
       state: {
         ...store.state,
@@ -106,31 +106,13 @@ export function FileSelector({ fileNameRegExp, open, onSelect, onClose }: {
         fileSelectorDirContent: dirContent
       }
     })));
-    receive('setTrackXmlPath', ({ path }) => setStore(store => ({
-      data: {
-        ...store.data,
-        trackXmlPath: path
-      },
-      state: {
-        ...store.state,
-        fileSelectorOpen: false
-      }
-    })));
-    receive('setDiskList', ({ disks }) => setStore(store => ({
+    send('getDiskList', {}).then(({ disks }) => setStore(store => ({
       ...store,
       state: {
         ...store.state,
         fileSelectorDiskList: disks
       }
     })));
-    receive('createFileCallback', ({ hasSuccess, reason }) => hasSuccess
-      ? (setCreateFileDialogOpen(false), enqueueSnackbar(`文件创建成功`, { variant: 'success' }))
-      : enqueueSnackbar(`文件创建失败： ${reason}`, { variant: 'error' }));
-    receive('createFolderCallback', ({ hasSuccess, reason }) => hasSuccess
-      ? (setCreateFolderDialogOpen(false), enqueueSnackbar(`文件夹创建成功`, { variant: 'success' }))
-      : enqueueSnackbar(`文件夹创建失败： ${reason}`, { variant: 'error' }));
-    send({ type: 'getProcessDir' });
-    send({ type: 'getDiskList' });
   }, []);
 
   return <Drawer anchor='right' open={open} onClose={onClose}>
@@ -181,10 +163,16 @@ export function FileSelector({ fileNameRegExp, open, onSelect, onClose }: {
                 {fileSelectorDiskList.map(name => <ListItem
                   button
                   onClick={() => (
-                    send({
-                      type: 'getDir',
+                    send('getDir', {
                       path: name
-                    }),
+                    }).then(({ path, dirContent }) => setStore(store => ({
+                      ...store,
+                      state: {
+                        ...store.state,
+                        fileSelectorPath: path,
+                        fileSelectorDirContent: dirContent
+                      }
+                    }))),
                     setDiskSelectorAnchorEl(undefined)
                   )}
                 >
@@ -206,10 +194,16 @@ export function FileSelector({ fileNameRegExp, open, onSelect, onClose }: {
             <Tooltip title='返回上一级'>
               <IconButton
                 size='small'
-                onClick={() => send({
-                  type: 'getPreviousDir',
+                onClick={() => send('getPreviousDir', {
                   path: fileSelectorPath
-                })}
+                }).then(({ path, dirContent }) => setStore(store => ({
+                  ...store,
+                  state: {
+                    ...store.state,
+                    fileSelectorPath: path,
+                    fileSelectorDirContent: dirContent
+                  }
+                })))}
                 disabled={/^[A-Z]:[\\\/]$/.test(fileSelectorPath)}
               >
                 <Icon path={mdiArrowUp} size={0.8} />
@@ -222,10 +216,16 @@ export function FileSelector({ fileNameRegExp, open, onSelect, onClose }: {
             <Tooltip title='刷新'>
               <IconButton
                 size='small'
-                onClick={() => send({
-                  type: 'getDir',
+                onClick={() => send('getDir', {
                   path: fileSelectorPath
-                })}
+                }).then(({ path, dirContent }) => setStore(store => ({
+                  ...store,
+                  state: {
+                    ...store.state,
+                    fileSelectorPath: path,
+                    fileSelectorDirContent: dirContent
+                  }
+                })))}
               >
                 <Icon path={mdiRefresh} size={0.8} />
               </IconButton>
@@ -265,11 +265,17 @@ export function FileSelector({ fileNameRegExp, open, onSelect, onClose }: {
             {Object.keys(fileSelectorDirContent).map(name => <ListItem
               button
               onClick={() => fileSelectorDirContent[name] === 'dir'
-                ? send({
-                  type: 'getDir',
+                ? send('getDir', {
                   path: `${fileSelectorPath}\\${name}`,
                   dirName: name
-                }) : fileNameRegExp.test(name)
+                }).then(({ path, dirContent }) => setStore(store => ({
+                  ...store,
+                  state: {
+                    ...store.state,
+                    fileSelectorPath: path,
+                    fileSelectorDirContent: dirContent
+                  }
+                }))) : fileNameRegExp.test(name)  // TODO - 追加上获取文件具体内容的代码
                   ? (onSelect(`${fileSelectorPath}\\${name}`), onClose())
                   : undefined}
             >
@@ -338,12 +344,24 @@ export function FileSelector({ fileNameRegExp, open, onSelect, onClose }: {
             right: 16px;
             bottom: 16px;
           `}>
-            <Button onClick={() => (send({
-              type: 'createFile',
-              path: fileSelectorPath,
-              name: createFileDialogValue,
-              initContent: DEFAULT_XML_VALUE
-            }), setCreateFileDialogValue(DEFAULT_XML_NAME))}>
+            <Button onClick={() => (
+              send('createFile', {
+                path: fileSelectorPath,
+                name: createFileDialogValue,
+                initContent: DEFAULT_XML_VALUE
+              }).then(({ hasSuccess, reason, dirContent }) => hasSuccess
+                ? (setCreateFileDialogOpen(false),
+                  enqueueSnackbar(`文件创建成功`, { variant: 'success' }),
+                  setStore(store => ({
+                    ...store,
+                    state: {
+                      ...store.state,
+                      fileSelectorDirContent: dirContent
+                    }
+                  })))
+                : enqueueSnackbar(`文件创建失败： ${reason}`, { variant: 'error' })),
+              setCreateFileDialogValue(DEFAULT_XML_NAME)
+            )}>
               {'创建'}
             </Button>
             <Button onClick={() => (
@@ -395,11 +413,23 @@ export function FileSelector({ fileNameRegExp, open, onSelect, onClose }: {
             right: 16px;
             bottom: 16px;
           `}>
-            <Button onClick={() => (send({
-              type: 'createFolder',
-              path: fileSelectorPath,
-              name: createFolderDialogValue
-            }), setCreateFolderDialogValue(DEFAULT_XML_NAME))}>
+            <Button onClick={() => (
+              send('createFolder', {
+                path: fileSelectorPath,
+                name: createFolderDialogValue
+              }).then(({ hasSuccess, reason, dirContent }) => hasSuccess
+                ? (setCreateFolderDialogOpen(false),
+                  enqueueSnackbar(`文件夹创建成功`, { variant: 'success' }),
+                  setStore(store => ({
+                    ...store,
+                    state: {
+                      ...store.state,
+                      fileSelectorDirContent: dirContent
+                    }
+                  })))
+                : enqueueSnackbar(`文件夹创建失败： ${reason}`, { variant: 'error' })),
+              setCreateFolderDialogValue(DEFAULT_XML_NAME)
+            )}>
               {'创建'}
             </Button>
             <Button onClick={() => (
