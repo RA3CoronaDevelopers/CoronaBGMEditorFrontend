@@ -16,7 +16,8 @@ export function PromptDrawer({ title, confirmTip, open, children, onClose, onCon
     `}>
       {/* 标题栏 */}
       <div className={css`
-        width: 100%;
+        width: calc(100% - 16px);
+        margin-left: 16px;
         padding: 8px;
         box-sizing: border-box;
       `}>

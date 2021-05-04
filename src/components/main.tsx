@@ -143,7 +143,17 @@ export function Main() {
       justify-content: flex-start;
       align-items: center;
     `}>
-      <Panel />
+      <div className={css`
+        width: 100%;
+        height: 100%;
+      `}>
+        <Scrollbars className={css`
+          width: 100%;
+          height: 100%;
+        `}>
+          <Panel />
+        </Scrollbars>
+      </div>
     </div>
     {/* 素材库 */}
     <div className={css`

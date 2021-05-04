@@ -39,6 +39,11 @@ interface IStore {
     fileSelectorDiskList: string[],
 
     editorSituation: string,
+    nowPlayingTrack: number,
+    trackBpm: number,
+    trackAllowBeats: boolean,
+    trackBeatsOffset: number,
+    trackBeatsPerBar: number,
 
     unitWeightConfigDialogOpen: boolean
   }
@@ -69,6 +74,12 @@ export function Store({ children }: any) {
       fileSelectorDiskList: [],
 
       editorSituation: 'Mute',
+      nowPlayingTrack: 0,
+
+      trackBpm: 120,
+      trackAllowBeats: false,
+      trackBeatsOffset: 0,
+      trackBeatsPerBar: 4,
 
       unitWeightConfigDialogOpen: false
     }

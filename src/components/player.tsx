@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import { Typography, IconButton } from '@material-ui/core';
 import { css } from '@emotion/css';
 import { Icon } from '@mdi/react';
-import { mdiDotsHorizontal } from '@mdi/js';
+import { mdiDotsVertical } from '@mdi/js';
 import { StoreContext, ITrack } from '../utils/storeContext';
 
 export function Player({ id, track }: {
@@ -18,7 +18,7 @@ export function Player({ id, track }: {
     display: flex;
   `}>
     <div className={css`
-      width: 48px;
+      width: 60px;
       height: 100%;
       display: flex;
       flex-direction: column;
@@ -26,18 +26,25 @@ export function Player({ id, track }: {
       align-items: center;
       user-select: none;
     `}>
-      <Typography variant='h6'>
-        {`#${id}`}
-      </Typography>
+      <div className={css`
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      `}>
+        <Typography variant='h6'>
+          {`#${id}`}
+        </Typography>
+        <IconButton size='small'>
+          <Icon path={mdiDotsVertical} size={0.8} />
+        </IconButton>
+      </div>
       <Typography variant='caption'>
         {track.name}
       </Typography>
-      <IconButton size='small'>
-        <Icon path={mdiDotsHorizontal} size={0.8} />
-      </IconButton>
     </div>
     <div className={css`
-      width: calc(100% - 48px);
+      width: calc(100% - 60px);
       height: 100%;
     `}>
       <div className={css`
