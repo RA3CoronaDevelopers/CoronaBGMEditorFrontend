@@ -10,6 +10,8 @@ import { clientSideMiddleware } from './webpack';
 const app = new Koa();
 app.use(bodyParserMiddleware());
 app.use(staticMiddleware(join(__dirname, '../res')));
+// WARN - 下面是用来为临时测试音频播放控件提供音频素材的，具体文件不会上传到 github，且在文件拣取写好后会移除
+app.use(staticMiddleware(join(__dirname, '../../TouhouMusicNew')));
 app.use(async (
   ctx: Koa.Context,
   next: () => Promise<void>

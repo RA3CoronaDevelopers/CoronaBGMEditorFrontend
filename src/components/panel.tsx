@@ -30,9 +30,12 @@ export function Panel() {
       <Select
         value={nowPlayingTrack}
         onChange={e => setStore(store => ({
-          ...store, state: {
+          ...store,
+          state: {
             ...store.state,
-            nowPlayingTrack: +(e.target.value) as number
+            nowPlayingTrack: +(e.target.value) as number,
+            progress: 0,
+            isPlaying: false
           }
         }))}
       >

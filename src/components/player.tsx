@@ -1,16 +1,66 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import { Typography, IconButton } from '@material-ui/core';
 import { css } from '@emotion/css';
 import { Icon } from '@mdi/react';
 import { mdiDotsVertical } from '@mdi/js';
+import WaveSurfer from 'wavesurfer.js';
+import WaveSurferCursorPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.cursor.js'
 import { StoreContext, ITrack } from '../utils/storeContext';
 
 export function Player({ id, track }: {
   id: number, track: ITrack
 }) {
-  const { data: {
+  const { setStore, data: {
     musicLibrary
+  }, state: {
+    nowPlayingTrack, isPlaying, progress
   } } = useContext(StoreContext);
+  const waveDOMRef = useRef();
+  const waveRef = useRef(undefined as any);   // wavesurfer.js 没有类型提示文件，暂时只能这样
+
+  useEffect(() => {
+    waveRef.current = WaveSurfer.create({
+      container: waveDOMRef.current,
+      waveColor: '#fff',
+      progressColor: '#999',
+      plugins: [
+        WaveSurferCursorPlugin.create({
+          showTime: true,
+          opacity: 1,
+          customShowTimeStyle: {
+            'background-color': '#000',
+            color: '#fff',
+            padding: '2px',
+            'font-size': '12px'
+          }
+        })
+      ]
+    });
+    waveRef.current.load(musicLibrary[track.usingMusicId].httpPath);
+    waveRef.current.on('seek', () => setStore(store => ({
+      ...store,
+      state: {
+        ...store.state,
+        progress: waveRef.current.getCurrentTime()
+      }
+    })))
+  }, []);
+  useEffect(() => {
+    if (nowPlayingTrack === id && isPlaying) {
+      waveRef.current.play(progress);
+    } else if (waveRef.current.isPlaying()) {
+      waveRef.current.pause();
+      if (nowPlayingTrack === id) {
+        setStore(store => ({
+          ...store,
+          state: {
+            ...store.state,
+            progress: waveRef.current.getCurrentTime()
+          }
+        }))
+      }
+    }
+  }, [nowPlayingTrack, isPlaying]);
 
   return <div className={css`
     width: 100%;
@@ -54,21 +104,12 @@ export function Player({ id, track }: {
         align-items: center;
       `}>
         <div className={css`
-          height: 8px;
-          width: 100%;
-          background: rgba(0, 0, 0, 0.4);
-          border-radius: 4px;
-          position: relative;
-        `}>
-          {/* 游标 */}
-        </div>
-        <div className={css`
-          height: 64px;
+          height: 128px;
           width: 100%;
           background: rgba(0, 0, 0, 0.2);
           border-radius: 4px;
           position: relative;
-        `}>
+        `} ref={waveDOMRef} >
           <div className={css`
             left: 4px;
             top: 4px;
@@ -79,7 +120,6 @@ export function Player({ id, track }: {
               {musicLibrary[track.usingMusicId].name}
             </Typography>
           </div>
-          {/* 波形图 */}
         </div>
         <div className={css`
           height: 64px;

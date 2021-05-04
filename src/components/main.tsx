@@ -1,12 +1,12 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import {
-  Typography, IconButton, Button, Drawer,
+  Typography, IconButton, Button,
   Popover, List, ListItem, ListItemText, TextField,
   FormControl, InputLabel, Select, MenuItem, ListItemSecondaryAction
 } from '@material-ui/core';
 import { css } from '@emotion/css';
 import { Icon } from '@mdi/react';
-import { mdiDotsVertical, mdiFileSettingsOutline, mdiPlay, mdiPlus } from '@mdi/js';
+import { mdiDotsVertical, mdiFileSettingsOutline, mdiPause, mdiPlay, mdiPlus } from '@mdi/js';
 import { Scrollbars } from 'react-custom-scrollbars';
 import { useSnackbar } from 'notistack';
 
@@ -23,12 +23,32 @@ export function Main() {
     sourceXmlPath,
     musicLibrary,
     trackList
+  }, state: {
+    isPlaying, progress
   } } = useContext(StoreContext);
   const [xmlSelectDialogOpen, setXmlSelectDialogOpen] = useState(false);
   const [xmlSelectMenuAnchorEl, setXmlSelectMenuAnchorEl] = useState(undefined);
   const [generateNewTrackDialogOpen, setGenerateNewTrackDialogOpen] = useState(false);
   const [generateNewTrackDialogSelected, setGenerateNewTrackDialogSelected] = useState(0);
   const [generateNewTrackDialogTrackName, setGenerateNewTrackDialogTrackName] = useState('新轨道');
+  const [progressDiff, setProgressDiff] = useState(0);
+  const progressCache = useRef(progress);
+  const privateProgressInterval = useRef(undefined as (NodeJS.Timeout | undefined));
+
+  useEffect(() => {
+    if (isPlaying) {
+      setProgressDiff(progress);
+      const begin = (new Date()).getTime();
+      privateProgressInterval.current = setInterval(() => {
+        setProgressDiff((new Date()).getTime() - begin + progressCache.current * 1000);
+      }, 100);
+    } else {
+      clearInterval(privateProgressInterval.current);
+    }
+  }, [isPlaying]);
+  useEffect(() => {
+    progressCache.current = progress;
+  }, [progress]);
 
   return <div className={css`
     width: 100%;
@@ -66,13 +86,27 @@ export function Main() {
         <Typography variant='h6' className={css`
           user-select: none;
         `}>
-          {'00:00:00.000'}
+          {isPlaying
+            ? (progressDiff / 1000 / 60 < 10 ? '0' : '') +
+            `${Math.floor(progressDiff / 1000 / 60)}` +
+            ':' +
+            (progressDiff / 1000 % 60 < 10 ? '0' : '') +
+            `${Math.floor(progressDiff / 1000 % 60)}`
+            : (progress / 60 < 10 ? '0' : '') + `${Math.floor(progress / 60)}` +
+              ':' +
+              (progress % 60 < 10 ? '0' : '') + `${Math.floor(progress % 60)}`}
         </Typography>
         <div className={css`
           margin: 8px;
         `}>
-          <IconButton>
-            <Icon path={mdiPlay} size={1} />
+          <IconButton onClick={() => setStore(store => ({
+            ...store,
+            state: {
+              ...store.state,
+              isPlaying: !store.state.isPlaying
+            }
+          }))}>
+            <Icon path={isPlaying ? mdiPause : mdiPlay} size={1} />
           </IconButton>
         </div>
       </div>
