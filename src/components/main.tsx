@@ -11,6 +11,7 @@ import { Scrollbars } from 'react-custom-scrollbars';
 import { useSnackbar } from 'notistack';
 
 import { StoreContext } from '../utils/storeContext';
+import { PromptDrawer } from './promptDrawer';
 import { Panel } from './panel';
 import { Player } from './player';
 import { FileSelector } from './fileSelector';
@@ -220,82 +221,46 @@ export function Main() {
             {'新建轨道'}
           </Button>
           {/* 新建轨道的命名窗口 */}
-          <Drawer
-            anchor='bottom'
+          <PromptDrawer
+            title='新建轨道'
             open={generateNewTrackDialogOpen}
-            onClose={() => setGenerateNewTrackDialogOpen(false)}>
-            <div className={css`
-              width: 100%;
-              height: 240px;
-            `}>
-              {/* 标题栏 */}
-              <div className={css`
-                position: absolute;
-                left: 16px;
-                top: 8px;
-              `}>
-                <Typography variant='h5' className={css`
-                  user-select: none;
-                `}>
-                  {'新建轨道'}
-                </Typography>
-              </div>
-              {/* 输入栏 */}
-              <div className={css`
-                position: absolute;
-                left: 16px;
-                right: 16px;
-                top: 48px;
-              `}>
-                <FormControl fullWidth variant='filled'>
-                  <InputLabel>{'使用的音乐素材'}</InputLabel>
-                  <Select
-                    value={generateNewTrackDialogSelected}
-                    onChange={e => setGenerateNewTrackDialogSelected(
-                      +(e.target.value as string)
-                    )}
-                  >
-                    {musicLibrary.map((musicInfo, index) => <MenuItem value={index}>
-                      {musicInfo.name}
-                    </MenuItem>)}
-                  </Select>
-                </FormControl>
-                <TextField
-                  label='轨道名' variant='filled' fullWidth
-                  value={generateNewTrackDialogTrackName}
-                  onChange={e => setGenerateNewTrackDialogTrackName(e.target.value)}
-                />
-              </div>
-              {/* 动作栏 */}
-              <div className={css`
-                position: absolute;
-                right: 16px;
-                bottom: 16px;
-              `}>
-                <Button onClick={() => (
-                  setStore(store => ({
-                    ...store,
-                    data: {
-                      ...store.data,
-                      trackList: [...store.data.trackList, {
-                        name: generateNewTrackDialogTrackName,
-                        usingMusicId: generateNewTrackDialogSelected,
-                        checkPoints: [],
-                        defaultCheckPoints: []
-                      }]
-                    }
-                  })),
-                  setGenerateNewTrackDialogOpen(false),
-                  setGenerateNewTrackDialogSelected(0)
-                )}>
-                  {'创建'}
-                </Button>
-                <Button onClick={() => setGenerateNewTrackDialogOpen(false)}>
-                  {'取消'}
-                </Button>
-              </div>
-            </div>
-          </Drawer>
+            onConfirm={() => (
+              setStore(store => ({
+                ...store,
+                data: {
+                  ...store.data,
+                  trackList: [...store.data.trackList, {
+                    name: generateNewTrackDialogTrackName,
+                    usingMusicId: generateNewTrackDialogSelected,
+                    checkPoints: [],
+                    defaultCheckPoints: []
+                  }]
+                }
+              })),
+              setGenerateNewTrackDialogOpen(false),
+              setGenerateNewTrackDialogSelected(0)
+            )}
+            onClose={() => setGenerateNewTrackDialogOpen(false)}
+          >
+            <FormControl fullWidth variant='filled'>
+              <InputLabel>{'使用的音乐素材'}</InputLabel>
+              <Select
+                value={generateNewTrackDialogSelected}
+                onChange={e => setGenerateNewTrackDialogSelected(
+                  +(e.target.value as string)
+                )}
+              >
+                {musicLibrary.map((musicInfo, index) => <MenuItem value={index}>
+                  {musicInfo.name}
+                </MenuItem>)}
+              </Select>
+            </FormControl>
+            <TextField
+              label='轨道名' variant='filled' fullWidth
+              value={generateNewTrackDialogTrackName}
+              onChange={e => setGenerateNewTrackDialogTrackName(e.target.value)}
+            />
+          </PromptDrawer>
         </div>
       </Scrollbars>
     </div>

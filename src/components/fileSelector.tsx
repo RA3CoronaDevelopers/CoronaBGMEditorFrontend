@@ -13,6 +13,7 @@ import {
 import { useSnackbar } from 'notistack';
 import { StoreContext } from '../utils/storeContext';
 import { send } from '../utils/websocketClient';
+import { PromptDrawer } from './promptDrawer';
 
 const DEFAULT_XML_NAME = 'Tracks.xml';
 const DEFAULT_XML_VALUE = `<?xml version="1.0" encoding="utf-8"?>
@@ -306,142 +307,70 @@ export function FileSelector({ fileNameRegExp, open, onSelect, onClose }: {
         <Button onClick={() => onClose()}>{'取消'}</Button>
       </div>
       {/* 新建文件的命名窗口 */}
-      <Drawer anchor='bottom' open={createFileDialogOpen} onClose={() => (
-        setCreateFileDialogOpen(false),
-        setCreateFileDialogValue(DEFAULT_XML_NAME)
-      )}>
-        <div className={css`
-          width: 100%;
-          height: 160px;
-        `}>
-          {/* 标题栏 */}
-          <div className={css`
-            position: absolute;
-            left: 16px;
-            top: 8px;
-          `}>
-            <Typography variant='h5' className={css`
-              user-select: none;
-            `}>
-              {'新建XML模板文件'}
-            </Typography>
-          </div>
-          {/* 输入栏 */}
-          <div className={css`
-            position: absolute;
-            left: 16px;
-            right: 16px;
-            top: 48px;
-          `}>
-            <TextField
-              label='文件名' variant='filled' fullWidth
-              value={createFileDialogValue}
-              onChange={e => setCreateFileDialogValue(e.target.value)}
-            />
-          </div>
-          {/* 动作栏 */}
-          <div className={css`
-            position: absolute;
-            right: 16px;
-            bottom: 16px;
-          `}>
-            <Button onClick={() => (
-              send('createFile', {
-                path: fileSelectorPath,
-                name: createFileDialogValue,
-                initContent: DEFAULT_XML_VALUE
-              }).then(({ hasSuccess, reason, dirContent }) => hasSuccess
-                ? (setCreateFileDialogOpen(false),
-                  enqueueSnackbar(`文件创建成功`, { variant: 'success' }),
-                  setStore(store => ({
-                    ...store,
-                    state: {
-                      ...store.state,
-                      fileSelectorDirContent: dirContent
-                    }
-                  })))
-                : enqueueSnackbar(`文件创建失败： ${reason}`, { variant: 'error' })),
-              setCreateFileDialogValue(DEFAULT_XML_NAME)
-            )}>
-              {'创建'}
-            </Button>
-            <Button onClick={() => (
-              setCreateFileDialogOpen(false),
-              setCreateFileDialogValue(DEFAULT_XML_NAME)
-            )}>
-              {'取消'}
-            </Button>
-          </div>
-        </div>
-      </Drawer>
+      <PromptDrawer
+        title='新建XML模板文件'
+        open={createFileDialogOpen}
+        onConfirm={() => (
+          send('createFile', {
+            path: fileSelectorPath,
+            name: createFileDialogValue,
+            initContent: DEFAULT_XML_VALUE
+          }).then(({ hasSuccess, reason, dirContent }) => hasSuccess
+            ? (setCreateFileDialogOpen(false),
+              enqueueSnackbar(`文件创建成功`, { variant: 'success' }),
+              setStore(store => ({
+                ...store,
+                state: {
+                  ...store.state,
+                  fileSelectorDirContent: dirContent
+                }
+              })))
+            : enqueueSnackbar(`文件创建失败： ${reason}`, { variant: 'error' })),
+          setCreateFileDialogValue(DEFAULT_XML_NAME)
+        )}
+        onClose={() => (
+          setCreateFileDialogOpen(false),
+          setCreateFileDialogValue(DEFAULT_XML_NAME)
+        )}
+      >
+        <TextField
+          label='文件名' variant='filled' fullWidth
+          value={createFileDialogValue}
+          onChange={e => setCreateFileDialogValue(e.target.value)}
+        />
+      </PromptDrawer>
       {/* 新建文件夹的命名窗口 */}
-      <Drawer anchor='bottom' open={createFolderDialogOpen} onClose={() => (
-        setCreateFolderDialogOpen(false),
-        setCreateFolderDialogValue('')
-      )}>
-        <div className={css`
-          width: 100%;
-          height: 160px;
-        `}>
-          {/* 标题栏 */}
-          <div className={css`
-            position: absolute;
-            left: 16px;
-            top: 8px;
-          `}>
-            <Typography variant='h5' className={css`
-              user-select: none;
-            `}>
-              {'新建文件夹'}
-            </Typography>
-          </div>
-          {/* 输入栏 */}
-          <div className={css`
-            position: absolute;
-            left: 16px;
-            right: 16px;
-            top: 48px;
-          `}>
-            <TextField
-              label='文件夹名' variant='filled' fullWidth
-              value={createFolderDialogValue}
-              onChange={e => setCreateFolderDialogValue(e.target.value)}
-            />
-          </div>
-          {/* 动作栏 */}
-          <div className={css`
-            position: absolute;
-            right: 16px;
-            bottom: 16px;
-          `}>
-            <Button onClick={() => (
-              send('createFolder', {
-                path: fileSelectorPath,
-                name: createFolderDialogValue
-              }).then(({ hasSuccess, reason, dirContent }) => hasSuccess
-                ? (setCreateFolderDialogOpen(false),
-                  enqueueSnackbar(`文件夹创建成功`, { variant: 'success' }),
-                  setStore(store => ({
-                    ...store,
-                    state: {
-                      ...store.state,
-                      fileSelectorDirContent: dirContent
-                    }
-                  })))
-                : enqueueSnackbar(`文件夹创建失败： ${reason}`, { variant: 'error' })),
-              setCreateFolderDialogValue(DEFAULT_XML_NAME)
-            )}>
-              {'创建'}
-            </Button>
-            <Button onClick={() => (
-              setCreateFolderDialogOpen(false),
-              setCreateFolderDialogValue(DEFAULT_XML_NAME)
-            )}>
-              {'取消'}
-            </Button>
-          </div>
-        </div>
-      </Drawer>
+      <PromptDrawer
+        title='新建文件夹'
+        open={createFolderDialogOpen}
+        onConfirm={() => (
+          send('createFolder', {
+            path: fileSelectorPath,
+            name: createFolderDialogValue
+          }).then(({ hasSuccess, reason, dirContent }) => hasSuccess
+            ? (setCreateFolderDialogOpen(false),
+              enqueueSnackbar(`文件夹创建成功`, { variant: 'success' }),
+              setStore(store => ({
+                ...store,
+                state: {
+                  ...store.state,
+                  fileSelectorDirContent: dirContent
+                }
+              })))
+            : enqueueSnackbar(`文件夹创建失败： ${reason}`, { variant: 'error' })),
+          setCreateFolderDialogValue(DEFAULT_XML_NAME)
+        )}
+        onClose={() => (
+          setCreateFolderDialogOpen(false),
+          setCreateFolderDialogValue('')
+        )}
+      >
+        <TextField
+          label='文件夹名' variant='filled' fullWidth
+          value={createFolderDialogValue}
+          onChange={e => setCreateFolderDialogValue(e.target.value)}
+        />
+      </PromptDrawer>
     </div>
   </Drawer>;
 }
