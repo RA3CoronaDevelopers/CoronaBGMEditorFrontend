@@ -1,11 +1,12 @@
 import React, { useState, useContext } from 'react';
 import {
-  Typography, IconButton,
-  Popover, List, ListItem, ListItemText
+  Typography, IconButton, Button, Drawer,
+  Popover, List, ListItem, ListItemText, TextField,
+  FormControl, InputLabel, Select, MenuItem, ListItemSecondaryAction
 } from '@material-ui/core';
 import { css } from '@emotion/css';
 import { Icon } from '@mdi/react';
-import { mdiFileSettingsOutline, mdiPlay, mdiPlus } from '@mdi/js';
+import { mdiDotsVertical, mdiFileSettingsOutline, mdiPlay, mdiPlus } from '@mdi/js';
 import { Scrollbars } from 'react-custom-scrollbars';
 import { useSnackbar } from 'notistack';
 
@@ -17,10 +18,15 @@ import { FileSelector } from './fileSelector';
 export function Main() {
   const { enqueueSnackbar } = useSnackbar();
   const { setStore, data: {
-    trackXmlPath
+    sourceXmlPath,
+    musicLibrary,
+    trackList
   } } = useContext(StoreContext);
   const [xmlSelectDialogOpen, setXmlSelectDialogOpen] = useState(false);
   const [xmlSelectMenuAnchorEl, setXmlSelectMenuAnchorEl] = useState(undefined);
+  const [generateNewTrackDialogOpen, setGenerateNewTrackDialogOpen] = useState(false);
+  const [generateNewTrackDialogSelected, setGenerateNewTrackDialogSelected] = useState(0);
+  const [generateNewTrackDialogTrackName, setGenerateNewTrackDialogTrackName] = useState('新轨道');
 
   return <div className={css`
     width: 100%;
@@ -75,12 +81,12 @@ export function Main() {
         align-items: flex-end;
       `}>
         <Typography variant='caption' className={css`
-            ${trackXmlPath === '' ? 'user-select: none;' : ''}
+            ${sourceXmlPath === '' ? 'user-select: none;' : ''}
           `}>
-          {trackXmlPath === '' ? `未打开文件` : trackXmlPath}
+          {sourceXmlPath === '' ? `未打开文件` : sourceXmlPath}
         </Typography>
         <IconButton size='small' onClick={e => setXmlSelectMenuAnchorEl(e.currentTarget)}>
-          <Icon path={mdiFileSettingsOutline} size={0.5} color='#fff' />
+          <Icon path={mdiFileSettingsOutline} size={0.8} color='#fff' />
         </IconButton>
         <Popover
           open={!!xmlSelectMenuAnchorEl}
@@ -108,7 +114,7 @@ export function Main() {
                 data: {
                   ...store.data,
                   // TODO - 在获取到剪贴板的同时向服务器发起下载指令，这也能同时验证这路径是否可用
-                  trackXmlPath: text
+                  sourceXmlPath: text
                 }
               })), enqueueSnackbar('获取成功', { variant: 'success' }))).catch(
                 () => enqueueSnackbar('获取失败', { variant: 'error' })
@@ -145,7 +151,7 @@ export function Main() {
       width: 20vw;
       height: 50vh;
       background: rgba(255, 255, 255, 0.2);
-      padding: 16px;
+      padding: 8px;
       box-sizing: border-box;
     `}>
       <div className={css`
@@ -154,12 +160,38 @@ export function Main() {
         justify-content: space-between;
         align-items: center;
       `}>
-        <Typography variant='h6'>
-          {'素材库'}
-        </Typography>
-        <IconButton>
-          <Icon path={mdiPlus} size={1} />
+        <div className={css`
+          margin-left: 8px;
+          user-select: none;
+        `}>
+          <Typography variant='h6'>
+            {'素材库'}
+          </Typography>
+        </div>
+        <IconButton size='small'>
+          <Icon path={mdiPlus} size={0.8} />
         </IconButton>
+      </div>
+      <div className={css`
+        width: 100%;
+        height: calc(100% - 32px);
+        user-select: none;
+      `}>
+        <Scrollbars className={css`
+          width: 100%;
+          height: 100%;
+        `}>
+          <List>
+            {musicLibrary.map(musicInfo => <ListItem>
+              <ListItemText primary={musicInfo.name} />
+              <ListItemSecondaryAction>
+                <IconButton size='small'>
+                  <Icon path={mdiDotsVertical} size={0.8} />
+                </IconButton>
+              </ListItemSecondaryAction>
+            </ListItem>)}
+          </List>
+        </Scrollbars>
       </div>
     </div>
     {/* 可视化音频区域 */}
@@ -176,12 +208,95 @@ export function Main() {
         width: 100%;
         height: 100%;
       `}>
-        <Player id={1} />
-        <Player id={2} />
-        <Player id={3} />
-        <Player id={4} />
-        <Player id={5} />
-        <Player id={6} />
+        <div className={css`
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+        `}>
+          {trackList.map((track, index) => <Player track={track} id={index} />)}
+          <Button onClick={() => setGenerateNewTrackDialogOpen(true)}>
+            <Icon path={mdiPlus} size={1} />
+            {'新建轨道'}
+          </Button>
+          {/* 新建轨道的命名窗口 */}
+          <Drawer
+            anchor='bottom'
+            open={generateNewTrackDialogOpen}
+            onClose={() => setGenerateNewTrackDialogOpen(false)}>
+            <div className={css`
+              width: 100%;
+              height: 240px;
+            `}>
+              {/* 标题栏 */}
+              <div className={css`
+                position: absolute;
+                left: 16px;
+                top: 8px;
+              `}>
+                <Typography variant='h5' className={css`
+                  user-select: none;
+                `}>
+                  {'新建轨道'}
+                </Typography>
+              </div>
+              {/* 输入栏 */}
+              <div className={css`
+                position: absolute;
+                left: 16px;
+                right: 16px;
+                top: 48px;
+              `}>
+                <FormControl fullWidth variant='filled'>
+                  <InputLabel>{'使用的音乐素材'}</InputLabel>
+                  <Select
+                    value={generateNewTrackDialogSelected}
+                    onChange={e => setGenerateNewTrackDialogSelected(
+                      +(e.target.value as string)
+                    )}
+                  >
+                    {musicLibrary.map((musicInfo, index) => <MenuItem value={index}>
+                      {musicInfo.name}
+                    </MenuItem>)}
+                  </Select>
+                </FormControl>
+                <TextField
+                  label='轨道名' variant='filled' fullWidth
+                  value={generateNewTrackDialogTrackName}
+                  onChange={e => setGenerateNewTrackDialogTrackName(e.target.value)}
+                />
+              </div>
+              {/* 动作栏 */}
+              <div className={css`
+                position: absolute;
+                right: 16px;
+                bottom: 16px;
+              `}>
+                <Button onClick={() => (
+                  setStore(store => ({
+                    ...store,
+                    data: {
+                      ...store.data,
+                      trackList: [...store.data.trackList, {
+                        name: generateNewTrackDialogTrackName,
+                        usingMusicId: generateNewTrackDialogSelected,
+                        checkPoints: [],
+                        defaultCheckPoints: []
+                      }]
+                    }
+                  })),
+                  setGenerateNewTrackDialogOpen(false),
+                  setGenerateNewTrackDialogSelected(0)
+                )}>
+                  {'创建'}
+                </Button>
+                <Button onClick={() => setGenerateNewTrackDialogOpen(false)}>
+                  {'取消'}
+                </Button>
+              </div>
+            </div>
+          </Drawer>
+        </div>
       </Scrollbars>
     </div>
     {/* 子窗口 */}
@@ -191,7 +306,8 @@ export function Main() {
       onSelect={path => setStore(store => ({
         ...store,
         data: {
-          trackXmlPath: path
+          ...store.data,
+          sourceXmlPath: path
         }
       }))}
       onClose={() => setXmlSelectDialogOpen(false)}

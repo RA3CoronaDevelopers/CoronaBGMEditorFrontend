@@ -245,7 +245,7 @@ export function FileSelector({ fileNameRegExp, open, onSelect, onClose }: {
               ...(index > 0 ? [<div className={css`
                 margin: 0px 4px;
               `}>
-                <Icon path={mdiChevronRight} size={0.5} />
+                <Icon path={mdiChevronRight} size={0.8} />
               </div>] : []),
               button
             ], []).reverse().slice(0, 6).reverse()}

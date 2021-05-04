@@ -1,8 +1,37 @@
 import React, { createContext, useState } from 'react';
 
+export interface ITrack {
+  name: string,
+  usingMusicId: number,
+  checkPoints: {
+    progress: number,
+    condition: {
+      source: string,
+      target: string,
+      op: '==' | '!=' | '>=' | '<=' | '>' | '<'
+    }[],
+    targetTrackId: number,
+    targetTrackProgress: number
+  }[],
+  defaultCheckPoints: {
+    condition: {
+      source: string,
+      target: string,
+      op: '==' | '!=' | '>=' | '<=' | '>' | '<'
+    }[],
+    targetTrackId: number,
+    targetTrackProgress: number
+  }[]
+}
+
 interface IStore {
   data: {
-    trackXmlPath: string
+    sourceXmlPath: string,
+    musicLibrary: {
+      name: string,
+      httpPath: string
+    }[],
+    trackList: ITrack[]
   },
   state: {
     fileSelectorPath: string,
@@ -20,7 +49,17 @@ export const StoreContext = createContext({} as IStore & {
 export function Store({ children }: any) {
   const [store, setStore] = useState({
     data: {
-      trackXmlPath: ''
+      sourceXmlPath: '',
+      musicLibrary: [{
+        name: '国风版 两只老虎爱跳舞'
+      }, {
+        name: '昭和版 两只老虎爱跳舞'
+      }, {
+        name: '交响乐版 两只老虎爱跳舞'
+      },{
+        name: '苏联版 两只老虎爱跳舞'
+      }],
+      trackList: []
     },
     state: {
       fileSelectorPath: '',
