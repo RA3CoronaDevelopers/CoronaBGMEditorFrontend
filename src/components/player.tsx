@@ -41,9 +41,18 @@ export function Player({ id, track }: {
       ...store,
       state: {
         ...store.state,
-        progress: waveRef.current.getCurrentTime()
+        progress: waveRef.current.getCurrentTime(),
+        nowPlayingTrack: id
       }
-    })))
+    })));
+    waveRef.current.on('finish', () => setStore(store => ({
+      ...store,
+      state: {
+        ...store.state,
+        progress: 0,
+        isPlaying: false
+      }
+    })));
   }, []);
   useEffect(() => {
     if (nowPlayingTrack === id && isPlaying) {
