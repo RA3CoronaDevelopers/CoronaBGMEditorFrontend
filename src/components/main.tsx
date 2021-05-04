@@ -16,6 +16,7 @@ import { Panel } from './panel';
 import { Player } from './player';
 import { FileSelector } from './fileSelector';
 import { UnitWeightConfig } from './unitWeightConfig';
+import { FsmConfig } from './fsmConfig';
 
 export function Main() {
   const { enqueueSnackbar } = useSnackbar();
@@ -93,8 +94,8 @@ export function Main() {
             (progressDiff / 1000 % 60 < 10 ? '0' : '') +
             `${Math.floor(progressDiff / 1000 % 60)}`
             : (progress / 60 < 10 ? '0' : '') + `${Math.floor(progress / 60)}` +
-              ':' +
-              (progress % 60 < 10 ? '0' : '') + `${Math.floor(progress % 60)}`}
+            ':' +
+            (progress % 60 < 10 ? '0' : '') + `${Math.floor(progress % 60)}`}
         </Typography>
         <div className={css`
           margin: 8px;
@@ -323,5 +324,6 @@ export function Main() {
       onClose={() => setXmlSelectDialogOpen(false)}
     />
     <UnitWeightConfig />
+    <FsmConfig />
   </div >
 }

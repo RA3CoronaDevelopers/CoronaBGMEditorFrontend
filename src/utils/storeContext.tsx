@@ -1,3 +1,4 @@
+import { mdiFormatListBulletedTriangle } from '@mdi/js';
 import React, { createContext, useState } from 'react';
 
 export interface ITrack {
@@ -49,6 +50,7 @@ interface IStore {
     trackBeatsPerBar: number,
 
     unitWeightConfigDialogOpen: boolean
+    fsmConfigDialogOpen: boolean
   }
 }
 
@@ -82,7 +84,8 @@ export function Store({ children }: any) {
       trackBeatsOffset: 0,
       trackBeatsPerBar: 4,
 
-      unitWeightConfigDialogOpen: false
+      unitWeightConfigDialogOpen: false,
+      fsmConfigDialogOpen: false
     }
   } as IStore);
   return <StoreContext.Provider value={{

@@ -135,5 +135,14 @@ export function Panel() {
     }))}>
       {'调整单位权值'}
     </Button>
+    <Button fullWidth variant='outlined' onClick={() => setStore(store => ({
+      ...store,
+      state: {
+        ...store.state,
+        fsmConfigDialogOpen: true
+      }
+    }))}>
+      {'调整全局权值'}
+    </Button>
   </div>
 }
