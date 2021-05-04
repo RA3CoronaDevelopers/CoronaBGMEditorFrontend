@@ -15,6 +15,7 @@ import { PromptDrawer } from './promptDrawer';
 import { Panel } from './panel';
 import { Player } from './player';
 import { FileSelector } from './fileSelector';
+import { UnitWeightConfig } from './unitWeightConfig';
 
 export function Main() {
   const { enqueueSnackbar } = useSnackbar();
@@ -277,5 +278,6 @@ export function Main() {
       }))}
       onClose={() => setXmlSelectDialogOpen(false)}
     />
+    <UnitWeightConfig />
   </div >
 }

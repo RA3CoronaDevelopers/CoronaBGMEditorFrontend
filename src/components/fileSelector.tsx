@@ -79,6 +79,122 @@ const DEFAULT_XML_VALUE = `<?xml version="1.0" encoding="utf-8"?>
   - TargetFadeInDuration：目标轨道开始播放之后，要花多长时间淡入
 -->
 <XmlBgmData xmlns="clr-namespace:CoronaBGMPlayer;assembly=CoronaBGMPlayer">
+  <FsmConfig
+    Interval="20"
+    FightThreshold="120"
+    AdvantageThreshold="2.7"
+    DisadvantageThreshold="2.5" />
+  <UnitWeight
+    UnitId="AlliedScoutInfantry"
+    Weight="200" />
+  <UnitWeight
+    UnitId="AlliedAntiInfantryInfantry"
+    Weight="200" />
+  <UnitWeight
+    UnitId="AlliedAntiVehicleInfantry"
+    Weight="300" />
+  <UnitWeight
+    UnitId="AlliedEngineer"
+    Weight="500" />
+  <UnitWeight
+    UnitId="AlliedInfiltrationInfantry"
+    Weight="1000" />
+  <UnitWeight
+    UnitId="AlliedCommandoTech1"
+    Weight="2000" />
+  <UnitWeight
+    UnitId="AlliedMiner"
+    Weight="1000" />
+  <UnitWeight
+    UnitId="AlliedAntiInfantryVehicle"
+    Weight="750" />
+  <UnitWeight
+    UnitId="AlliedAntiAirVehicleTech1"
+    Weight="800" />
+  <UnitWeight
+    UnitId="AlliedAntiVehicleVehicleTech1"
+    Weight="950" />
+  <UnitWeight
+    UnitId="AlliedAntiStructureVehicle"
+    Weight="1400" />
+  <UnitWeight
+    UnitId="AlliedAntiVehicleVehicleTech3"
+    Weight="1600" />
+  <UnitWeight
+    UnitId="AlliedMCV"
+    Weight="5000" />
+  <UnitWeight
+    UnitId="AlliedAntiGroundAircraft"
+    Weight="1200" />
+  <UnitWeight
+    UnitId="AlliedFighterAircraft"
+    Weight="1000" />
+  <UnitWeight
+    UnitId="AlliedSupportAircraft"
+    Weight="1600" />
+  <UnitWeight
+    UnitId="AlliedBomberAircraft"
+    Weight="2000" />
+  <UnitWeight
+    UnitId="AlliedSupersonicBomber"
+    Weight="5000" />
+  <UnitWeight
+    UnitId="AlliedAntiNavalScout"
+    Weight="750" />
+  <UnitWeight
+    UnitId="AlliedAntiAirShip"
+    Weight="900" />
+  <UnitWeight
+    UnitId="AlliedAntiNavyShipTech1"
+    Weight="1500" />
+  <UnitWeight
+    UnitId="AlliedAntiStructureShip"
+    Weight="2000" />
+  <UnitWeight
+    UnitId="AlliedConstructionYard"
+    Weight="5000" />
+  <UnitWeight
+    UnitId="AlliedOutPost"
+    Weight="1000" />
+  <UnitWeight
+    UnitId="AlliedPowerPlant"
+    Weight="800" />
+  <UnitWeight
+    UnitId="AlliedBarracks"
+    Weight="500" />
+  <UnitWeight
+    UnitId="AlliedRefinery"
+    Weight="2000" />
+  <UnitWeight
+    UnitId="AlliedWarFactory"
+    Weight="2000" />
+  <UnitWeight
+    UnitId="AlliedNavalYard"
+    Weight="1000" />
+  <UnitWeight
+    UnitId="AlliedAirfield"
+    Weight="1000" />
+  <UnitWeight
+    UnitId="AlliedTechStructure"
+    Weight="750" />
+  <UnitWeight
+    UnitId="AlliedWallPiece"
+    Weight="10" />
+  <UnitWeight
+    UnitId="AlliedWallSegmentPiece"
+    Weight="10" />
+  <UnitWeight
+    UnitId="AlliedBaseDefense"
+    Weight="800" />
+  <UnitWeight
+    UnitId="AlliedBaseDefenseAdvanced"
+    Weight="120" />
+  <UnitWeight
+    UnitId="AlliedSuperWeapon"
+    Weight="1500" />
+  <UnitWeight
+    UnitId="AlliedSuperWeaponAdvanced"
+    Weight="2500" />
 </XmlBgmData>`;
 
 export function FileSelector({ fileNameRegExp, open, onSelect, onClose }: {
@@ -129,7 +245,9 @@ export function FileSelector({ fileNameRegExp, open, onSelect, onClose }: {
       `}>
         <Typography variant='h5' className={css`
           user-select: none;
-        `}>{'选择文件'}</Typography>
+        `}>
+          {'选择文件'}
+        </Typography>
         <div className={css`
           margin-top: 8px;
           display: flex;

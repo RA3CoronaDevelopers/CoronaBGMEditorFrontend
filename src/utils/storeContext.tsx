@@ -38,7 +38,9 @@ interface IStore {
     fileSelectorDirContent: { [name: string]: 'dir' | 'file' },
     fileSelectorDiskList: string[],
 
-    editorSituation: string
+    editorSituation: string,
+
+    unitWeightConfigDialogOpen: boolean
   }
 }
 
@@ -56,7 +58,7 @@ export function Store({ children }: any) {
         name: '昭和版 两只老虎爱跳舞'
       }, {
         name: '交响乐版 两只老虎爱跳舞'
-      },{
+      }, {
         name: '苏联版 两只老虎爱跳舞'
       }],
       trackList: []
@@ -66,7 +68,9 @@ export function Store({ children }: any) {
       fileSelectorDirContent: {},
       fileSelectorDiskList: [],
 
-      editorSituation: 'Mute'
+      editorSituation: 'Mute',
+
+      unitWeightConfigDialogOpen: false
     }
   } as IStore);
   return <StoreContext.Provider value={{
