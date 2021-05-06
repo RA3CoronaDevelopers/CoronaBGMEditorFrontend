@@ -1,11 +1,14 @@
 declare global {
   function receive(receiver: (msg: any) => void): void;
   function send(msg: any): void;
+  function routeStaticFile(routeId: string, path: string): void;
 }
 
 export { };
 
 import { diskinfo } from '@dropb/diskinfo';
+import { Parser, Builder } from 'xml2js';
+import { generate } from 'shortid';
 import {
   readdirSync, mkdirSync,
   statSync, existsSync, readFileSync, writeFileSync
@@ -124,6 +127,56 @@ const middlewares: {
           })()
         }), {})
       };
+    }
+  },
+  // XML 文件读写
+  async readXMLFile({ path }) {
+    if (existsSync(path)) {
+      try {
+        const obj = await (new Parser()).parseStringPromise(readFileSync(path, 'utf-8'));
+        const trackList = obj.XmlBgmData.Track ? obj.XmlBgmData.Track.map(
+          ({ $ }) => $
+        ) : [];
+        const musicLibrary = obj.XmlBgmData.MusicFile ? obj.XmlBgmData.MusicFile.map(
+          ({ $ }) => $
+        ).map(({
+          MusicId, Path
+        }) => {
+          const id = generate();
+          routeStaticFile(id, join(path, '../', Path));
+          return { name: MusicId, httpPath: `./${id}` };
+        }) : [];
+        return {
+          hasSuccess: true,
+          trackList, musicLibrary
+        };
+      } catch (e) {
+        console.error(e);
+        return {
+          hasSuccess: false,
+          reason: `${e}`
+        }
+      }
+    } else {
+      return {
+        hasSuccess: false,
+        reason: '文件不存在'
+      }
+    }
+  },
+  async writeXMLFile({ path, obj }) {
+    const xml = (new Builder()).buildObject(obj);
+    console.log('XML:', xml);
+    try {
+      writeFileSync(path, xml);
+      return {
+        hasSuccess: true
+      };
+    } catch (e) {
+      return {
+        hasSuccess: false,
+        reason: `${e}`
+      }
     }
   }
 };

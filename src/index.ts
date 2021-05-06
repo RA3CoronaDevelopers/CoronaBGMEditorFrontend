@@ -3,21 +3,44 @@ import * as Koa from 'koa';
 import * as ws from 'ws';
 import * as bodyParserMiddleware from 'koa-bodyparser';
 import * as staticMiddleware from 'koa-static';
+import { createReadStream, existsSync } from 'fs';
 import { join } from 'path';
-
 import { clientSideMiddleware } from './webpack';
+
+let wsReceiver = (_msg: any) => { return; };
+export function setWsConnectionReceiver(receiver: (msg: any) => void) {
+  wsReceiver = receiver;
+}
+let wsSender: (msg: any) => void;
+export let wsConnectionSender = (msg: string) => {
+  wsSender(msg);
+};
+let httpStaticFileRoute: {
+  [routePath: string]: string
+} = {};
+export function setHttpStaticRoute(routeId: string, path: string) {
+  httpStaticFileRoute[`/${routeId}`] = path;
+}
 
 const app = new Koa();
 app.use(bodyParserMiddleware());
 app.use(staticMiddleware(join(__dirname, '../res')));
-// WARN - 下面是用来为临时测试音频播放控件提供音频素材的，具体文件不会上传到 github，且在文件拣取写好后会移除
-app.use(staticMiddleware(join(__dirname, '../../TouhouMusicNew')));
 app.use(async (
   ctx: Koa.Context,
   next: () => Promise<void>
 ) => {
   console.log(`Http(${ctx.ip}):`, ctx.path);
-  await clientSideMiddleware(ctx, next);
+  if (Object.keys(httpStaticFileRoute).indexOf(ctx.path) >= 0) {
+    if (existsSync(httpStaticFileRoute[`/${ctx.path}`])) {
+      ctx.body = createReadStream(httpStaticFileRoute[`/${ctx.path}`]);
+      await next();
+    } else {
+      ctx.status = 404;
+      await next();
+    }
+  } else {
+    await clientSideMiddleware(ctx, next);
+  }
 });
 
 const server = createServer(app.callback()).listen(
@@ -25,14 +48,6 @@ const server = createServer(app.callback()).listen(
   process.env.HOST || undefined
 );
 
-let wsReceiver = (_msg: any) => { return; };
-export function setWsConnectionReceiver(receiver: (msg: any) => void) {
-  wsReceiver = receiver;
-}
-let wsSender;
-export let wsConnectionSender = (msg: string) => {
-  wsSender(msg);
-};
 const wss = new ws.Server({ server });
 wss.on('connection', (ws, req) => {
   const ip = req.socket.remoteAddress;

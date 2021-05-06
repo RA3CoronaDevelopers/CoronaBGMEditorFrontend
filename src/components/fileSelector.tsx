@@ -17,67 +17,6 @@ import { PromptDrawer } from './promptDrawer';
 
 const DEFAULT_XML_NAME = 'Tracks.xml';
 const DEFAULT_XML_VALUE = `<?xml version="1.0" encoding="utf-8"?>
-<!--
-  【轨道配置文件说明】
-  【Includes - 引用列表】
-  子标签：
-  - Include：引用其他文件
-
-  【Include - 引用其他 XML 文件】
-  属性：
-  - Path：文件路径，可以是相对路径
-
-  【MusicFile - 引用音乐文件】
-  属性：
-  - MusicId：音乐ID
-  - Path：音乐路径，可以是相对路径
-
-  【Track - 定义音乐轨道】
-  属性：
-  - Id：轨道 ID
-  - MusicId: 轨道对应的音乐。多个轨道可以使用同一首音乐
-  - Length：轨道时长
-  子标签：
-  - DefaultCheckPoint：默认检查点，只能有一个
-  - CheckPoint：普通检查点，可以有多个
-  - StartOffset：起始偏移时间
-  - BeatsPerMinutes：节拍器每分钟多少拍
-  - BeatsPerBar：节拍器一小节多少拍
-
-  【DefaultCheckPoint - 默认检查点】
-  用来在任意时刻决定是否跳转到另一个音乐轨道。
-  子标签：
-  - Destinations：跳转目标列表
-
-  【CheckPoint - 普通检查点】
-  用来在某一个特定时刻决定是否跳转到另一个音乐轨道。
-  属性：
-  - Time：检查点触发的时间，不应大于轨道时长；在 XML 里，每个检查点应该按照各自的时间先后排列
-  子标签：
-  - DefaultDestinations：默认跳转列表
-  - Destinations：跳转目标列表
-
-  【DefaultDestinations - 默认跳转列表】
-  假如定义了默认跳转列表，并且检查点里没有其他符合条件的跳转目标的话，就会按照默认列表执行跳转。
-  子标签：
-  - JumpTo：跳转目标。假如列表里有多个跳转目标，那么跳转时会随机选择一个
-
-  【Destinations - 跳转列表】
-  属性：
-  - Condition：此跳转列表应该在哪个条件下触发
-  子标签：
-  - JumpTo：跳转目标。假如列表里有多个跳转目标，那么跳转时会随机选择一个
-
-
-  【JumpTo - 跳转目标】
-  属性：
-  - TargetTrackId：目标轨道 ID。假如 ID 是小写 default 的话，将会跳转到当前设置的默认轨道
-  - TargetOffset：跳转到几分几秒
-  - FadeOutDelay：当前的轨道还要继续正常播放多长时间，假如是 0，会立即开始淡出
-  - FadeOutDuration：当前的轨道正常播放完毕之后，淡出要持续多长时间，假如是 0，会立即停止播放
-  - TargetFadeInDelay：目标轨道还要等待多长时间之后才开始播放，假如是 0，会立即开始播放
-  - TargetFadeInDuration：目标轨道开始播放之后，要花多长时间淡入
--->
 <XmlBgmData xmlns="clr-namespace:CoronaBGMPlayer;assembly=CoronaBGMPlayer">
   <FsmConfig
     Interval="20"

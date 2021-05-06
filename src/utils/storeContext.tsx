@@ -62,11 +62,7 @@ export function Store({ children }: any) {
   const [store, setStore] = useState({
     data: {
       sourceXmlPath: '',
-      musicLibrary: [
-        // WARN - 下面是用来为临时测试音频播放控件提供音频素材的，具体文件不会上传到 github，且在文件拣取写好后会移除
-        { name: 'EastNewSound - asterisk', httpPath: './EastNewSound - asterisk.mp3'},
-        { name: 'きりん - ひとしずく.mp3', httpPath: './きりん - ひとしずく.mp3' }
-      ],
+      musicLibrary: [],
       trackList: []
     },
     state: {

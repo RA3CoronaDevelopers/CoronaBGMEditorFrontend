@@ -2,15 +2,16 @@ import React, { useState, useContext, useEffect, useRef } from 'react';
 import {
   Typography, IconButton, Button,
   Popover, List, ListItem, ListItemText, TextField,
-  FormControl, InputLabel, Select, MenuItem, ListItemSecondaryAction
+  FormControl, InputLabel, Select, MenuItem, ListItemSecondaryAction, Tooltip
 } from '@material-ui/core';
 import { css } from '@emotion/css';
 import { Icon } from '@mdi/react';
-import { mdiDotsVertical, mdiFileSettingsOutline, mdiPause, mdiPlay, mdiPlus } from '@mdi/js';
+import { mdiContentSave, mdiDotsVertical, mdiFileSettingsOutline, mdiPause, mdiPlay, mdiPlus } from '@mdi/js';
 import { Scrollbars } from 'react-custom-scrollbars';
 import { useSnackbar } from 'notistack';
 
 import { StoreContext } from '../utils/storeContext';
+import { send } from '../utils/websocketClient';
 import { PromptDrawer } from './promptDrawer';
 import { Panel } from './panel';
 import { Player } from './player';
@@ -22,8 +23,8 @@ export function Main() {
   const { enqueueSnackbar } = useSnackbar();
   const { setStore, data: {
     sourceXmlPath,
-    musicLibrary,
-    trackList
+    trackList,
+    musicLibrary
   }, state: {
     isPlaying, progress
   } } = useContext(StoreContext);
@@ -122,9 +123,25 @@ export function Main() {
           `}>
           {sourceXmlPath === '' ? `未打开文件` : sourceXmlPath}
         </Typography>
-        <IconButton size='small' onClick={e => setXmlSelectMenuAnchorEl(e.currentTarget)}>
-          <Icon path={mdiFileSettingsOutline} size={0.8} color='#fff' />
-        </IconButton>
+        <div className={css`
+          display: flex;
+          flex-direction: row;
+        `}>
+          <Tooltip title='保存文件'>
+            <IconButton size='small' onClick={() => send('saveXMLFile', {
+              path: sourceXmlPath,
+              trackList,
+              musicLibrary
+            })}>
+              <Icon path={mdiContentSave} size={0.8} color='#fff' />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title='选择文件'>
+            <IconButton size='small' onClick={e => setXmlSelectMenuAnchorEl(e.currentTarget)}>
+              <Icon path={mdiFileSettingsOutline} size={0.8} color='#fff' />
+            </IconButton>
+          </Tooltip>
+        </div>
         <Popover
           open={!!xmlSelectMenuAnchorEl}
           anchorEl={xmlSelectMenuAnchorEl}
@@ -146,15 +163,21 @@ export function Main() {
               <ListItemText primary='选择文件...' />
             </ListItem>
             <ListItem button onClick={() => (navigator.clipboard.readText().then(
-              text => (setStore(store => ({
-                ...store,
-                data: {
-                  ...store.data,
-                  // TODO - 在获取到剪贴板的同时向服务器发起下载指令，这也能同时验证这路径是否可用
-                  sourceXmlPath: text
-                }
-              })), enqueueSnackbar('获取成功', { variant: 'success' }))).catch(
-                () => enqueueSnackbar('获取失败', { variant: 'error' })
+              text => send('readXMLFile', { path: text }).then(({
+                hasSuccess, reason, trackList, musicLibrary
+              }) => (
+                hasSuccess
+                  ? (setStore(store => ({
+                    ...store,
+                    data: {
+                      ...store.data,
+                      sourceXmlPath: text,
+                      trackList, musicLibrary
+                    }
+                  })), enqueueSnackbar('获取成功', { variant: 'success' }))
+                  : enqueueSnackbar(`获取失败：${reason}`, { variant: 'error' })
+              ))).catch(
+                () => enqueueSnackbar('无法读取剪贴板', { variant: 'error' })
               ), setXmlSelectMenuAnchorEl(undefined))}>
               <ListItemText primary='从剪贴板中获取路径' />
             </ListItem>
@@ -314,13 +337,20 @@ export function Main() {
     <FileSelector
       fileNameRegExp={/\.xml$/}
       open={xmlSelectDialogOpen}
-      onSelect={path => setStore(store => ({
-        ...store,
-        data: {
-          ...store.data,
-          sourceXmlPath: path
-        }
-      }))}
+      onSelect={path => send('readXMLFile', { path }).then(({
+        hasSuccess, reason, obj, trackList, musicLibrary
+      }) => (
+        hasSuccess
+          ? (setStore(store => ({
+            ...store,
+            data: {
+              ...store.data,
+              sourceXmlPath: path,
+              trackList, musicLibrary
+            }
+          })), enqueueSnackbar('获取成功', { variant: 'success' }), console.log('XML:', obj))
+          : enqueueSnackbar(`获取失败：${reason}`, { variant: 'error' })
+      ))}
       onClose={() => setXmlSelectDialogOpen(false)}
     />
     <UnitWeightConfig />
