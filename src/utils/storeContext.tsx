@@ -1,38 +1,15 @@
-import { mdiFormatListBulletedTriangle } from '@mdi/js';
 import React, { createContext, useState } from 'react';
-
-export interface ITrack {
-  name: string,
-  usingMusicId: number,
-  checkPoints: {
-    progress: number,
-    condition: {
-      source: string,
-      target: string,
-      op: '==' | '!=' | '>=' | '<=' | '>' | '<'
-    }[],
-    targetTrackId: number,
-    targetTrackProgress: number
-  }[],
-  defaultCheckPoints: {
-    condition: {
-      source: string,
-      target: string,
-      op: '==' | '!=' | '>=' | '<=' | '>' | '<'
-    }[],
-    targetTrackId: number,
-    targetTrackProgress: number
-  }[]
-}
+import { ITrack, IFsmConfig, IUnitWeight } from './jsonConfigTypes';
 
 interface IStore {
   data: {
     sourceXmlPath: string,
-    musicLibrary: {
-      name: string,
-      httpPath: string
-    }[],
-    trackList: ITrack[]
+    musicFiles: {
+      [id: string]: string
+    },
+    tracks: ITrack[],
+    fsmConfig: IFsmConfig,
+    unitWeight: IUnitWeight
   },
   state: {
     fileSelectorPath: string,
@@ -62,8 +39,10 @@ export function Store({ children }: any) {
   const [store, setStore] = useState({
     data: {
       sourceXmlPath: '',
-      musicLibrary: [],
-      trackList: []
+      musicFiles: {},
+      tracks: [],
+      fsmConfig: {},
+      unitWeight: {}
     },
     state: {
       fileSelectorPath: '',

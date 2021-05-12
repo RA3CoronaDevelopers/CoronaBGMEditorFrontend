@@ -23,8 +23,8 @@ export function Main() {
   const { enqueueSnackbar } = useSnackbar();
   const { setStore, data: {
     sourceXmlPath,
-    trackList,
-    musicLibrary
+    tracks,
+    musicFiles
   }, state: {
     isPlaying, progress
   } } = useContext(StoreContext);
@@ -130,8 +130,8 @@ export function Main() {
           <Tooltip title='保存文件'>
             <IconButton size='small' onClick={() => send('saveXMLFile', {
               path: sourceXmlPath,
-              trackList,
-              musicLibrary
+              tracks,
+              musicFiles
             })}>
               <Icon path={mdiContentSave} size={0.8} color='#fff' />
             </IconButton>
@@ -163,8 +163,9 @@ export function Main() {
               <ListItemText primary='选择文件...' />
             </ListItem>
             <ListItem button onClick={() => (navigator.clipboard.readText().then(
-              text => send('readXMLFile', { path: text }).then(({
-                hasSuccess, reason, trackList, musicLibrary
+              text => send('readFile', { path: text }).then(({
+                hasSuccess, reason,
+                musicFiles, tracks, fsmConfig, unitWeight
               }) => (
                 hasSuccess
                   ? (setStore(store => ({
@@ -172,7 +173,7 @@ export function Main() {
                     data: {
                       ...store.data,
                       sourceXmlPath: text,
-                      trackList, musicLibrary
+                      musicFiles, tracks, fsmConfig, unitWeight
                     }
                   })), enqueueSnackbar('获取成功', { variant: 'success' }))
                   : enqueueSnackbar(`获取失败：${reason}`, { variant: 'error' })
@@ -252,8 +253,8 @@ export function Main() {
           height: 100%;
         `}>
           <List>
-            {musicLibrary.map(musicInfo => <ListItem>
-              <ListItemText primary={musicInfo.name} />
+            {Object.keys(musicFiles).map(id => <ListItem>
+              <ListItemText primary={id} />
               <ListItemSecondaryAction>
                 <IconButton size='small'>
                   <Icon path={mdiDotsVertical} size={0.8} />
@@ -284,7 +285,7 @@ export function Main() {
           justify-content: center;
           align-items: center;
         `}>
-          {trackList.map((track, index) => <Player track={track} id={index} />)}
+          {tracks.map((track, index) => <Player track={track} id={index} />)}
           <Button onClick={() => setGenerateNewTrackDialogOpen(true)}>
             <Icon path={mdiPlus} size={1} />
             {'新建轨道'}
@@ -298,9 +299,13 @@ export function Main() {
                 ...store,
                 data: {
                   ...store.data,
-                  trackList: [...store.data.trackList, {
-                    name: generateNewTrackDialogTrackName,
-                    usingMusicId: generateNewTrackDialogSelected,
+                  tracks: [...store.data.tracks, {
+                    id: generateNewTrackDialogTrackName,
+                    musicId: `${generateNewTrackDialogSelected}`,
+                    startOffset: 0,
+                    length: 0,
+                    beatsPerMinutes: 0,
+                    beatsPerBar: 0,
                     checkPoints: [],
                     defaultCheckPoints: []
                   }]
@@ -319,8 +324,8 @@ export function Main() {
                   +(e.target.value as string)
                 )}
               >
-                {musicLibrary.map((musicInfo, index) => <MenuItem value={index}>
-                  {musicInfo.name}
+                {Object.keys(musicFiles).map((id, index) => <MenuItem value={index}>
+                  {id}
                 </MenuItem>)}
               </Select>
             </FormControl>
@@ -335,10 +340,11 @@ export function Main() {
     </div>
     {/* 子窗口 */}
     <FileSelector
-      fileNameRegExp={/\.xml$/}
+      fileNameRegExp={/\.json$/}
       open={xmlSelectDialogOpen}
-      onSelect={path => send('readXMLFile', { path }).then(({
-        hasSuccess, reason, obj, trackList, musicLibrary
+      onSelect={path => send('readFile', { path }).then(({
+        hasSuccess, reason,
+        musicFiles, tracks, fsmConfig, unitWeight
       }) => (
         hasSuccess
           ? (setStore(store => ({
@@ -346,9 +352,9 @@ export function Main() {
             data: {
               ...store.data,
               sourceXmlPath: path,
-              trackList, musicLibrary
+              musicFiles, tracks, fsmConfig, unitWeight
             }
-          })), enqueueSnackbar('获取成功', { variant: 'success' }), console.log('XML:', obj))
+          })), enqueueSnackbar('获取成功', { variant: 'success' }))
           : enqueueSnackbar(`获取失败：${reason}`, { variant: 'error' })
       ))}
       onClose={() => setXmlSelectDialogOpen(false)}

@@ -5,13 +5,14 @@ import { Icon } from '@mdi/react';
 import { mdiDotsVertical } from '@mdi/js';
 import WaveSurfer from 'wavesurfer.js';
 import WaveSurferCursorPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.cursor.js'
-import { StoreContext, ITrack } from '../utils/storeContext';
+import { StoreContext } from '../utils/storeContext';
+import { ITrack } from '../utils/jsonConfigTypes';
 
 export function Player({ id, track }: {
   id: number, track: ITrack
 }) {
   const { setStore, data: {
-    musicLibrary
+    musicFiles
   }, state: {
     nowPlayingTrack, isPlaying, progress
   } } = useContext(StoreContext);
@@ -36,7 +37,7 @@ export function Player({ id, track }: {
         })
       ]
     });
-    waveRef.current.load(musicLibrary[track.usingMusicId].httpPath);
+    waveRef.current.load(musicFiles[track.musicId]);
     waveRef.current.on('seek', () => setStore(store => ({
       ...store,
       state: {
@@ -99,7 +100,7 @@ export function Player({ id, track }: {
         </IconButton>
       </div>
       <Typography variant='caption'>
-        {track.name}
+        {track.id}
       </Typography>
     </div>
     <div className={css`
@@ -126,7 +127,7 @@ export function Player({ id, track }: {
             user-select: none;
           `}>
             <Typography variant='caption'>
-              {musicLibrary[track.usingMusicId].name}
+              {musicFiles[track.musicId]}
             </Typography>
           </div>
         </div>

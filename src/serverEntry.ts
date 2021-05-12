@@ -1,14 +1,12 @@
 declare global {
   function receive(receiver: (msg: any) => void): void;
   function send(msg: any): void;
-  function routeStaticFile(routeId: string, path: string): void;
+  function useStaticMiddleware(path: string): void;
 }
 
 export { };
 
 import { diskinfo } from '@dropb/diskinfo';
-import { Parser, Builder } from 'xml2js';
-import { generate } from 'shortid';
 import {
   readdirSync, mkdirSync,
   statSync, existsSync, readFileSync, writeFileSync
@@ -129,26 +127,17 @@ const middlewares: {
       };
     }
   },
-  // XML 文件读写
-  async readXMLFile({ path }) {
+  // 文件读写
+  async readFile({ path }) {
     if (existsSync(path)) {
       try {
-        const obj = await (new Parser()).parseStringPromise(readFileSync(path, 'utf-8'));
-        const trackList = obj.XmlBgmData.Track ? obj.XmlBgmData.Track.map(
-          ({ $ }) => $
-        ) : [];
-        const musicLibrary = obj.XmlBgmData.MusicFile ? obj.XmlBgmData.MusicFile.map(
-          ({ $ }) => $
-        ).map(({
-          MusicId, Path
-        }) => {
-          const id = generate();
-          routeStaticFile(id, join(path, '../', Path));
-          return { name: MusicId, httpPath: `./${id}` };
-        }) : [];
+        const {
+          musicFiles, tracks, fsmConfig, unitWeight
+        } = JSON.parse(readFileSync(path, 'utf-8'));
+        useStaticMiddleware(join(path, '../'));
         return {
           hasSuccess: true,
-          trackList, musicLibrary
+          musicFiles, tracks, fsmConfig, unitWeight
         };
       } catch (e) {
         console.error(e);
@@ -164,11 +153,10 @@ const middlewares: {
       }
     }
   },
-  async writeXMLFile({ path, obj }) {
-    const xml = (new Builder()).buildObject(obj);
-    console.log('XML:', xml);
+  async writeFile({ path, obj }) {
+    console.log('Wrote file to', path);
     try {
-      writeFileSync(path, xml);
+      writeFileSync(path, JSON.stringify(obj));
       return {
         hasSuccess: true
       };

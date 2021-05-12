@@ -6,7 +6,10 @@ import { Union } from 'unionfs'
 import * as realFs from 'fs';
 import { Script, createContext } from 'vm';
 import { watch as watchFiles } from 'chokidar';
-import { setWsConnectionReceiver, wsConnectionSender, setHttpStaticRoute } from './index';
+import {
+  setWsConnectionReceiver, wsConnectionSender,
+  useStaticMiddleware
+} from './index';
 
 const globalConfig = {
   context: __dirname,
@@ -156,7 +159,7 @@ function watcherTrigger() {
         const context = createContext({
           receive: setWsConnectionReceiver,
           send: wsConnectionSender,
-          routeStaticFile: setHttpStaticRoute,
+          useStaticMiddleware,
           console, process, require,
           setInterval, setTimeout, clearInterval, clearTimeout
         });

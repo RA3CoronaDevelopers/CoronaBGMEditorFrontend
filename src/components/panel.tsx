@@ -8,7 +8,7 @@ import { StoreContext } from '../utils/storeContext';
 
 export function Panel() {
   const { setStore, data: {
-    trackList
+    tracks
   }, state: {
     editorSituation,
     nowPlayingTrack,
@@ -39,8 +39,8 @@ export function Panel() {
           }
         }))}
       >
-        {trackList.map((track, index) => <MenuItem value={index}>
-          {`${track.name}(#${index})`}
+        {tracks.map((track, index) => <MenuItem value={index}>
+          {`${track.id}(#${index})`}
         </MenuItem>)}
       </Select>
     </FormControl>

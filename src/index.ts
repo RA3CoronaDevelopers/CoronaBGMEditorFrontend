@@ -18,13 +18,9 @@ export let wsConnectionSender = (msg: string) => {
 let httpStaticFileRoute: {
   [routePath: string]: string
 } = {};
-export function setHttpStaticRoute(routeId: string, path: string) {
-  httpStaticFileRoute[`/${routeId}`] = path;
-}
 
 const app = new Koa();
 app.use(bodyParserMiddleware());
-app.use(staticMiddleware(join(__dirname, '../res')));
 app.use(async (
   ctx: Koa.Context,
   next: () => Promise<void>
@@ -42,6 +38,10 @@ app.use(async (
     await clientSideMiddleware(ctx, next);
   }
 });
+
+export function useStaticMiddleware(path: string) {
+  app.use(staticMiddleware(join(path)));
+}
 
 const server = createServer(app.callback()).listen(
   process.env.PORT && +process.env.PORT || 80,

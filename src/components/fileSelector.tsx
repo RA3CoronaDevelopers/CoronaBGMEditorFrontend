@@ -13,128 +13,16 @@ import {
 import { useSnackbar } from 'notistack';
 import { StoreContext } from '../utils/storeContext';
 import { send } from '../utils/websocketClient';
+import { defaultUnitWeight, defaultFsmConfig } from '../utils/jsonConfigTypes';
 import { PromptDrawer } from './promptDrawer';
 
-const DEFAULT_XML_NAME = 'Tracks.xml';
-const DEFAULT_XML_VALUE = `<?xml version="1.0" encoding="utf-8"?>
-<XmlBgmData xmlns="clr-namespace:CoronaBGMPlayer;assembly=CoronaBGMPlayer">
-  <FsmConfig
-    Interval="20"
-    FightThreshold="120"
-    AdvantageThreshold="2.7"
-    DisadvantageThreshold="2.5" />
-  <UnitWeight
-    UnitId="AlliedScoutInfantry"
-    Weight="200" />
-  <UnitWeight
-    UnitId="AlliedAntiInfantryInfantry"
-    Weight="200" />
-  <UnitWeight
-    UnitId="AlliedAntiVehicleInfantry"
-    Weight="300" />
-  <UnitWeight
-    UnitId="AlliedEngineer"
-    Weight="500" />
-  <UnitWeight
-    UnitId="AlliedInfiltrationInfantry"
-    Weight="1000" />
-  <UnitWeight
-    UnitId="AlliedCommandoTech1"
-    Weight="2000" />
-  <UnitWeight
-    UnitId="AlliedMiner"
-    Weight="1000" />
-  <UnitWeight
-    UnitId="AlliedAntiInfantryVehicle"
-    Weight="750" />
-  <UnitWeight
-    UnitId="AlliedAntiAirVehicleTech1"
-    Weight="800" />
-  <UnitWeight
-    UnitId="AlliedAntiVehicleVehicleTech1"
-    Weight="950" />
-  <UnitWeight
-    UnitId="AlliedAntiStructureVehicle"
-    Weight="1400" />
-  <UnitWeight
-    UnitId="AlliedAntiVehicleVehicleTech3"
-    Weight="1600" />
-  <UnitWeight
-    UnitId="AlliedMCV"
-    Weight="5000" />
-  <UnitWeight
-    UnitId="AlliedAntiGroundAircraft"
-    Weight="1200" />
-  <UnitWeight
-    UnitId="AlliedFighterAircraft"
-    Weight="1000" />
-  <UnitWeight
-    UnitId="AlliedSupportAircraft"
-    Weight="1600" />
-  <UnitWeight
-    UnitId="AlliedBomberAircraft"
-    Weight="2000" />
-  <UnitWeight
-    UnitId="AlliedSupersonicBomber"
-    Weight="5000" />
-  <UnitWeight
-    UnitId="AlliedAntiNavalScout"
-    Weight="750" />
-  <UnitWeight
-    UnitId="AlliedAntiAirShip"
-    Weight="900" />
-  <UnitWeight
-    UnitId="AlliedAntiNavyShipTech1"
-    Weight="1500" />
-  <UnitWeight
-    UnitId="AlliedAntiStructureShip"
-    Weight="2000" />
-  <UnitWeight
-    UnitId="AlliedConstructionYard"
-    Weight="5000" />
-  <UnitWeight
-    UnitId="AlliedOutPost"
-    Weight="1000" />
-  <UnitWeight
-    UnitId="AlliedPowerPlant"
-    Weight="800" />
-  <UnitWeight
-    UnitId="AlliedBarracks"
-    Weight="500" />
-  <UnitWeight
-    UnitId="AlliedRefinery"
-    Weight="2000" />
-  <UnitWeight
-    UnitId="AlliedWarFactory"
-    Weight="2000" />
-  <UnitWeight
-    UnitId="AlliedNavalYard"
-    Weight="1000" />
-  <UnitWeight
-    UnitId="AlliedAirfield"
-    Weight="1000" />
-  <UnitWeight
-    UnitId="AlliedTechStructure"
-    Weight="750" />
-  <UnitWeight
-    UnitId="AlliedWallPiece"
-    Weight="10" />
-  <UnitWeight
-    UnitId="AlliedWallSegmentPiece"
-    Weight="10" />
-  <UnitWeight
-    UnitId="AlliedBaseDefense"
-    Weight="800" />
-  <UnitWeight
-    UnitId="AlliedBaseDefenseAdvanced"
-    Weight="120" />
-  <UnitWeight
-    UnitId="AlliedSuperWeapon"
-    Weight="1500" />
-  <UnitWeight
-    UnitId="AlliedSuperWeaponAdvanced"
-    Weight="2500" />
-</XmlBgmData>`;
+const DEFAULT_FILE_NAME = 'tracks.json';
+const DEFAULT_FILE_VALUE = JSON.stringify({
+  "musicFiles": {},
+  "unitWeight": defaultUnitWeight,
+  "fsmConfig": defaultFsmConfig,
+  "tracks": []
+});
 
 export function FileSelector({ fileNameRegExp, open, onSelect, onClose }: {
   fileNameRegExp: RegExp, open: boolean,
@@ -150,7 +38,7 @@ export function FileSelector({ fileNameRegExp, open, onSelect, onClose }: {
     useState<HTMLButtonElement | undefined>(undefined);
   const [createFileDialogOpen, setCreateFileDialogOpen] = useState(undefined);
   const [createFolderDialogOpen, setCreateFolderDialogOpen] = useState(undefined);
-  const [createFileDialogValue, setCreateFileDialogValue] = useState(DEFAULT_XML_NAME);
+  const [createFileDialogValue, setCreateFileDialogValue] = useState(DEFAULT_FILE_NAME);
   const [createFolderDialogValue, setCreateFolderDialogValue] = useState('');
 
 
@@ -371,7 +259,7 @@ export function FileSelector({ fileNameRegExp, open, onSelect, onClose }: {
           send('createFile', {
             path: fileSelectorPath,
             name: createFileDialogValue,
-            initContent: DEFAULT_XML_VALUE
+            initContent: DEFAULT_FILE_VALUE
           }).then(({ hasSuccess, reason, dirContent }) => hasSuccess
             ? (setCreateFileDialogOpen(false),
               enqueueSnackbar(`文件创建成功`, { variant: 'success' }),
@@ -383,11 +271,11 @@ export function FileSelector({ fileNameRegExp, open, onSelect, onClose }: {
                 }
               })))
             : enqueueSnackbar(`文件创建失败： ${reason}`, { variant: 'error' })),
-          setCreateFileDialogValue(DEFAULT_XML_NAME)
+          setCreateFileDialogValue(DEFAULT_FILE_NAME)
         )}
         onClose={() => (
           setCreateFileDialogOpen(false),
-          setCreateFileDialogValue(DEFAULT_XML_NAME)
+          setCreateFileDialogValue(DEFAULT_FILE_NAME)
         )}
       >
         <TextField
@@ -415,7 +303,7 @@ export function FileSelector({ fileNameRegExp, open, onSelect, onClose }: {
                 }
               })))
             : enqueueSnackbar(`文件夹创建失败： ${reason}`, { variant: 'error' })),
-          setCreateFolderDialogValue(DEFAULT_XML_NAME)
+          setCreateFolderDialogValue(DEFAULT_FILE_NAME)
         )}
         onClose={() => (
           setCreateFolderDialogOpen(false),

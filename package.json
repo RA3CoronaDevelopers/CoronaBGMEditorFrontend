@@ -19,8 +19,7 @@
     "react-draggable": "^4.4.3",
     "react-transition-group": "^4.4.1",
     "shortid": "^2.2.16",
-    "wavesurfer.js": "^5.0.0",
-    "xml2js": "^0.4.23"
+    "wavesurfer.js": "^5.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.12.10",
