@@ -21,6 +21,7 @@ let httpStaticFileRoute: {
 
 const app = new Koa();
 app.use(bodyParserMiddleware());
+app.use(staticMiddleware(join(__dirname, '../res/')));
 app.use(async (
   ctx: Koa.Context,
   next: () => Promise<void>

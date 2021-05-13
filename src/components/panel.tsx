@@ -34,8 +34,7 @@ export function Panel() {
           state: {
             ...store.state,
             nowPlayingTrack: +(e.target.value) as number,
-            progress: 0,
-            isPlaying: false
+            progress: 0
           }
         }))}
       >

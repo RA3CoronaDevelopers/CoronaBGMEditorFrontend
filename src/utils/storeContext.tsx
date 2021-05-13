@@ -19,7 +19,6 @@ interface IStore {
     editorSituation: string,
     nowPlayingTrack: number,
     isPlaying: boolean,
-    progress: number,
 
     trackBpm: number,
     trackAllowBeats: boolean,
@@ -52,7 +51,6 @@ export function Store({ children }: any) {
       editorSituation: 'Mute',
       nowPlayingTrack: 0,
       isPlaying: false,
-      progress: 0,
 
       trackBpm: 120,
       trackAllowBeats: false,

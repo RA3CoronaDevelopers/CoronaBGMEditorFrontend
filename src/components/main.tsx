@@ -26,31 +26,31 @@ export function Main() {
     tracks,
     musicFiles
   }, state: {
-    isPlaying, progress
+    isPlaying, nowPlayingTrack
   } } = useContext(StoreContext);
   const [xmlSelectDialogOpen, setXmlSelectDialogOpen] = useState(false);
   const [xmlSelectMenuAnchorEl, setXmlSelectMenuAnchorEl] = useState(undefined);
   const [generateNewTrackDialogOpen, setGenerateNewTrackDialogOpen] = useState(false);
   const [generateNewTrackDialogSelected, setGenerateNewTrackDialogSelected] = useState(0);
   const [generateNewTrackDialogTrackName, setGenerateNewTrackDialogTrackName] = useState('新轨道');
-  const [progressDiff, setProgressDiff] = useState(0);
-  const progressCache = useRef(progress);
-  const privateProgressInterval = useRef(undefined as (NodeJS.Timeout | undefined));
+  const waveRef = useRef({} as { [id: number]: any });
+  const timeIntervalRef = useRef(undefined as NodeJS.Timer);
+  const audioProgressDOMRef = useRef(undefined as any);
 
   useEffect(() => {
-    if (isPlaying) {
-      setProgressDiff(progress);
-      const begin = (new Date()).getTime();
-      privateProgressInterval.current = setInterval(() => {
-        setProgressDiff((new Date()).getTime() - begin + progressCache.current * 1000);
-      }, 100);
-    } else {
-      clearInterval(privateProgressInterval.current);
+    function tick() {
+      const time = waveRef.current[nowPlayingTrack]?.getCurrentTime() || 0;
+      audioProgressDOMRef.current.innerText = (time / 60 < 10 ? '0' : '')
+        + `${Math.floor(time / 60)}`
+        + ':'
+        + (time % 60 < 10 ? '0' : '')
+        + `${Math.floor(time % 60)}`;
+      clearTimeout(timeIntervalRef.current);
+      timeIntervalRef.current = setTimeout(tick, 100);
     }
-  }, [isPlaying]);
-  useEffect(() => {
-    progressCache.current = progress;
-  }, [progress]);
+    timeIntervalRef.current = setTimeout(tick, 100);
+    return () => clearTimeout(timeIntervalRef.current);
+  }, [isPlaying, nowPlayingTrack]);
 
   return <div className={css`
     width: 100%;
@@ -80,6 +80,11 @@ export function Main() {
         {'日冕 BGM 编辑器'}
       </Typography>
       <div className={css`
+        left: 0px;
+        top: 0px;
+        width: 100%;
+        height: 64px;
+        position: absolute;
         display: flex;
         flex-direction: row;
         justify-content: center;
@@ -87,17 +92,7 @@ export function Main() {
       `}>
         <Typography variant='h6' className={css`
           user-select: none;
-        `}>
-          {isPlaying
-            ? (progressDiff / 1000 / 60 < 10 ? '0' : '') +
-            `${Math.floor(progressDiff / 1000 / 60)}` +
-            ':' +
-            (progressDiff / 1000 % 60 < 10 ? '0' : '') +
-            `${Math.floor(progressDiff / 1000 % 60)}`
-            : (progress / 60 < 10 ? '0' : '') + `${Math.floor(progress / 60)}` +
-            ':' +
-            (progress % 60 < 10 ? '0' : '') + `${Math.floor(progress % 60)}`}
-        </Typography>
+        `} ref={audioProgressDOMRef} />
         <div className={css`
           margin: 8px;
         `}>
@@ -136,6 +131,9 @@ export function Main() {
               <Icon path={mdiContentSave} size={0.8} color='#fff' />
             </IconButton>
           </Tooltip>
+          <div className={css`
+            width: 8px;
+          `} />
           <Tooltip title='选择文件'>
             <IconButton size='small' onClick={e => setXmlSelectMenuAnchorEl(e.currentTarget)}>
               <Icon path={mdiFileSettingsOutline} size={0.8} color='#fff' />
@@ -195,7 +193,7 @@ export function Main() {
       width: 20vw;
       height: calc(50vh - 64px);
       background: rgba(255, 255, 255, 0.1);
-      padding: 16px;
+      padding: 8px;
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
@@ -210,7 +208,11 @@ export function Main() {
           width: 100%;
           height: 100%;
         `}>
-          <Panel />
+          <div className={css`
+            padding: 12px;
+          `}>
+            <Panel />
+          </div>
         </Scrollbars>
       </div>
     </div>
@@ -284,12 +286,24 @@ export function Main() {
           flex-direction: column;
           justify-content: center;
           align-items: center;
+          padding: 16px;
+          box-sizing: border-box;
         `}>
-          {tracks.map((track, index) => <Player track={track} id={index} />)}
-          <Button onClick={() => setGenerateNewTrackDialogOpen(true)}>
-            <Icon path={mdiPlus} size={1} />
-            {'新建轨道'}
-          </Button>
+          {tracks.map((track, index) => <Player
+            track={track} id={index}
+            setWaveRef={ref => waveRef.current[index] = ref}
+          />)}
+          <div className={css`
+            margin: 32px 0px;
+          `}>
+            <Button onClick={() => setGenerateNewTrackDialogOpen(true)}>
+              <Icon path={mdiPlus} size={1} />
+              <div className={css`
+                width: 8px;
+              `} />
+              {'新建轨道'}
+            </Button>
+          </div>
           {/* 新建轨道的命名窗口 */}
           <PromptDrawer
             title='新建轨道'
