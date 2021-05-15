@@ -1,7 +1,7 @@
 declare global {
   function receive(receiver: (msg: any) => void): void;
   function send(msg: any): void;
-  function useStaticMiddleware(path: string): void;
+  function useStaticMiddleware(path: string): string;
 }
 
 export { };
@@ -127,14 +127,14 @@ const middlewares: {
       };
     }
   },
-  // 文件读写
-  async readFile({ path }) {
+  // JSON 配置文件读写
+  async readJsonFile({ path }) {
     if (existsSync(path)) {
       try {
         const {
           musicFiles, tracks, fsmConfig, unitWeight
         } = JSON.parse(readFileSync(path, 'utf-8'));
-        useStaticMiddleware(join(path, '../'));
+        // TODO - 将 musicFiles 中的各个路径转换为绝对路径，再交给中间件注册器创建引导路由
         return {
           hasSuccess: true,
           musicFiles, tracks, fsmConfig, unitWeight
@@ -153,7 +153,7 @@ const middlewares: {
       }
     }
   },
-  async writeFile({ path, obj }) {
+  async writeJsonFile({ path, obj }) {
     console.log('Wrote file to', path);
     try {
       writeFileSync(path, JSON.stringify(obj));
@@ -166,6 +166,11 @@ const middlewares: {
         reason: `${e}`
       }
     }
+  },
+  // 音乐资源文件加载
+  async loadMusicFile({ path }) {
+    console.log('Generate music file route to', path);
+    // TODO - 完成音乐文件选择的后端
   }
 };
 

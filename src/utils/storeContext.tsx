@@ -25,6 +25,8 @@ interface IStore {
     trackBeatsOffset: number,
     trackBeatsPerBar: number,
 
+    jsonFileSelectorDialogOpen: boolean,
+    musicFileSelectorDialogOpen: boolean,
     unitWeightConfigDialogOpen: boolean
     fsmConfigDialogOpen: boolean
   }
@@ -57,6 +59,8 @@ export function Store({ children }: any) {
       trackBeatsOffset: 0,
       trackBeatsPerBar: 4,
 
+      jsonFileSelectorDialogOpen: false,
+      musicFileSelectorDialogOpen: false,
       unitWeightConfigDialogOpen: false,
       fsmConfigDialogOpen: false
     }

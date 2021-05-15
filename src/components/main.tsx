@@ -12,24 +12,22 @@ import { useSnackbar } from 'notistack';
 
 import { StoreContext } from '../utils/storeContext';
 import { send } from '../utils/websocketClient';
-import { PromptDrawer } from './promptDrawer';
+import { PromptBase } from './promptBase';
 import { Panel } from './panel';
 import { Player } from './player';
-import { FileSelector } from './fileSelector';
-import { UnitWeightConfig } from './unitWeightConfig';
-import { FsmConfig } from './fsmConfig';
+import { FileSelector } from './dialogs/fileSelector';
+import { UnitWeightConfig } from './dialogs/unitWeightConfig';
+import { FsmConfig } from './dialogs/fsmConfig';
 
 export function Main() {
   const { enqueueSnackbar } = useSnackbar();
   const { setStore, data: {
-    sourceXmlPath,
-    tracks,
-    musicFiles
+    sourceXmlPath, tracks, musicFiles
   }, state: {
-    isPlaying, nowPlayingTrack
+    isPlaying, nowPlayingTrack,
+    jsonFileSelectorDialogOpen, musicFileSelectorDialogOpen
   } } = useContext(StoreContext);
-  const [xmlSelectDialogOpen, setXmlSelectDialogOpen] = useState(false);
-  const [xmlSelectMenuAnchorEl, setXmlSelectMenuAnchorEl] = useState(undefined);
+  const [jsonSelectMenuAnchorEl, jsonXmlSelectMenuAnchorEl] = useState(undefined);
   const [generateNewTrackDialogOpen, setGenerateNewTrackDialogOpen] = useState(false);
   const [generateNewTrackDialogSelected, setGenerateNewTrackDialogSelected] = useState(0);
   const [generateNewTrackDialogTrackName, setGenerateNewTrackDialogTrackName] = useState('新轨道');
@@ -135,15 +133,15 @@ export function Main() {
             width: 8px;
           `} />
           <Tooltip title='选择文件'>
-            <IconButton size='small' onClick={e => setXmlSelectMenuAnchorEl(e.currentTarget)}>
+            <IconButton size='small' onClick={e => jsonXmlSelectMenuAnchorEl(e.currentTarget)}>
               <Icon path={mdiFileSettingsOutline} size={0.8} color='#fff' />
             </IconButton>
           </Tooltip>
         </div>
         <Popover
-          open={!!xmlSelectMenuAnchorEl}
-          anchorEl={xmlSelectMenuAnchorEl}
-          onClose={() => setXmlSelectMenuAnchorEl(undefined)}
+          open={!!jsonSelectMenuAnchorEl}
+          anchorEl={jsonSelectMenuAnchorEl}
+          onClose={() => jsonXmlSelectMenuAnchorEl(undefined)}
           anchorOrigin={{
             vertical: 'bottom',
             horizontal: 'right',
@@ -155,13 +153,19 @@ export function Main() {
         >
           <List>
             <ListItem button onClick={() => (
-              setXmlSelectDialogOpen(true),
-              setXmlSelectMenuAnchorEl(undefined)
+              setStore(store => ({
+                ...store,
+                state: {
+                  ...store.state,
+                  jsonFileSelectorDialogOpen: true
+                }
+              })),
+              jsonXmlSelectMenuAnchorEl(undefined)
             )}>
               <ListItemText primary='选择文件...' />
             </ListItem>
             <ListItem button onClick={() => (navigator.clipboard.readText().then(
-              text => send('readFile', { path: text }).then(({
+              text => send('readJsonFile', { path: text }).then(({
                 hasSuccess, reason,
                 musicFiles, tracks, fsmConfig, unitWeight
               }) => (
@@ -177,7 +181,7 @@ export function Main() {
                   : enqueueSnackbar(`获取失败：${reason}`, { variant: 'error' })
               ))).catch(
                 () => enqueueSnackbar('无法读取剪贴板', { variant: 'error' })
-              ), setXmlSelectMenuAnchorEl(undefined))}>
+              ), jsonXmlSelectMenuAnchorEl(undefined))}>
               <ListItemText primary='从剪贴板中获取路径' />
             </ListItem>
             {/* TODO - 在做好配置文件存储之后，加上历史文件功能 */}
@@ -305,7 +309,7 @@ export function Main() {
             </Button>
           </div>
           {/* 新建轨道的命名窗口 */}
-          <PromptDrawer
+          <PromptBase
             title='新建轨道'
             open={generateNewTrackDialogOpen}
             onConfirm={() => (
@@ -348,15 +352,15 @@ export function Main() {
               value={generateNewTrackDialogTrackName}
               onChange={e => setGenerateNewTrackDialogTrackName(e.target.value)}
             />
-          </PromptDrawer>
+          </PromptBase>
         </div>
       </Scrollbars>
     </div>
     {/* 子窗口 */}
     <FileSelector
       fileNameRegExp={/\.json$/}
-      open={xmlSelectDialogOpen}
-      onSelect={path => send('readFile', { path }).then(({
+      open={jsonFileSelectorDialogOpen}
+      onSelect={path => send('readJsonFile', { path }).then(({
         hasSuccess, reason,
         musicFiles, tracks, fsmConfig, unitWeight
       }) => (
@@ -371,7 +375,35 @@ export function Main() {
           })), enqueueSnackbar('获取成功', { variant: 'success' }))
           : enqueueSnackbar(`获取失败：${reason}`, { variant: 'error' })
       ))}
-      onClose={() => setXmlSelectDialogOpen(false)}
+      onClose={() => setStore(store => ({
+        ...store,
+        state: {
+          ...store.state,
+          jsonFileSelectorDialogOpen: false
+        }
+      }))}
+    />
+    <FileSelector
+      fileNameRegExp={/\.mp3$/}
+      open={musicFileSelectorDialogOpen}
+      onSelect={path => setStore(store => ({
+        ...store,
+        data: {
+          ...store.data,
+          musicFiles: {
+            ...store.data.musicFiles,
+            // TODO - 选择之后是需要先从后端拿到 HTTP 请求路径、并且后端将路由临时构建好之后才能设置的
+            [path.substr(Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\')) + 1)]: path
+          }
+        }
+      }))}
+      onClose={() => setStore(store => ({
+        ...store,
+        state: {
+          ...store.state,
+          musicFileSelectorDialogOpen: false
+        }
+      }))}
     />
     <UnitWeightConfig />
     <FsmConfig />

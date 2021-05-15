@@ -2,7 +2,7 @@ import React from 'react';
 import { Typography, Button, Drawer } from '@material-ui/core';
 import { css } from '@emotion/css';
 
-export function PromptDrawer({ title, confirmTip, open, children, onClose, onConfirm }: {
+export function PromptBase({ title, confirmTip, open, children, onClose, onConfirm }: {
   title: string, confirmTip?: string, open: boolean, children: any,
   onClose: () => any, onConfirm: () => any
 }) {

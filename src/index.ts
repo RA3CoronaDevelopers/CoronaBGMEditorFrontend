@@ -40,8 +40,11 @@ app.use(async (
   }
 });
 
-export function useStaticMiddleware(path: string) {
+export function useStaticMiddleware(path: string): string {
+  // TODO - 改成针对单个文件的引导；如果路径正确，直接对接二进制流
   app.use(staticMiddleware(join(path)));
+  // TODO - 返回一个根据此 path 生成的唯一 hash 值，作为 HTTP 请求入口
+  return '';
 }
 
 const server = createServer(app.callback()).listen(
