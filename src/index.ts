@@ -3,7 +3,8 @@ import * as Koa from 'koa';
 import * as ws from 'ws';
 import * as bodyParserMiddleware from 'koa-bodyparser';
 import * as staticMiddleware from 'koa-static';
-import { createReadStream, existsSync } from 'fs';
+import { generate } from 'shortid';
+import { createReadStream } from 'fs';
 import { join } from 'path';
 import { clientSideMiddleware } from './webpack';
 
@@ -15,36 +16,30 @@ let wsSender: (msg: any) => void;
 export let wsConnectionSender = (msg: string) => {
   wsSender(msg);
 };
-let httpStaticFileRoute: {
-  [routePath: string]: string
-} = {};
 
 const app = new Koa();
 app.use(bodyParserMiddleware());
-app.use(staticMiddleware(join(__dirname, '../res/')));
-app.use(async (
-  ctx: Koa.Context,
-  next: () => Promise<void>
-) => {
+app.use(async (ctx, next) => {
   console.log(`Http(${ctx.ip}):`, ctx.path);
-  if (Object.keys(httpStaticFileRoute).indexOf(ctx.path) >= 0) {
-    if (existsSync(httpStaticFileRoute[`/${ctx.path}`])) {
-      ctx.body = createReadStream(httpStaticFileRoute[`/${ctx.path}`]);
-      await next();
-    } else {
-      ctx.status = 404;
-      await next();
-    }
-  } else {
-    await clientSideMiddleware(ctx, next);
-  }
+  await next();
 });
+app.use(staticMiddleware(join(__dirname, '../res/')));
+app.use(async (ctx, next) => await clientSideMiddleware(ctx, next));
 
+let staticFileRouteCache: { [path: string]: string } = {};
 export function useStaticMiddleware(path: string): string {
-  // TODO - 改成针对单个文件的引导；如果路径正确，直接对接二进制流
-  app.use(staticMiddleware(join(path)));
-  // TODO - 返回一个根据此 path 生成的唯一 hash 值，作为 HTTP 请求入口
-  return '';
+  if (typeof staticFileRouteCache[path] === 'undefined') {
+    staticFileRouteCache[path] = generate();
+    app.use(async (ctx, next) => {
+      if (ctx.path === `/${staticFileRouteCache[path]}`) {
+        ctx.body = createReadStream(path);
+      }
+      else {
+        await next();
+      }
+    });
+  }
+  return staticFileRouteCache[path];
 }
 
 const server = createServer(app.callback()).listen(

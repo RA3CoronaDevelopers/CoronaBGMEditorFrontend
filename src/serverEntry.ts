@@ -11,7 +11,7 @@ import {
   readdirSync, mkdirSync,
   statSync, existsSync, readFileSync, writeFileSync
 } from 'fs';
-import { join } from 'path';
+import { join, isAbsolute, dirname } from 'path';
 
 const middlewares: {
   [type: string]: (data: any) => Promise<any>
@@ -134,10 +134,15 @@ const middlewares: {
         const {
           musicFiles, tracks, fsmConfig, unitWeight
         } = JSON.parse(readFileSync(path, 'utf-8'));
-        // TODO - 将 musicFiles 中的各个路径转换为绝对路径，再交给中间件注册器创建引导路由
         return {
           hasSuccess: true,
-          musicFiles, tracks, fsmConfig, unitWeight
+          musicFiles: Object.keys(musicFiles).reduce((obj, name) => ({
+            ...obj,
+            [name]: isAbsolute(musicFiles[name])
+              ? `/${useStaticMiddleware(musicFiles[name])}`
+              : `/${useStaticMiddleware(join(dirname(path), musicFiles[name]))}`
+          }), {}),
+          tracks, fsmConfig, unitWeight
         };
       } catch (e) {
         console.error(e);

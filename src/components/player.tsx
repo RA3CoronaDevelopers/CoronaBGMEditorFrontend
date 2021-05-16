@@ -33,10 +33,11 @@ export function Player({ id, track, setWaveRef }: {
           showTime: true,
           opacity: 1,
           customShowTimeStyle: {
-            'background-color': 'rbga(0, 0, 0, 0.2)',
-            color: '#333',
-            padding: '2px',
-            'font-size': '12px'
+            'background-color': '#ccc',
+            'color': '#000',
+            'padding': '2px',
+            'font-size': '12px',
+            'border-radius': '4px'
           }
         })
       ]
@@ -138,7 +139,7 @@ export function Player({ id, track, setWaveRef }: {
             user-select: none;
           `}>
             <Typography variant='caption'>
-              {musicFiles[track.musicId]}
+              {track.musicId}
             </Typography>
           </div>
           <div className={css`
