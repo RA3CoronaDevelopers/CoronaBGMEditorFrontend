@@ -16,9 +16,8 @@ export function PromptBase({ title, confirmTip, open, children, onClose, onConfi
     `}>
       {/* 标题栏 */}
       <div className={css`
-        width: calc(100% - 16px);
-        margin-left: 16px;
-        padding: 8px;
+        width: 100%;
+        padding: 16px;
         box-sizing: border-box;
       `}>
         <Typography variant='h5' className={css`
@@ -30,7 +29,7 @@ export function PromptBase({ title, confirmTip, open, children, onClose, onConfi
       {/* 内容区域 */}
       <div className={css`
         width: 100%;
-        padding: 8px;
+        padding: 16px;
         box-sizing: border-box;
       `}>
         {children}
@@ -42,7 +41,7 @@ export function PromptBase({ title, confirmTip, open, children, onClose, onConfi
         flex-direction: row;
         align-items: center;
         justify-content: flex-end;
-        padding: 8px;
+        padding: 16px;
         box-sizing: border-box;
       `}>
         <Button onClick={onConfirm}>

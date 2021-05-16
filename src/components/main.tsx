@@ -46,7 +46,7 @@ export function Main() {
       clearTimeout(timeIntervalRef.current);
       timeIntervalRef.current = setTimeout(tick, 100);
     }
-    timeIntervalRef.current = setTimeout(tick, 100);
+    timeIntervalRef.current = setTimeout(tick, 0);
     return () => clearTimeout(timeIntervalRef.current);
   }, [isPlaying, nowPlayingTrack]);
 
