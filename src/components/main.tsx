@@ -22,7 +22,7 @@ import { FsmConfig } from './dialogs/fsmConfig';
 export function Main() {
   const { enqueueSnackbar } = useSnackbar();
   const { setStore, data: {
-    sourceXmlPath, tracks, musicFiles
+    sourceJsonPath, tracks, musicFiles
   }, state: {
     isPlaying, nowPlayingTrack,
     jsonFileSelectorDialogOpen, musicFileSelectorDialogOpen
@@ -94,13 +94,16 @@ export function Main() {
         <div className={css`
           margin: 8px;
         `}>
-          <IconButton onClick={() => setStore(store => ({
-            ...store,
-            state: {
-              ...store.state,
-              isPlaying: !store.state.isPlaying
-            }
-          }))}>
+          <IconButton
+            onClick={() => setStore(store => ({
+              ...store,
+              state: {
+                ...store.state,
+                isPlaying: !store.state.isPlaying
+              }
+            }))}
+            disabled={sourceJsonPath === ''}
+          >
             <Icon path={isPlaying ? mdiPause : mdiPlay} size={1} />
           </IconButton>
         </div>
@@ -112,20 +115,24 @@ export function Main() {
         align-items: flex-end;
       `}>
         <Typography variant='caption' className={css`
-            ${sourceXmlPath === '' ? 'user-select: none;' : ''}
+            ${sourceJsonPath === '' ? 'user-select: none;' : ''}
           `}>
-          {sourceXmlPath === '' ? `未打开文件` : sourceXmlPath}
+          {sourceJsonPath === '' ? `未打开文件` : sourceJsonPath}
         </Typography>
         <div className={css`
           display: flex;
           flex-direction: row;
         `}>
           <Tooltip title='保存文件'>
-            <IconButton size='small' onClick={() => send('saveXMLFile', {
-              path: sourceXmlPath,
-              tracks,
-              musicFiles
-            })}>
+            <IconButton
+              size='small'
+              onClick={() => send('saveXMLFile', {
+                path: sourceJsonPath,
+                tracks,
+                musicFiles
+              })}
+              disabled={sourceJsonPath === ''}
+            >
               <Icon path={mdiContentSave} size={0.8} color='#fff' />
             </IconButton>
           </Tooltip>
@@ -174,7 +181,7 @@ export function Main() {
                     ...store,
                     data: {
                       ...store.data,
-                      sourceXmlPath: text,
+                      sourceJsonPath: text,
                       musicFiles, tracks, fsmConfig, unitWeight
                     }
                   })), enqueueSnackbar('获取成功', { variant: 'success' }))
@@ -245,7 +252,17 @@ export function Main() {
             {'素材库'}
           </Typography>
         </div>
-        <IconButton size='small'>
+        <IconButton
+          size='small'
+          onClick={() => setStore(store => ({
+            ...store,
+            state: {
+              ...store.state,
+              musicFileSelectorDialogOpen: true
+            }
+          }))}
+          disabled={sourceJsonPath === ''}
+        >
           <Icon path={mdiPlus} size={0.8} />
         </IconButton>
       </div>
@@ -300,7 +317,10 @@ export function Main() {
           <div className={css`
             margin: 32px 0px;
           `}>
-            <Button onClick={() => setGenerateNewTrackDialogOpen(true)}>
+            <Button
+              onClick={() => setGenerateNewTrackDialogOpen(true)}
+              disabled={sourceJsonPath === ''}
+            >
               <Icon path={mdiPlus} size={1} />
               <div className={css`
                 width: 8px;
@@ -318,8 +338,8 @@ export function Main() {
                 data: {
                   ...store.data,
                   tracks: [...store.data.tracks, {
-                    id: generateNewTrackDialogTrackName,
-                    musicId: `${generateNewTrackDialogSelected}`,
+                    name: generateNewTrackDialogTrackName,
+                    musicId: Object.keys(musicFiles)[generateNewTrackDialogSelected],
                     startOffset: 0,
                     length: 0,
                     beatsPerMinutes: 0,
@@ -369,7 +389,7 @@ export function Main() {
             ...store,
             data: {
               ...store.data,
-              sourceXmlPath: path,
+              sourceJsonPath: path,
               musicFiles, tracks, fsmConfig, unitWeight
             }
           })), enqueueSnackbar('获取成功', { variant: 'success' }))
@@ -386,17 +406,20 @@ export function Main() {
     <FileSelector
       fileNameRegExp={/\.mp3$/}
       open={musicFileSelectorDialogOpen}
-      onSelect={path => setStore(store => ({
-        ...store,
-        data: {
-          ...store.data,
-          musicFiles: {
-            ...store.data.musicFiles,
-            // TODO - 选择之后是需要先从后端拿到 HTTP 请求路径、并且后端将路由临时构建好之后才能设置的
-            [path.substr(Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\')) + 1)]: path
-          }
-        }
-      }))}
+      onSelect={path => send('loadMusicFile', { path }).then(({
+        hasSuccess, reason, fileName, httpRoutePath
+      }) => hasSuccess
+          ? (setStore(store => ({
+            ...store,
+            data: {
+              ...store.data,
+              musicFiles: {
+                ...store.data.musicFiles,
+                [fileName]: httpRoutePath
+              }
+            }
+          })), enqueueSnackbar('文件添加成功', { variant: 'success' }))
+          : enqueueSnackbar(`文件添加失败：${reason}`, { variant: 'error' }))}
       onClose={() => setStore(store => ({
         ...store,
         state: {

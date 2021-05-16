@@ -3,7 +3,7 @@ import { ITrack, IFsmConfig, IUnitWeight } from './jsonConfigTypes';
 
 interface IStore {
   data: {
-    sourceXmlPath: string,
+    sourceJsonPath: string,
     musicFiles: {
       [id: string]: string
     },
@@ -39,7 +39,7 @@ export const StoreContext = createContext({} as IStore & {
 export function Store({ children }: any) {
   const [store, setStore] = useState({
     data: {
-      sourceXmlPath: '',
+      sourceJsonPath: '',
       musicFiles: {},
       tracks: [],
       fsmConfig: {},

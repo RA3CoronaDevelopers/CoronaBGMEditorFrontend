@@ -59,6 +59,7 @@ export function Player({ id, track, setWaveRef }: {
         isPlaying: false
       }
     })));
+    console.log(id, musicFiles, track.musicId);
     waveRef.current.load(musicFiles[track.musicId]);
     setWaveRef(waveRef.current);
   }, []);
@@ -102,7 +103,7 @@ export function Player({ id, track, setWaveRef }: {
         </IconButton>
       </div>
       <Typography variant='caption'>
-        {track.id}
+        {track.name}
       </Typography>
     </div>
     <div className={css`

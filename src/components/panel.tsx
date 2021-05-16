@@ -39,7 +39,7 @@ export function Panel() {
         }))}
       >
         {tracks.map((track, index) => <MenuItem value={index}>
-          {`${track.id}(#${index})`}
+          {`${track.name}(#${index})`}
         </MenuItem>)}
       </Select>
     </FormControl>

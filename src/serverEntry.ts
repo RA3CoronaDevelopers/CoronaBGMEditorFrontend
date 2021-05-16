@@ -11,7 +11,7 @@ import {
   readdirSync, mkdirSync,
   statSync, existsSync, readFileSync, writeFileSync
 } from 'fs';
-import { join, isAbsolute, dirname } from 'path';
+import { join, isAbsolute, dirname, basename } from 'path';
 
 const middlewares: {
   [type: string]: (data: any) => Promise<any>
@@ -175,7 +175,25 @@ const middlewares: {
   // 音乐资源文件加载
   async loadMusicFile({ path }) {
     console.log('Generate music file route to', path);
-    // TODO - 完成音乐文件选择的后端
+    try {
+      if (existsSync(path)) {
+        return {
+          hasSuccess: true,
+          fileName: /^(.+)\.mp3$/.exec(basename(path))[1],
+          httpRoutePath: `/${useStaticMiddleware(path)}`
+        };
+      } else {
+        return {
+          hasSuccess: false,
+          reason: '文件不存在'
+        };
+      }
+    } catch (e) {
+      return {
+        hasSuccess: false,
+        reason: `${e}`
+      };
+    }
   }
 };
 
