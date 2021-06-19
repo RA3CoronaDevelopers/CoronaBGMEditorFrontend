@@ -3,38 +3,40 @@ import { ITrack, IFsmConfig, IUnitWeight } from './jsonConfigTypes';
 
 interface IStore {
   data: {
-    sourceJsonPath: string,
+    sourceJsonPath: string;
     musicFiles: {
-      [id: string]: string
-    },
-    tracks: ITrack[],
-    fsmConfig: IFsmConfig,
-    unitWeight: IUnitWeight
-  },
+      [id: string]: string;
+    };
+    tracks: ITrack[];
+    fsmConfig: IFsmConfig;
+    unitWeight: IUnitWeight;
+  };
   state: {
-    fileSelectorPath: string,
-    fileSelectorDirContent: { [name: string]: 'dir' | 'file' },
-    fileSelectorDiskList: string[],
+    fileSelectorPath: string;
+    fileSelectorDirContent: { [name: string]: 'dir' | 'file' };
+    fileSelectorDiskList: string[];
 
-    editorSituation: string,
-    nowPlayingTrack: number,
-    isPlaying: boolean,
+    editorSituation: string;
+    nowPlayingTrack: number;
+    isPlaying: boolean;
 
-    trackBpm: number,
-    trackAllowBeats: boolean,
-    trackBeatsOffset: number,
-    trackBeatsPerBar: number,
+    trackBpm: number;
+    trackAllowBeats: boolean;
+    trackBeatsOffset: number;
+    trackBeatsPerBar: number;
 
-    jsonFileSelectorDialogOpen: boolean,
-    musicFileSelectorDialogOpen: boolean,
-    unitWeightConfigDialogOpen: boolean
-    fsmConfigDialogOpen: boolean
-  }
+    jsonFileSelectorDialogOpen: boolean;
+    musicFileSelectorDialogOpen: boolean;
+    unitWeightConfigDialogOpen: boolean;
+    fsmConfigDialogOpen: boolean;
+  };
 }
 
-export const StoreContext = createContext({} as IStore & {
-  setStore(func: (obj: IStore) => IStore): void
-});
+export const StoreContext = createContext(
+  {} as IStore & {
+    setStore(func: (obj: IStore) => IStore): void;
+  }
+);
 
 export function Store({ children }: any) {
   const [store, setStore] = useState({
@@ -43,7 +45,7 @@ export function Store({ children }: any) {
       musicFiles: {},
       tracks: [],
       fsmConfig: {},
-      unitWeight: {}
+      unitWeight: {},
     },
     state: {
       fileSelectorPath: '',
@@ -62,13 +64,17 @@ export function Store({ children }: any) {
       jsonFileSelectorDialogOpen: false,
       musicFileSelectorDialogOpen: false,
       unitWeightConfigDialogOpen: false,
-      fsmConfigDialogOpen: false
-    }
+      fsmConfigDialogOpen: false,
+    },
   } as IStore);
-  return <StoreContext.Provider value={{
-    ...store,
-    setStore
-  }}>
-    {children}
-  </StoreContext.Provider>
+  return (
+    <StoreContext.Provider
+      value={{
+        ...store,
+        setStore,
+      }}
+    >
+      {children}
+    </StoreContext.Provider>
+  );
 }

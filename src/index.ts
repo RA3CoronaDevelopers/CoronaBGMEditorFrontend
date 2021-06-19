@@ -8,7 +8,9 @@ import { createReadStream } from 'fs';
 import { join } from 'path';
 import { clientSideMiddleware } from './webpack';
 
-let wsReceiver = (_msg: any) => { return; };
+let wsReceiver = (_msg: any) => {
+  return;
+};
 export function setWsConnectionReceiver(receiver: (msg: any) => void) {
   wsReceiver = receiver;
 }
@@ -33,8 +35,7 @@ export function useStaticMiddleware(path: string): string {
     app.use(async (ctx, next) => {
       if (ctx.path === `/${staticFileRouteCache[path]}`) {
         ctx.body = createReadStream(path);
-      }
-      else {
+      } else {
         await next();
       }
     });
@@ -43,7 +44,7 @@ export function useStaticMiddleware(path: string): string {
 }
 
 const server = createServer(app.callback()).listen(
-  process.env.PORT && +process.env.PORT || 80,
+  (process.env.PORT && +process.env.PORT) || 80,
   process.env.HOST || undefined
 );
 

@@ -4,74 +4,91 @@ declare global {
   function useStaticMiddleware(path: string): string;
 }
 
-export { };
+export {};
 
 import { diskinfo } from '@dropb/diskinfo';
 import {
-  readdirSync, mkdirSync,
-  statSync, existsSync, readFileSync, writeFileSync
+  readdirSync,
+  mkdirSync,
+  statSync,
+  existsSync,
+  readFileSync,
+  writeFileSync,
 } from 'fs';
 import { join, isAbsolute, dirname, basename } from 'path';
 
 const middlewares: {
-  [type: string]: (data: any) => Promise<any>
+  [type: string]: (data: any) => Promise<any>;
 } = {
   // 文件选取器窗口的工具函数
   async getProcessDir(_data) {
     return {
       path: process.cwd(),
-      dirContent: (readdirSync(process.cwd())).reduce((obj, name) => ({
-        ...obj,
-        [name]: (() => {
-          try {
-            return statSync(join(process.cwd(), name)).isDirectory() ? 'dir' : 'file';
-          } catch (_e) {
-            return 'file';
-          }
-        })()
-      }), {})
+      dirContent: readdirSync(process.cwd()).reduce(
+        (obj, name) => ({
+          ...obj,
+          [name]: (() => {
+            try {
+              return statSync(join(process.cwd(), name)).isDirectory()
+                ? 'dir'
+                : 'file';
+            } catch (_e) {
+              return 'file';
+            }
+          })(),
+        }),
+        {}
+      ),
     };
   },
   async getPreviousDir({ path }) {
     return {
       path: join(path, '../'),
-      dirContent: (readdirSync(join(path, '../'))).reduce((obj, name) => ({
-        ...obj,
-        [name]: (() => {
-          try {
-            return statSync(join(path, '../', name)).isDirectory() ? 'dir' : 'file';
-          } catch (_e) {
-            return 'file';
-          }
-        })()
-      }), {})
+      dirContent: readdirSync(join(path, '../')).reduce(
+        (obj, name) => ({
+          ...obj,
+          [name]: (() => {
+            try {
+              return statSync(join(path, '../', name)).isDirectory()
+                ? 'dir'
+                : 'file';
+            } catch (_e) {
+              return 'file';
+            }
+          })(),
+        }),
+        {}
+      ),
     };
   },
   async getDir({ path }) {
     return {
       path: join(path),
-      dirContent: (readdirSync(join(path))).reduce((obj, name) => ({
-        ...obj,
-        [name]: (() => {
-          try {
-            return statSync(join(path, name)).isDirectory() ? 'dir' : 'file';
-          } catch (_e) {
-            return 'file';
-          }
-        })()
-      }), {})
+      dirContent: readdirSync(join(path)).reduce(
+        (obj, name) => ({
+          ...obj,
+          [name]: (() => {
+            try {
+              return statSync(join(path, name)).isDirectory() ? 'dir' : 'file';
+            } catch (_e) {
+              return 'file';
+            }
+          })(),
+        }),
+        {}
+      ),
     };
   },
   async getDiskList() {
     return {
-      disks: (await diskinfo()).map(n => join(n.target + '/'))
+      disks: (await diskinfo()).map(n => join(n.target + '/')),
     };
   },
   async createFile({ path, name, initContent }) {
     if (existsSync(join(path, name))) {
       return {
         hasSuccess: false,
-        reason: '文件已存在'
+        reason: '文件已存在',
       };
     } else {
       try {
@@ -79,21 +96,26 @@ const middlewares: {
       } catch (e) {
         return {
           hasSuccess: false,
-          reason: `${e}`
+          reason: `${e}`,
         };
       }
       return {
         hasSuccess: true,
-        dirContent: (readdirSync(join(path))).reduce((obj, name) => ({
-          ...obj,
-          [name]: (() => {
-            try {
-              return statSync(join(path, name)).isDirectory() ? 'dir' : 'file';
-            } catch (_e) {
-              return 'file';
-            }
-          })()
-        }), {})
+        dirContent: readdirSync(join(path)).reduce(
+          (obj, name) => ({
+            ...obj,
+            [name]: (() => {
+              try {
+                return statSync(join(path, name)).isDirectory()
+                  ? 'dir'
+                  : 'file';
+              } catch (_e) {
+                return 'file';
+              }
+            })(),
+          }),
+          {}
+        ),
       };
     }
   },
@@ -101,7 +123,7 @@ const middlewares: {
     if (existsSync(join(path, name))) {
       return {
         hasSuccess: false,
-        reason: '文件夹已存在'
+        reason: '文件夹已存在',
       };
     } else {
       try {
@@ -109,21 +131,26 @@ const middlewares: {
       } catch (e) {
         return {
           hasSuccess: false,
-          reason: `${e}`
+          reason: `${e}`,
         };
       }
       return {
         hasSuccess: true,
-        dirContent: (readdirSync(join(path))).reduce((obj, name) => ({
-          ...obj,
-          [name]: (() => {
-            try {
-              return statSync(join(path, name)).isDirectory() ? 'dir' : 'file';
-            } catch (_e) {
-              return 'file';
-            }
-          })()
-        }), {})
+        dirContent: readdirSync(join(path)).reduce(
+          (obj, name) => ({
+            ...obj,
+            [name]: (() => {
+              try {
+                return statSync(join(path, name)).isDirectory()
+                  ? 'dir'
+                  : 'file';
+              } catch (_e) {
+                return 'file';
+              }
+            })(),
+          }),
+          {}
+        ),
       };
     }
   },
@@ -131,31 +158,38 @@ const middlewares: {
   async readJsonFile({ path }) {
     if (existsSync(path)) {
       try {
-        const {
-          musicFiles, tracks, fsmConfig, unitWeight
-        } = JSON.parse(readFileSync(path, 'utf-8'));
+        const { musicFiles, tracks, fsmConfig, unitWeight } = JSON.parse(
+          readFileSync(path, 'utf-8')
+        );
         return {
           hasSuccess: true,
-          musicFiles: Object.keys(musicFiles).reduce((obj, name) => ({
-            ...obj,
-            [name]: isAbsolute(musicFiles[name])
-              ? `/${useStaticMiddleware(musicFiles[name])}`
-              : `/${useStaticMiddleware(join(dirname(path), musicFiles[name]))}`
-          }), {}),
-          tracks, fsmConfig, unitWeight
+          musicFiles: Object.keys(musicFiles).reduce(
+            (obj, name) => ({
+              ...obj,
+              [name]: isAbsolute(musicFiles[name])
+                ? `/${useStaticMiddleware(musicFiles[name])}`
+                : `/${useStaticMiddleware(
+                    join(dirname(path), musicFiles[name])
+                  )}`,
+            }),
+            {}
+          ),
+          tracks,
+          fsmConfig,
+          unitWeight,
         };
       } catch (e) {
         console.error(e);
         return {
           hasSuccess: false,
-          reason: `${e}`
-        }
+          reason: `${e}`,
+        };
       }
     } else {
       return {
         hasSuccess: false,
-        reason: '文件不存在'
-      }
+        reason: '文件不存在',
+      };
     }
   },
   async writeJsonFile({ path, obj }) {
@@ -163,13 +197,13 @@ const middlewares: {
     try {
       writeFileSync(path, JSON.stringify(obj));
       return {
-        hasSuccess: true
+        hasSuccess: true,
       };
     } catch (e) {
       return {
         hasSuccess: false,
-        reason: `${e}`
-      }
+        reason: `${e}`,
+      };
     }
   },
   // 音乐资源文件加载
@@ -180,21 +214,21 @@ const middlewares: {
         return {
           hasSuccess: true,
           fileName: /^(.+)\.mp3$/.exec(basename(path))[1],
-          httpRoutePath: `/${useStaticMiddleware(path)}`
+          httpRoutePath: `/${useStaticMiddleware(path)}`,
         };
       } else {
         return {
           hasSuccess: false,
-          reason: '文件不存在'
+          reason: '文件不存在',
         };
       }
     } catch (e) {
       return {
         hasSuccess: false,
-        reason: `${e}`
+        reason: `${e}`,
       };
     }
-  }
+  },
 };
 
 receive((msg: any) => {
@@ -204,10 +238,12 @@ receive((msg: any) => {
     console.error('WS Non id', msg.type);
   } else {
     console.log('WS Trigger', msg.type, msg.id);
-    middlewares[msg.type](msg.data).then(data => send({
-      type: msg.type,
-      id: msg.id,
-      data
-    }));
+    middlewares[msg.type](msg.data).then(data =>
+      send({
+        type: msg.type,
+        id: msg.id,
+        data,
+      })
+    );
   }
 });

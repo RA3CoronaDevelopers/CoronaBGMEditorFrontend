@@ -4,21 +4,27 @@ import { css } from '@emotion/css';
 import { Icon } from '@mdi/react';
 import { mdiDotsVertical } from '@mdi/js';
 import WaveSurfer from 'wavesurfer.js';
-import WaveSurferCursorPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.cursor.js'
+import WaveSurferCursorPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.cursor.js';
 import { StoreContext } from '../utils/storeContext';
 import { ITrack } from '../utils/jsonConfigTypes';
 
-export function Player({ id, track, setWaveRef }: {
-  id: number, track: ITrack, setWaveRef: (ref: any) => void
+export function Player({
+  id,
+  track,
+  setWaveRef,
+}: {
+  id: number;
+  track: ITrack;
+  setWaveRef: (ref: any) => void;
 }) {
-  const { setStore, data: {
-    musicFiles
-  }, state: {
-    nowPlayingTrack, isPlaying
-  } } = useContext(StoreContext);
+  const {
+    setStore,
+    data: { musicFiles },
+    state: { nowPlayingTrack, isPlaying },
+  } = useContext(StoreContext);
   const [isReady, setReady] = useState(false);
   const waveDOMRef = useRef();
-  const waveRef = useRef(undefined as any);   // wavesurfer.js 没有类型提示文件，暂时只能这样
+  const waveRef = useRef(undefined as any); // wavesurfer.js 没有类型提示文件，暂时只能这样
 
   useEffect(() => {
     waveRef.current = WaveSurfer.create({
@@ -37,28 +43,32 @@ export function Player({ id, track, setWaveRef }: {
             'color': '#000',
             'padding': '2px',
             'font-size': '12px',
-            'border-radius': '4px'
-          }
-        })
-      ]
+            'border-radius': '4px',
+          },
+        }),
+      ],
     });
     waveRef.current.on('ready', () => setReady(true));
-    waveRef.current.on('audioprocess', () => setStore(store => ({
-      ...store,
-      state: {
-        ...store.state,
-        progress: waveRef.current.getCurrentTime(),
-        nowPlayingTrack: id
-      }
-    })));
-    waveRef.current.on('finish', () => setStore(store => ({
-      ...store,
-      state: {
-        ...store.state,
-        progress: 0,
-        isPlaying: false
-      }
-    })));
+    waveRef.current.on('audioprocess', () =>
+      setStore(store => ({
+        ...store,
+        state: {
+          ...store.state,
+          progress: waveRef.current.getCurrentTime(),
+          nowPlayingTrack: id,
+        },
+      }))
+    );
+    waveRef.current.on('finish', () =>
+      setStore(store => ({
+        ...store,
+        state: {
+          ...store.state,
+          progress: 0,
+          isPlaying: false,
+        },
+      }))
+    );
     console.log(id, musicFiles, track.musicId);
     waveRef.current.load(musicFiles[track.musicId]);
     setWaveRef(waveRef.current);
@@ -75,97 +85,111 @@ export function Player({ id, track, setWaveRef }: {
     }
   }, [nowPlayingTrack, isPlaying]);
 
-  return <div className={css`
-    width: 100%;
-    margin: 8px 0px;
-    display: flex;
-  `}>
-    <div className={css`
-      width: 60px;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      user-select: none;
-    `}>
-      <div className={css`
+  return (
+    <div
+      className={css`
+        width: 100%;
+        margin: 8px 0px;
         display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-      `}>
-        <Typography variant='h6'>
-          {`#${id}`}
-        </Typography>
-        <IconButton size='small'>
-          <Icon path={mdiDotsVertical} size={0.8} />
-        </IconButton>
-      </div>
-      <Typography variant='caption'>
-        {track.name}
-      </Typography>
-    </div>
-    <div className={css`
-      width: calc(100% - 60px);
-      height: 100%;
-    `}>
-      <div className={css`
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-      `}>
+      `}
+    >
+      <div
+        className={css`
+          width: 60px;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          user-select: none;
+        `}
+      >
         <div
           className={css`
-            height: 100px;
-            width: 100%;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 4px;
-            position: relative;
-          `}
-          ref={waveDOMRef}
-          onClick={() => setStore(store => ({
-            ...store,
-            state: {
-              ...store.state,
-              nowPlayingTrack: id
-            }
-          }))}
-        >
-          <div className={css`
-            left: 4px;
-            top: 4px;
-            position: absolute;
-            user-select: none;
-          `}>
-            <Typography variant='caption'>
-              {track.musicId}
-            </Typography>
-          </div>
-          <div className={css`
-            left: 0px;
-            top: 0px;
-            position: absolute;
-            width: 100%;
-            height: 100%;
             display: flex;
+            flex-direction: row;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-          `}>
-            {!isReady && <CircularProgress size={32} />}
-          </div>
+          `}
+        >
+          <Typography variant='h6'>{`#${id}`}</Typography>
+          <IconButton size='small'>
+            <Icon path={mdiDotsVertical} size={0.8} />
+          </IconButton>
         </div>
-        <div className={css`
-          height: 60px;
-          width: 100%;
-          background: rgba(0, 0, 0, 0.4);
-          border-radius: 4px;
-          position: relative;
-        `}>
-          {/* 时间轴列表 */}
+        <Typography variant='caption'>{track.name}</Typography>
+      </div>
+      <div
+        className={css`
+          width: calc(100% - 60px);
+          height: 100%;
+        `}
+      >
+        <div
+          className={css`
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+          `}
+        >
+          <div
+            className={css`
+              height: 100px;
+              width: 100%;
+              background: rgba(0, 0, 0, 0.2);
+              border-radius: 4px;
+              position: relative;
+            `}
+            ref={waveDOMRef}
+            onClick={() =>
+              setStore(store => ({
+                ...store,
+                state: {
+                  ...store.state,
+                  nowPlayingTrack: id,
+                },
+              }))
+            }
+          >
+            <div
+              className={css`
+                left: 4px;
+                top: 4px;
+                position: absolute;
+                user-select: none;
+              `}
+            >
+              <Typography variant='caption'>{track.musicId}</Typography>
+            </div>
+            <div
+              className={css`
+                left: 0px;
+                top: 0px;
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              `}
+            >
+              {!isReady && <CircularProgress size={32} />}
+            </div>
+          </div>
+          <div
+            className={css`
+              height: 60px;
+              width: 100%;
+              background: rgba(0, 0, 0, 0.4);
+              border-radius: 4px;
+              position: relative;
+            `}
+          >
+            {/* 时间轴列表 */}
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  );
 }

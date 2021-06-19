@@ -1,5 +1,7 @@
 import { generate } from 'shortid';
-const wsConnection = new WebSocket(`ws://${window.location.host}/corona-bgm-editor`);
+const wsConnection = new WebSocket(
+  `ws://${window.location.host}/corona-bgm-editor`
+);
 
 let sendCache = [];
 let receivers: { [id: string]: (obj: any) => void } = {};
@@ -11,12 +13,18 @@ export async function send(type: string, data: { [key: string]: any }) {
     receivers[id] = receiveFunc;
     if (wsConnection.readyState < 1) {
       sendCache.push({
-        type, id, data
+        type,
+        id,
+        data,
       });
     } else {
-      wsConnection.send(JSON.stringify({
-        type, id, data
-      }));
+      wsConnection.send(
+        JSON.stringify({
+          type,
+          id,
+          data,
+        })
+      );
     }
   });
 }
