@@ -3,87 +3,75 @@ import { Typography, IconButton, CircularProgress } from '@material-ui/core';
 import { css } from '@emotion/css';
 import { Icon } from '@mdi/react';
 import { mdiDotsVertical } from '@mdi/js';
-import WaveSurfer from 'wavesurfer.js';
-import WaveSurferCursorPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.cursor.js';
 import { StoreContext } from '../utils/storeContext';
 import { ITrack } from '../utils/jsonConfigTypes';
 
+function drawWaveform(buffer: AudioBuffer, canvas: HTMLCanvasElement) {
+  const height = canvas.offsetHeight;
+  const width = canvas.offsetWidth;
+  const wave = buffer.getChannelData(0);
+  const step = Math.ceil(wave.length / width);
+  let bounds = [];
+  for (let i = 0; i < width; ++i) {
+    bounds = [...bounds, wave.slice(i * step, i * step + step).reduce(
+      (total, v) => ({
+        max: v > total.max ? v : total.max,
+        min: v < total.min ? v : total.min
+      }),
+      { max: -1.0, min: 1.0 }
+    )];
+  }
+
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const canvasSize = {
+    height: (canvas.height = height),
+    width: (canvas.width = width)
+  };
+  ctx.fillStyle = '#fff';
+  ctx.strokeStyle = '#777';
+  const maxAmp = canvasSize.height / 2;
+  ctx.moveTo(0, maxAmp);
+  bounds.forEach((bound, i) => {
+    const x = i * 1;
+    const y = (1 + bound.min) * maxAmp;
+    const width = 1;
+    const height = Math.max(1, (bound.max - bound.min) * maxAmp);
+    ctx.lineTo(x, y);
+    ctx.lineTo(x + width / 2, y + height);
+  });
+  ctx.stroke();
+};
+
 export function Player({
   id,
-  track,
-  setWaveRef,
+  track
 }: {
   id: number;
-  track: ITrack;
-  setWaveRef: (ref: any) => void;
+  track: ITrack
 }) {
   const {
     setStore,
-    data: { musicFiles },
+    data: { musicFilePathMap },
     state: { nowPlayingTrack, isPlaying },
   } = useContext(StoreContext);
   const [isReady, setReady] = useState(false);
   const waveDOMRef = useRef();
-  const waveRef = useRef(undefined as any); // wavesurfer.js 没有类型提示文件，暂时只能这样
 
   useEffect(() => {
-    waveRef.current = WaveSurfer.create({
-      container: waveDOMRef.current,
-      waveColor: '#fff',
-      progressColor: '#fff',
-      cursorColor: '#999',
-      cursorWidth: 2,
-      height: 100,
-      plugins: [
-        WaveSurferCursorPlugin.create({
-          showTime: true,
-          opacity: 1,
-          customShowTimeStyle: {
-            'background-color': '#ccc',
-            'color': '#000',
-            'padding': '2px',
-            'font-size': '12px',
-            'border-radius': '4px',
-          },
-        }),
-      ],
-    });
-    waveRef.current.on('ready', () => setReady(true));
-    waveRef.current.on('audioprocess', () =>
-      setStore(store => ({
-        ...store,
-        state: {
-          ...store.state,
-          progress: waveRef.current.getCurrentTime(),
-          nowPlayingTrack: id,
-        },
-      }))
-    );
-    waveRef.current.on('finish', () =>
-      setStore(store => ({
-        ...store,
-        state: {
-          ...store.state,
-          progress: 0,
-          isPlaying: false,
-        },
-      }))
-    );
-    console.log(id, musicFiles, track.musicId);
-    waveRef.current.load(musicFiles[track.musicId]);
-    setWaveRef(waveRef.current);
-  }, []);
-  useEffect(() => {
-    if (nowPlayingTrack === id) {
-      if (isPlaying) {
-        waveRef.current.play();
-      } else {
-        waveRef.current.pause();
-      }
-    } else {
-      waveRef.current.stop();
+    if (waveDOMRef.current) {
+      (async () => {
+        const context: AudioContext = (new (window['AudioContext']
+          || window['webkitAudioContext']
+          || window['mozAudioContext']
+          || window['oAudioContext'])());
+        const originBuffer = await (await fetch(musicFilePathMap[track.musicId])).arrayBuffer();
+        const buffer = await context.decodeAudioData(originBuffer);
+        drawWaveform(buffer, waveDOMRef.current);
+        setReady(true);
+      })();
     }
-  }, [nowPlayingTrack, isPlaying]);
+  }, []);
 
   return (
     <div
@@ -141,7 +129,6 @@ export function Player({
               border-radius: 4px;
               position: relative;
             `}
-            ref={waveDOMRef}
             onClick={() =>
               setStore(store => ({
                 ...store,
@@ -152,6 +139,17 @@ export function Player({
               }))
             }
           >
+            <canvas
+              className={css`
+                position: absolute;
+                top: 0px;
+                left: 0px;
+                height: 100%;
+                width: 100%;
+                z-index: -1;
+              `}
+              ref={waveDOMRef}
+            />
             <div
               className={css`
                 left: 4px;

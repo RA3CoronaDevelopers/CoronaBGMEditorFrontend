@@ -41,10 +41,11 @@ export function Main() {
   const { enqueueSnackbar } = useSnackbar();
   const {
     setStore,
-    data: { sourceJsonPath, tracks, musicFiles },
+    data: { sourceJsonPath, tracks, musicFilePathMap },
     state: {
       isPlaying,
       nowPlayingTrack,
+      nowPlayingProgress,
       jsonFileSelectorDialogOpen,
       musicFileSelectorDialogOpen,
     },
@@ -63,25 +64,6 @@ export function Main() {
     generateNewTrackDialogTrackName,
     setGenerateNewTrackDialogTrackName,
   ] = useState('新轨道');
-  const waveRef = useRef({} as { [id: number]: any });
-  const timeIntervalRef = useRef(undefined as NodeJS.Timer);
-  const audioProgressDOMRef = useRef(undefined as any);
-
-  useEffect(() => {
-    function tick() {
-      const time = waveRef.current[nowPlayingTrack]?.getCurrentTime() || 0;
-      audioProgressDOMRef.current.innerText =
-        (time / 60 < 10 ? '0' : '') +
-        `${Math.floor(time / 60)}` +
-        ':' +
-        (time % 60 < 10 ? '0' : '') +
-        `${Math.floor(time % 60)}`;
-      clearTimeout(timeIntervalRef.current);
-      timeIntervalRef.current = setTimeout(tick, 100);
-    }
-    timeIntervalRef.current = setTimeout(tick, 0);
-    return () => clearTimeout(timeIntervalRef.current);
-  }, [isPlaying, nowPlayingTrack]);
 
   return (
     <div
@@ -136,8 +118,9 @@ export function Main() {
             className={css`
               user-select: none;
             `}
-            ref={audioProgressDOMRef}
-          />
+          >
+            {nowPlayingProgress}
+          </Typography>
           <div
             className={css`
               margin: 8px;
@@ -188,7 +171,7 @@ export function Main() {
                   send('saveXMLFile', {
                     path: sourceJsonPath,
                     tracks,
-                    musicFiles,
+                    musicFiles: musicFilePathMap,
                   })
                 }
                 disabled={sourceJsonPath === ''}
@@ -256,22 +239,22 @@ export function Main() {
                         }) =>
                           hasSuccess
                             ? (setStore(store => ({
-                                ...store,
-                                data: {
-                                  ...store.data,
-                                  sourceJsonPath: text,
-                                  musicFiles,
-                                  tracks,
-                                  fsmConfig,
-                                  unitWeight,
-                                },
-                              })),
+                              ...store,
+                              data: {
+                                ...store.data,
+                                sourceJsonPath: text,
+                                musicFilePathMap: musicFiles,
+                                tracks,
+                                fsmConfig,
+                                unitWeight,
+                              },
+                            })),
                               enqueueSnackbar('获取成功', {
                                 variant: 'success',
                               }))
                             : enqueueSnackbar(`获取失败：${reason}`, {
-                                variant: 'error',
-                              })
+                              variant: 'error',
+                            })
                       )
                     )
                     .catch(() =>
@@ -385,7 +368,7 @@ export function Main() {
             `}
           >
             <List>
-              {Object.keys(musicFiles).map(id => (
+              {Object.keys(musicFilePathMap).map(id => (
                 <ListItem>
                   <ListItemText primary={id} />
                   <ListItemSecondaryAction>
@@ -431,7 +414,6 @@ export function Main() {
               <Player
                 track={track}
                 id={index}
-                setWaveRef={ref => (waveRef.current[index] = ref)}
               />
             ))}
             <div
@@ -465,7 +447,7 @@ export function Main() {
                       ...store.data.tracks,
                       {
                         name: generateNewTrackDialogTrackName,
-                        musicId: Object.keys(musicFiles)[
+                        musicId: Object.keys(musicFilePathMap)[
                           generateNewTrackDialogSelected
                         ],
                         startOffset: 0,
@@ -493,7 +475,7 @@ export function Main() {
                     )
                   }
                 >
-                  {Object.keys(musicFiles).map((id, index) => (
+                  {Object.keys(musicFilePathMap).map((id, index) => (
                     <MenuItem value={index}>{id}</MenuItem>
                   ))}
                 </Select>
@@ -527,16 +509,16 @@ export function Main() {
             }) =>
               hasSuccess
                 ? (setStore(store => ({
-                    ...store,
-                    data: {
-                      ...store.data,
-                      sourceJsonPath: path,
-                      musicFiles,
-                      tracks,
-                      fsmConfig,
-                      unitWeight,
-                    },
-                  })),
+                  ...store,
+                  data: {
+                    ...store.data,
+                    sourceJsonPath: path,
+                    musicFilePathMap: musicFiles,
+                    tracks,
+                    fsmConfig,
+                    unitWeight,
+                  },
+                })),
                   enqueueSnackbar('获取成功', { variant: 'success' }))
                 : enqueueSnackbar(`获取失败：${reason}`, { variant: 'error' })
           )
@@ -559,19 +541,19 @@ export function Main() {
             ({ hasSuccess, reason, fileName, httpRoutePath }) =>
               hasSuccess
                 ? (setStore(store => ({
-                    ...store,
-                    data: {
-                      ...store.data,
-                      musicFiles: {
-                        ...store.data.musicFiles,
-                        [fileName]: httpRoutePath,
-                      },
+                  ...store,
+                  data: {
+                    ...store.data,
+                    musicFilePathMap: {
+                      ...store.data.musicFilePathMap,
+                      [fileName]: httpRoutePath,
                     },
-                  })),
+                  },
+                })),
                   enqueueSnackbar('文件添加成功', { variant: 'success' }))
                 : enqueueSnackbar(`文件添加失败：${reason}`, {
-                    variant: 'error',
-                  })
+                  variant: 'error',
+                })
           )
         }
         onClose={() =>

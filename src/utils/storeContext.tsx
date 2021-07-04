@@ -4,7 +4,7 @@ import { ITrack, IFsmConfig, IUnitWeight } from './jsonConfigTypes';
 interface IStore {
   data: {
     sourceJsonPath: string;
-    musicFiles: {
+    musicFilePathMap: {
       [id: string]: string;
     };
     tracks: ITrack[];
@@ -18,6 +18,7 @@ interface IStore {
 
     editorSituation: string;
     nowPlayingTrack: number;
+    nowPlayingProgress: number;
     isPlaying: boolean;
 
     trackBpm: number;
@@ -42,7 +43,7 @@ export function Store({ children }: any) {
   const [store, setStore] = useState({
     data: {
       sourceJsonPath: '',
-      musicFiles: {},
+      musicFilePathMap: {},
       tracks: [],
       fsmConfig: {},
       unitWeight: {},
@@ -54,6 +55,7 @@ export function Store({ children }: any) {
 
       editorSituation: 'Mute',
       nowPlayingTrack: 0,
+      nowPlayingProgress: 0,
       isPlaying: false,
 
       trackBpm: 120,
