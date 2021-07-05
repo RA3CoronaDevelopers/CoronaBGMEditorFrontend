@@ -61,6 +61,7 @@ export function Player({
     state: { nowPlayingTrack, nowPlayingProgress, isPlaying },
   } = useContext(StoreContext);
   const [isReady, setReady] = useState(false);
+  const [mouseOverPosition, setMouseOverPosition] = useState(undefined as undefined | number);
   const waveDOMRef = useRef();
 
   useEffect(() => {
@@ -177,16 +178,66 @@ export function Player({
               border-radius: 4px;
               position: relative;
             `}
-            onClick={() =>
-              setStore(store => ({
+          >
+            {/* 时间轴对齐图层 */}
+            {track.checkPoints.map(({ time }) => <div
+              className={css`
+                position: absolute;
+                top: 0px;
+                left: ${time / track.length * 100}%;
+                height: 100%;
+                width: 1px;
+                background: rgba(255, 255, 255, 0.4);
+              `}
+            />)}
+            {/* 播放状态轴对齐图层 */}
+            {nowPlayingTrack === id && <div
+              className={css`
+                position: absolute;
+                top: 0px;
+                left: ${nowPlayingProgress / track.length * 100}%;
+                height: 100%;
+                width: 2px;
+                background: rgba(102, 204, 255, 0.8);
+              `}
+            />}
+            {/* 鼠标游标轴图层 */}
+            <div
+              className={css`
+                position: absolute;
+                top: 0px;
+                left: 0px;
+                height: 100%;
+                width: 100%;
+                z-index: 1000;
+              `}
+              onMouseEnter={e => setMouseOverPosition(e.clientX - e.target['getBoundingClientRect']().left)}
+              onMouseMove={e => setMouseOverPosition(e.clientX - e.target['getBoundingClientRect']().left)}
+              onMouseLeave={_e => setMouseOverPosition(undefined)}
+              onMouseDown={e => setStore(store => ({
                 ...store,
                 state: {
                   ...store.state,
                   nowPlayingTrack: id,
-                },
-              }))
-            }
-          >
+                  nowPlayingProgress: (e.clientX - e.target['getBoundingClientRect']().left)
+                    / e.target['getBoundingClientRect']().width
+                    * track.length
+                }
+              }))}
+            >
+              {mouseOverPosition && <div
+                className={css`
+                  position: absolute;
+                  top: 0px;
+                  left: ${mouseOverPosition}px;
+                  height: 100%;
+                  width: 1px;
+                  background: rgba(255, 255, 255, 0.8);
+                  z-index: 999;
+                `}
+              />}
+            </div>
+            {/* 波形图 */}
             <canvas
               className={css`
                 position: absolute;
@@ -198,6 +249,7 @@ export function Player({
               `}
               ref={waveDOMRef}
             />
+            {/* 加载圈 */}
             <div
               className={css`
                 left: 4px;
@@ -225,14 +277,63 @@ export function Player({
           </div>
           <div
             className={css`
+              position: relative;
               height: 60px;
               width: 100%;
               background: rgba(0, 0, 0, 0.4);
               border-radius: 4px;
-              position: relative;
             `}
           >
             {/* 时间轴列表 */}
+            {track.checkPoints?.map(({ time, destinations, defaultDestinations }) => <div
+              className={css`
+                position: absolute;
+                left: ${time / track.length * 100}%;
+                top: 0px;
+                height: 100%;
+                min-width: 32px;
+                max-width: 64px;
+                overflow: hidden;
+                outline-left: 1px solid rgba(255, 255, 255, 0.8);
+                box-sizing: border-box;
+                padding: 2px;
+                background: rgba(255, 255, 255, 0.2);
+                transition: background 0.2s;
+                &:hover {
+                  background: rgba(255, 255, 255, 0.4);
+                }
+                &:active {
+                  background: rgba(255, 255, 255, 0.8);
+                }
+              `}
+            >
+              {destinations?.map(({ condition }) => <div
+                className={css`
+                  display: flex;
+                  flex-direction: column;
+                  justify-content: center;
+                  align-items: flex-start;
+                  color: #fff;
+                  font-size: 10px;
+                  user-select: none;
+                `}
+              >
+                {condition}
+              </div>)}
+              {defaultDestinations?.map(() => <div
+                className={css`
+                  display: flex;
+                  flex-direction: column;
+                  justify-content: center;
+                  align-items: flex-start;
+                  color: #fff;
+                  font-size: 10px;
+                  user-select: none;
+                `}
+              >
+                {'(default)'}
+              </div>)}
+            </div>)}
           </div>
         </div>
       </div>
