@@ -5,6 +5,8 @@ import {
   List,
   ListItem,
   ListItemText,
+  ListItemSecondaryAction,
+  TextField
 } from '@material-ui/core';
 import { css } from '@emotion/css';
 import { StoreContext } from '../../utils/storeContext';
@@ -13,6 +15,7 @@ import { DialogBase } from '../dialogBase';
 export function FsmConfig() {
   const {
     setStore,
+    data: { fsmConfig },
     state: { fsmConfigDialogOpen },
   } = useContext(StoreContext);
 
@@ -69,9 +72,32 @@ export function FsmConfig() {
       }
     >
       <List>
-        {[].map(name => (
-          <ListItem button onClick={() => void 0}>
+        {[
+          'interval',
+          'fightThreshold',
+          'advantageThreshold',
+          'disadvantageThreshold'
+        ].map(name => (
+          <ListItem>
             <ListItemText primary={name} />
+            <ListItemSecondaryAction>
+              <TextField
+                variant='outlined'
+                value={fsmConfig[name] || ''}
+                margin='dense'
+                size='small'
+                onChange={e => /^\d*$/.test(e.target.value) && setStore(store => ({
+                  ...store,
+                  data: {
+                    ...store.data,
+                    unitWeight: {
+                      ...store.data.unitWeight,
+                      [name]: e.target.value
+                    }
+                  }
+                }))}
+              />
+            </ListItemSecondaryAction>
           </ListItem>
         ))}
       </List>

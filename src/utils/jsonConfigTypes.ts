@@ -33,7 +33,7 @@ export interface IUnitWeight {
   'AlliedConstructionYard': number;
   'AlliedOutPost': number;
   'AlliedPowerPlant': number;
-  'AlliedBarracks': 500;
+  'AlliedBarracks': number;
   'AlliedRefinery': number;
   'AlliedWarFactory': number;
   'AlliedNavalYard': number;
