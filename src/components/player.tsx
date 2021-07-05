@@ -3,6 +3,8 @@ import { Typography, IconButton, CircularProgress } from '@material-ui/core';
 import { css } from '@emotion/css';
 import { Icon } from '@mdi/react';
 import { mdiDotsVertical } from '@mdi/js';
+import { useSnackbar } from 'notistack';
+import { Howl } from 'howler';
 import { StoreContext } from '../utils/storeContext';
 import { ITrack } from '../utils/jsonConfigTypes';
 
@@ -45,15 +47,18 @@ function drawWaveform(buffer: AudioBuffer, canvas: HTMLCanvasElement) {
 
 export function Player({
   id,
-  track
+  track,
+  audioPlayerRef
 }: {
   id: number;
-  track: ITrack
+  track: ITrack,
+  audioPlayerRef: { [audioName: string]: any }
 }) {
+  const { enqueueSnackbar } = useSnackbar();
   const {
     setStore,
     data: { musicFilePathMap },
-    state: { nowPlayingTrack, isPlaying },
+    state: { nowPlayingTrack, nowPlayingProgress, isPlaying },
   } = useContext(StoreContext);
   const [isReady, setReady] = useState(false);
   const waveDOMRef = useRef();
@@ -72,6 +77,49 @@ export function Player({
       })();
     }
   }, []);
+
+  useEffect(() => {
+    audioPlayerRef.current[id] = new Howl({
+      src: [musicFilePathMap[track.musicId]],
+      html5: true,
+      format: ['mp3']
+    });
+  }, []);
+
+  useEffect(() => {
+    function loop() {
+      if (audioPlayerRef.current[id].playing()) {
+        setStore(store => ({
+          ...store,
+          state: {
+            ...store.state,
+            nowPlayingProgress: audioPlayerRef.current[id].seek()
+          }
+        }));
+        requestAnimationFrame(loop);
+      }
+    }
+    if (nowPlayingTrack === id && isPlaying && !audioPlayerRef.current[id].playing()) {
+      audioPlayerRef.current[id].seek(nowPlayingProgress);
+      audioPlayerRef.current[id].play();
+      if (!audioPlayerRef.current[id].playing()) {
+        enqueueSnackbar('音频尚未准备完成，请稍后再点击播放', { variant: 'warning' });
+        setStore(store => ({
+          ...store,
+          state: {
+            ...store.state,
+            isPlaying: false
+          }
+        }));
+      } else {
+        console.log('Playing track', id, ':', audioPlayerRef.current[id].seek());
+        loop();
+      }
+    }
+    if (nowPlayingTrack !== id && audioPlayerRef.current[id].playing() || !isPlaying) {
+      audioPlayerRef.current[id].stop();
+    }
+  }, [isPlaying, nowPlayingTrack]);
 
   return (
     <div

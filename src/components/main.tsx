@@ -27,6 +27,7 @@ import {
 } from '@mdi/js';
 import { Scrollbars } from 'react-custom-scrollbars';
 import { useSnackbar } from 'notistack';
+import { Howler } from 'howler';
 
 import { StoreContext } from '../utils/storeContext';
 import { send } from '../utils/websocketClient';
@@ -44,18 +45,14 @@ export function Main() {
     data: { sourceJsonPath, tracks, musicFilePathMap },
     state: {
       isPlaying,
-      nowPlayingTrack,
+      editorSituation,
       nowPlayingProgress,
       jsonFileSelectorDialogOpen,
-      musicFileSelectorDialogOpen,
+      musicFileSelectorDialogOpen
     },
   } = useContext(StoreContext);
-  const [jsonSelectMenuAnchorEl, jsonXmlSelectMenuAnchorEl] = useState(
-    undefined
-  );
-  const [generateNewTrackDialogOpen, setGenerateNewTrackDialogOpen] = useState(
-    false
-  );
+  const [jsonSelectMenuAnchorEl, jsonXmlSelectMenuAnchorEl] = useState(undefined);
+  const [generateNewTrackDialogOpen, setGenerateNewTrackDialogOpen] = useState(false);
   const [
     generateNewTrackDialogSelected,
     setGenerateNewTrackDialogSelected,
@@ -64,6 +61,15 @@ export function Main() {
     generateNewTrackDialogTrackName,
     setGenerateNewTrackDialogTrackName,
   ] = useState('新轨道');
+  const audioPlayerRef = useRef({} as { [audioName: string]: any });
+
+  useEffect(() => {
+    if (editorSituation === 'Mute') {
+      Howler.mute(true);
+    } else {
+      Howler.mute(false);
+    }
+  }, [editorSituation]);
 
   return (
     <div
@@ -119,7 +125,15 @@ export function Main() {
               user-select: none;
             `}
           >
-            {nowPlayingProgress}
+            {''
+              + `${Math.floor(nowPlayingProgress / 60) < 10 ? '0' : ''}`
+              + Math.floor(nowPlayingProgress / 60)
+              + ':'
+              + `${nowPlayingProgress % 60 < 10 ? '0' : ''}`
+              + Math.floor(nowPlayingProgress % 60)
+              + '.'
+              + Math.floor((nowPlayingProgress - Math.floor(nowPlayingProgress)) * 10)
+            }
           </Typography>
           <div
             className={css`
@@ -414,6 +428,7 @@ export function Main() {
               <Player
                 track={track}
                 id={index}
+                audioPlayerRef={audioPlayerRef}
               />
             ))}
             <div
