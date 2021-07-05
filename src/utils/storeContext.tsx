@@ -1,6 +1,10 @@
 import React, { createContext, useState } from 'react';
 import { ITrack, IFsmConfig, IUnitWeight } from './jsonConfigTypes';
 
+export type IEditorSituation = 'Mute'
+  | 'MenuTrack' | 'Peace' | 'TinyFight' | 'Fight' | 'Advantage' | 'Disadvantage'
+  | 'Disaster' | 'PostGameVictory' | 'PostGameDefeat';
+
 interface IStore {
   data: {
     sourceJsonPath: string;
@@ -16,7 +20,7 @@ interface IStore {
     fileSelectorDirContent: { [name: string]: 'dir' | 'file' };
     fileSelectorDiskList: string[];
 
-    editorSituation: string;
+    editorSituation: IEditorSituation;
     nowPlayingTrack: number;
     nowPlayingProgress: number;
     isPlaying: boolean;

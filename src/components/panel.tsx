@@ -11,7 +11,7 @@ import {
   InputAdornment,
 } from '@material-ui/core';
 import { css } from '@emotion/css';
-import { StoreContext } from '../utils/storeContext';
+import { IEditorSituation, StoreContext } from '../utils/storeContext';
 
 export function Panel() {
   const {
@@ -66,7 +66,7 @@ export function Panel() {
               ...store,
               state: {
                 ...store.state,
-                editorSituation: e.target.value as string,
+                editorSituation: e.target.value as IEditorSituation,
               },
             }))
           }
