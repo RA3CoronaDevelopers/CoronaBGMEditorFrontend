@@ -62,7 +62,7 @@ export function Player({
   } = useContext(StoreContext);
   const [isReady, setReady] = useState(false);
   const [mouseOverPosition, setMouseOverPosition] = useState(undefined as undefined | number);
-  const waveDOMRef = useRef();
+  const waveDOMRef = useRef(undefined as undefined | HTMLCanvasElement);
 
   useEffect(() => {
     if (waveDOMRef.current) {
@@ -211,16 +211,16 @@ export function Player({
                 width: 100%;
                 z-index: 1000;
               `}
-              onMouseEnter={e => setMouseOverPosition(e.clientX - e.target['getBoundingClientRect']().left)}
-              onMouseMove={e => setMouseOverPosition(e.clientX - e.target['getBoundingClientRect']().left)}
+              onMouseEnter={e => setMouseOverPosition(e.clientX - waveDOMRef.current.getBoundingClientRect().left)}
+              onMouseMove={e => setMouseOverPosition(e.clientX - waveDOMRef.current.getBoundingClientRect().left)}
               onMouseLeave={_e => setMouseOverPosition(undefined)}
               onMouseDown={e => setStore(store => ({
                 ...store,
                 state: {
                   ...store.state,
                   nowPlayingTrack: id,
-                  nowPlayingProgress: (e.clientX - e.target['getBoundingClientRect']().left)
-                    / e.target['getBoundingClientRect']().width
+                  nowPlayingProgress: (e.clientX - waveDOMRef.current.getBoundingClientRect().left)
+                    / waveDOMRef.current.getBoundingClientRect().width
                     * track.length
                 }
               }))}
