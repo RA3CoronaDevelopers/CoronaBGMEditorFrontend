@@ -73,6 +73,7 @@ export function Player({
           || window['oAudioContext'])());
         const originBuffer = await (await fetch(musicFilePathMap[track.musicId])).arrayBuffer();
         const buffer = await context.decodeAudioData(originBuffer);
+        track.length = buffer.length / buffer.sampleRate;
         drawWaveform(buffer, waveDOMRef.current);
         setReady(true);
       })();
@@ -83,7 +84,22 @@ export function Player({
     audioPlayerRef.current[id] = new Howl({
       src: [musicFilePathMap[track.musicId]],
       html5: true,
-      format: ['mp3']
+      format: ['mp3'],
+      onend: () => {
+        setStore(store => ({
+          ...store,
+          state: {
+            ...store.state,
+            isPlaying: false
+          }
+        }));
+      },
+      onloaderror: (id: number, msg: string) => {
+        enqueueSnackbar(`音频 ${id} 发生错误: ${msg}`, { variant: 'error' });
+      },
+      onplayerror: (id: number, msg: string) => {
+        enqueueSnackbar(`音频 ${id} 发生错误: ${msg}`, { variant: 'error' });
+      }
     });
   }, []);
 
@@ -184,22 +200,26 @@ export function Player({
               className={css`
                 position: absolute;
                 top: 0px;
-                left: ${time / track.length * 100}%;
                 height: 100%;
                 width: 1px;
                 background: rgba(255, 255, 255, 0.4);
               `}
+              style={{
+                left: `${Math.min(time / track.length * 100, 100)}%`
+              }}
             />)}
             {/* 播放状态轴对齐图层 */}
             {nowPlayingTrack === id && <div
               className={css`
                 position: absolute;
                 top: 0px;
-                left: ${nowPlayingProgress / track.length * 100}%;
                 height: 100%;
                 width: 2px;
                 background: rgba(102, 204, 255, 0.8);
               `}
+              style={{
+                left: `${nowPlayingProgress / track.length * 100}%`
+              }}
             />}
             {/* 鼠标游标轴图层 */}
             <div
@@ -229,12 +249,14 @@ export function Player({
                 className={css`
                   position: absolute;
                   top: 0px;
-                  left: ${mouseOverPosition}px;
                   height: 100%;
                   width: 1px;
                   background: rgba(255, 255, 255, 0.8);
                   z-index: 999;
                 `}
+                style={{
+                  left: mouseOverPosition
+                }}
               />}
             </div>
             {/* 波形图 */}
@@ -288,13 +310,10 @@ export function Player({
             {track.checkPoints?.map(({ time, destinations, defaultDestinations }) => <div
               className={css`
                 position: absolute;
-                left: ${time / track.length * 100}%;
                 top: 0px;
                 height: 100%;
-                min-width: 32px;
-                max-width: 64px;
+                width: 64px;
                 overflow: hidden;
-                outline-left: 1px solid rgba(255, 255, 255, 0.8);
                 box-sizing: border-box;
                 padding: 2px;
                 background: rgba(255, 255, 255, 0.2);
@@ -306,6 +325,9 @@ export function Player({
                   background: rgba(255, 255, 255, 0.8);
                 }
               `}
+              style={{
+                left: `min(${time / track.length * 100}%, calc(100% - 64px))`
+              }}
             >
               {destinations?.map(({ condition }) => <div
                 className={css`
@@ -331,7 +353,7 @@ export function Player({
                   user-select: none;
                 `}
               >
-                {'(default)'}
+                {'(默认跳转)'}
               </div>)}
             </div>)}
           </div>
