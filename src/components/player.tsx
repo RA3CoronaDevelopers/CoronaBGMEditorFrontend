@@ -343,10 +343,11 @@ export function Player({
                 position: absolute;
                 top: 0px;
                 height: 100%;
-                width: 64px;
+                width: 60px;
                 overflow: hidden;
                 box-sizing: border-box;
                 padding: 2px;
+                border-radius: 4px;
                 background: rgba(255, 255, 255, 0.2);
                 transition: background 0.2s;
                 &:hover {
@@ -357,7 +358,7 @@ export function Player({
                 }
               `}
               style={{
-                left: `min(${time / track.length * 100}%, calc(100% - 64px))`
+                left: `min(${time / track.length * 100}%, calc(100% - 60px))`
               }}
             >
               {destinations?.map(({ condition }) => <div
