@@ -19,7 +19,7 @@ export function Player({
   trackId: number;
   track: ITrack,
   audioPlayerRef: { [audioName: string]: any },
-  audioOriginDataRef: { [audioName: string]: any }
+  audioOriginDataRef: React.RefObject<{ [audioName: string]: Float32Array }>
 }) {
   const { enqueueSnackbar } = useSnackbar();
   const {
@@ -308,6 +308,7 @@ export function Player({
               open={checkPointControllerOpen === checkPointId}
               trackId={trackId}
               checkPointId={checkPointId}
+              audioOriginDataRef={audioOriginDataRef}
               onClose={() => setCheckPointControllerOpen(-1)}
             />)}
             {/* 时间轴列表 */}

@@ -70,11 +70,13 @@ export function CheckPointController({
   open,
   trackId,
   checkPointId,
+  audioOriginDataRef,
   onClose
 }: {
   open: boolean,
   trackId: number
   checkPointId: number,
+  audioOriginDataRef: React.RefObject<{ [trackId: string]: Float32Array }>
   onClose: () => void
 }) {
   const {
