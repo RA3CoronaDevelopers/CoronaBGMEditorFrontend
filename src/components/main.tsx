@@ -429,7 +429,7 @@ export function Main() {
             {tracks.map((track, index) => (
               <Player
                 track={track}
-                id={index}
+                trackId={index}
                 audioPlayerRef={audioPlayerRef}
                 audioOriginDataRef={audioOriginDataRef}
               />

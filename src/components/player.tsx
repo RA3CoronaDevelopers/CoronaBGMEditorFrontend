@@ -7,6 +7,7 @@ import { useSnackbar } from 'notistack';
 import { Howl } from 'howler';
 import { StoreContext } from '../utils/storeContext';
 import { ITrack } from '../utils/jsonConfigTypes';
+import { CheckPointController } from './dialogs/checkPointController';
 
 function drawWaveform(buffer: AudioBuffer, canvas: HTMLCanvasElement) {
   const height = canvas.offsetHeight;
@@ -46,12 +47,12 @@ function drawWaveform(buffer: AudioBuffer, canvas: HTMLCanvasElement) {
 };
 
 export function Player({
-  id,
+  trackId,
   track,
   audioPlayerRef,
   audioOriginDataRef
 }: {
-  id: number;
+  trackId: number;
   track: ITrack,
   audioPlayerRef: { [audioName: string]: any },
   audioOriginDataRef: { [audioName: string]: any }
@@ -64,6 +65,7 @@ export function Player({
   } = useContext(StoreContext);
   const [isReady, setReady] = useState(false);
   const [mouseOverPosition, setMouseOverPosition] = useState(undefined as undefined | number);
+  const [checkPointControllerOpen, setCheckPointControllerOpen] = useState(-1);
   const radiusEffectRef = useRef(undefined as undefined | HTMLDivElement);
   const waveDOMRef = useRef(undefined as undefined | HTMLCanvasElement);
 
@@ -76,7 +78,7 @@ export function Player({
           || window['oAudioContext'])());
         const originBuffer = await (await fetch(musicFilePathMap[track.musicId])).arrayBuffer();
         const buffer = await context.decodeAudioData(originBuffer);
-        audioOriginDataRef.current[id] = buffer.getChannelData(0);
+        audioOriginDataRef.current[trackId] = buffer.getChannelData(0);
         track.length = buffer.length / buffer.sampleRate;
         drawWaveform(buffer, waveDOMRef.current);
         setReady(true);
@@ -85,7 +87,7 @@ export function Player({
   }, []);
 
   useEffect(() => {
-    audioPlayerRef.current[id] = new Howl({
+    audioPlayerRef.current[trackId] = new Howl({
       src: [musicFilePathMap[track.musicId]],
       html5: true,
       format: ['mp3'],
@@ -109,21 +111,21 @@ export function Player({
 
   useEffect(() => {
     function loop() {
-      if (audioPlayerRef.current[id].playing()) {
+      if (audioPlayerRef.current[trackId].playing()) {
         setStore(store => ({
           ...store,
           state: {
             ...store.state,
-            nowPlayingProgress: audioPlayerRef.current[id].seek()
+            nowPlayingProgress: audioPlayerRef.current[trackId].seek()
           }
         }));
         requestAnimationFrame(loop);
       }
     }
-    if (nowPlayingTrack === id && isPlaying && !audioPlayerRef.current[id].playing()) {
-      audioPlayerRef.current[id].seek(nowPlayingProgress);
-      audioPlayerRef.current[id].play();
-      if (!audioPlayerRef.current[id].playing()) {
+    if (nowPlayingTrack === trackId && isPlaying && !audioPlayerRef.current[trackId].playing()) {
+      audioPlayerRef.current[trackId].seek(nowPlayingProgress);
+      audioPlayerRef.current[trackId].play();
+      if (!audioPlayerRef.current[trackId].playing()) {
         enqueueSnackbar('音频尚未准备完成，请稍后再点击播放', { variant: 'warning' });
         setStore(store => ({
           ...store,
@@ -133,12 +135,12 @@ export function Player({
           }
         }));
       } else {
-        console.log('Playing track', id, ':', audioPlayerRef.current[id].seek());
+        console.log('Playing track', trackId, ':', audioPlayerRef.current[trackId].seek());
         loop();
       }
     }
-    if (nowPlayingTrack !== id && audioPlayerRef.current[id].playing() || !isPlaying) {
-      audioPlayerRef.current[id].stop();
+    if (nowPlayingTrack !== trackId && audioPlayerRef.current[trackId].playing() || !isPlaying) {
+      audioPlayerRef.current[trackId].stop();
     }
   }, [isPlaying, nowPlayingTrack]);
 
@@ -196,7 +198,7 @@ export function Player({
             align-items: center;
           `}
         >
-          <Typography variant='h6'>{`#${id}`}</Typography>
+          <Typography variant='h6'>{`#${trackId}`}</Typography>
           <IconButton size='small'>
             <Icon path={mdiDotsVertical} size={0.8} />
           </IconButton>
@@ -240,7 +242,7 @@ export function Player({
               }}
             />)}
             {/* 播放状态轴对齐图层 */}
-            {nowPlayingTrack === id && <div
+            {nowPlayingTrack === trackId && <div
               className={css`
                 position: absolute;
                 top: 0px;
@@ -269,7 +271,7 @@ export function Player({
                 ...store,
                 state: {
                   ...store.state,
-                  nowPlayingTrack: id,
+                  nowPlayingTrack: trackId,
                   nowPlayingProgress: (e.clientX - waveDOMRef.current.getBoundingClientRect().left)
                     / waveDOMRef.current.getBoundingClientRect().width
                     * track.length
@@ -337,8 +339,15 @@ export function Player({
               border-radius: 4px;
             `}
           >
+            {/* 时间轴控制窗口 */}
+            {track.checkPoints?.map((_checkPoint, checkPointId) => <CheckPointController
+              open={checkPointControllerOpen === checkPointId}
+              trackId={trackId}
+              checkPointId={checkPointId}
+              onClose={() => setCheckPointControllerOpen(-1)}
+            />)}
             {/* 时间轴列表 */}
-            {track.checkPoints?.map(({ time, destinations, defaultDestinations }) => <div
+            {track.checkPoints?.map(({ time, destinations, defaultDestinations }, checkPointId) => <div
               className={css`
                 position: absolute;
                 top: 0px;
@@ -360,6 +369,7 @@ export function Player({
               style={{
                 left: `min(${time / track.length * 100}%, calc(100% - 60px))`
               }}
+              onClick={() => setCheckPointControllerOpen(checkPointId)}
             >
               {destinations?.map(({ condition }) => <div
                 className={css`
