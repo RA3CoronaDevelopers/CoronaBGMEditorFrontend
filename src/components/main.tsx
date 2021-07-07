@@ -46,6 +46,7 @@ export function Main() {
     state: {
       isPlaying,
       editorSituation,
+      nowPlayingTrack,
       nowPlayingProgress,
       jsonFileSelectorDialogOpen,
       musicFileSelectorDialogOpen
@@ -62,6 +63,7 @@ export function Main() {
     setGenerateNewTrackDialogTrackName,
   ] = useState('新轨道');
   const audioPlayerRef = useRef({} as { [audioName: string]: any });
+  const audioOriginDataRef = useRef({} as { [audioName: string]: Float32Array });
 
   useEffect(() => {
     if (editorSituation === 'Mute') {
@@ -429,6 +431,7 @@ export function Main() {
                 track={track}
                 id={index}
                 audioPlayerRef={audioPlayerRef}
+                audioOriginDataRef={audioOriginDataRef}
               />
             ))}
             <div

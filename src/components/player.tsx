@@ -48,11 +48,13 @@ function drawWaveform(buffer: AudioBuffer, canvas: HTMLCanvasElement) {
 export function Player({
   id,
   track,
-  audioPlayerRef
+  audioPlayerRef,
+  audioOriginDataRef
 }: {
   id: number;
   track: ITrack,
-  audioPlayerRef: { [audioName: string]: any }
+  audioPlayerRef: { [audioName: string]: any },
+  audioOriginDataRef: { [audioName: string]: any }
 }) {
   const { enqueueSnackbar } = useSnackbar();
   const {
@@ -62,6 +64,7 @@ export function Player({
   } = useContext(StoreContext);
   const [isReady, setReady] = useState(false);
   const [mouseOverPosition, setMouseOverPosition] = useState(undefined as undefined | number);
+  const radiusEffectRef = useRef(undefined as undefined | HTMLDivElement);
   const waveDOMRef = useRef(undefined as undefined | HTMLCanvasElement);
 
   useEffect(() => {
@@ -73,6 +76,7 @@ export function Player({
           || window['oAudioContext'])());
         const originBuffer = await (await fetch(musicFilePathMap[track.musicId])).arrayBuffer();
         const buffer = await context.decodeAudioData(originBuffer);
+        audioOriginDataRef.current[id] = buffer.getChannelData(0);
         track.length = buffer.length / buffer.sampleRate;
         drawWaveform(buffer, waveDOMRef.current);
         setReady(true);
@@ -138,6 +142,19 @@ export function Player({
     }
   }, [isPlaying, nowPlayingTrack]);
 
+  useEffect(() => {
+    const offset = audioOriginDataRef.current[nowPlayingTrack]
+      ? 100 - (audioOriginDataRef.current[nowPlayingTrack][Math.ceil(
+        nowPlayingProgress / track.length * audioOriginDataRef.current[nowPlayingTrack].length
+      )] + 1) * 0.5 * 30
+      : 100;
+    if (radiusEffectRef.current) {
+      radiusEffectRef.current.style.background = `radial-gradient(transparent ${isPlaying
+        ? offset
+        : 100}%, rgba(102, 204, 255, 0.4) 100%)`;
+    }
+  }, [nowPlayingProgress, isPlaying]);
+
   return (
     <div
       className={css`
@@ -146,6 +163,20 @@ export function Player({
         display: flex;
       `}
     >
+      {/* 音频播放径向渐变特效 */}
+      <div
+        className={css`
+          position: fixed;
+          z-index: 10000;
+          top: 0px;
+          left: 0px;
+          height: 100%;
+          width: 100%;
+          pointer-events: none;
+        `}
+        ref={radiusEffectRef}
+      />
+      {/* 播放器画布 */}
       <div
         className={css`
           width: 60px;
