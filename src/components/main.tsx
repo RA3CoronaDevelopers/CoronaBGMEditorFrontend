@@ -46,7 +46,6 @@ export function Main() {
     state: {
       isPlaying,
       editorSituation,
-      nowPlayingTrack,
       nowPlayingProgress,
       jsonFileSelectorDialogOpen,
       musicFileSelectorDialogOpen
