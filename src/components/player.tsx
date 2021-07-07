@@ -31,10 +31,10 @@ export function Player({
   const [mouseOverPosition, setMouseOverPosition] = useState(undefined as undefined | number);
   const [checkPointControllerOpen, setCheckPointControllerOpen] = useState(-1);
   const radiusEffectRef = useRef(undefined as undefined | HTMLDivElement);
-  const waveDOMRef = useRef(undefined as undefined | HTMLCanvasElement);
+  const waveRef = useRef(undefined as undefined | HTMLCanvasElement);
 
   useEffect(() => {
-    if (waveDOMRef.current) {
+    if (waveRef.current) {
       (async () => {
         const context: AudioContext = (new (window['AudioContext']
           || window['webkitAudioContext']
@@ -44,7 +44,7 @@ export function Player({
         const buffer = await context.decodeAudioData(originBuffer);
         audioOriginDataRef.current[trackId] = buffer.getChannelData(0);
         track.length = buffer.length / buffer.sampleRate;
-        drawWaveform(buffer.getChannelData(0), waveDOMRef.current);
+        drawWaveform(audioOriginDataRef.current[trackId], waveRef.current);
         setReady(true);
       })();
     }
@@ -228,16 +228,16 @@ export function Player({
                 width: 100%;
                 z-index: 1000;
               `}
-              onMouseEnter={e => setMouseOverPosition(e.clientX - waveDOMRef.current.getBoundingClientRect().left)}
-              onMouseMove={e => setMouseOverPosition(e.clientX - waveDOMRef.current.getBoundingClientRect().left)}
+              onMouseEnter={e => setMouseOverPosition(e.clientX - waveRef.current.getBoundingClientRect().left)}
+              onMouseMove={e => setMouseOverPosition(e.clientX - waveRef.current.getBoundingClientRect().left)}
               onMouseLeave={_e => setMouseOverPosition(undefined)}
               onMouseDown={e => setStore(store => ({
                 ...store,
                 state: {
                   ...store.state,
                   nowPlayingTrack: trackId,
-                  nowPlayingProgress: (e.clientX - waveDOMRef.current.getBoundingClientRect().left)
-                    / waveDOMRef.current.getBoundingClientRect().width
+                  nowPlayingProgress: (e.clientX - waveRef.current.getBoundingClientRect().left)
+                    / waveRef.current.getBoundingClientRect().width
                     * track.length
                 }
               }))}
@@ -266,7 +266,7 @@ export function Player({
                 width: 100%;
                 z-index: -1;
               `}
-              ref={waveDOMRef}
+              ref={waveRef}
             />
             {/* 加载圈 */}
             <div

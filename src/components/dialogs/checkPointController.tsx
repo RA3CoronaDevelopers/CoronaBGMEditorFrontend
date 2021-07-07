@@ -1,11 +1,9 @@
-import React, { useContext } from 'react';
+import React, { useContext, useRef, useEffect, useState } from 'react';
 import {
   Typography,
   Button,
   List,
   ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
   TextField,
   FormControl,
   Input,
@@ -14,57 +12,10 @@ import {
   Grid
 } from '@material-ui/core';
 import { css } from '@emotion/css';
-import MaskedInput from 'react-text-mask';
 import { StoreContext } from '../../utils/storeContext';
 import { ICheckPoint } from '../../utils/jsonConfigTypes';
+import { drawWaveform } from '../../utils/waveformDrawer';
 import { DialogBase } from '../dialogBase';
-
-function TimeInput({
-  time, onChange
-}: {
-  time: number,
-  onChange: (time: number) => void
-}) {
-  return <Input
-    value={`${[
-      time > 3600 ? Math.ceil(time / 3600) : 0,
-      time > 60 ? Math.ceil((time - Math.ceil(time / 3600) * 3600) / 60) : 0,
-      time > 0 ? Math.ceil((time - Math.ceil(time / 60) * 60)) : 0
-    ].map(
-      n => n < 10 ? `0${n}` : `${n}`
-    ).concat(':')}.${(time) - Math.ceil((time)) * 10}`}
-    onChange={e => {
-      let match = /^(\d?\d?)\:(\d?\d?)\:(\d?\d?)\.(\d)?$/.exec(e.target.value);
-      if (match) {
-        let time = 0;
-        if (match[1]) {
-          time += (+match[1]) * 60 * 60;
-        }
-        if (match[2]) {
-          time += (+match[2]) * 60;
-        }
-        if (match[3]) {
-          time += (+match[3]);
-        }
-        if (match[4]) {
-          time += (+match[4]) * 0.1;
-        }
-        onChange(time);
-      }
-    }}
-    inputComponent={function ({ inputRef, ...props }) {
-      return <MaskedInput
-        {...props}
-        ref={(ref: any) => inputRef(ref ? ref.inputElement : null)}
-        mask={[/[1-9]/, ':', /\d/, /\d/, ':', /\d/, /\d/, '.', /\d/]}
-        showMask
-        guide
-        placeholderChar=' '
-        keepCharPositions
-      />;
-    }}
-  />;
-}
 
 export function CheckPointController({
   open,
@@ -83,6 +34,8 @@ export function CheckPointController({
     setStore,
     data: { tracks }
   } = useContext(StoreContext);
+  const [mouseOverPosition, setMouseOverPosition] = useState(undefined as undefined | number);
+  const waveRef = useRef(undefined as undefined | HTMLCanvasElement);
 
   const checkPoint = tracks[trackId].checkPoints[checkPointId];
   function onChange(obj: ICheckPoint) {
@@ -105,6 +58,15 @@ export function CheckPointController({
       }
     }));
   }
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (waveRef.current && audioOriginDataRef.current[trackId]) {
+        drawWaveform(audioOriginDataRef.current[trackId], waveRef.current);
+        clearInterval(interval);
+      }
+    }, 1000);
+  }, []);
 
   return (
     <DialogBase
@@ -131,16 +93,120 @@ export function CheckPointController({
         </>
       }
     >
-      <FormControl>
-        <InputLabel>{'检查时间'}</InputLabel>
-        <TimeInput
-          time={+checkPoint.time}
-          onChange={time => onChange({
+      <div
+        className={css`
+          height: 32px;
+          width: calc(100% - 32px);
+          margin: 16px;
+          border-radius: 4px;
+          position: relative;
+        `}
+      >
+        {/* 当前选择位置图层 */}
+        <div
+          className={css`
+            position: absolute;
+            top: 0px;
+            height: 100%;
+            width: 2px;
+            background: rgba(102, 204, 255, 0.8);
+          `}
+          style={{
+            left: `${tracks[trackId].checkPoints[checkPointId].time / tracks[trackId].length * 100}%`
+          }}
+        />
+        {/* 鼠标游标轴图层 */}
+        <div
+          className={css`
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            height: 100%;
+            width: 100%;
+            z-index: 1000;
+          `}
+          onMouseEnter={e => setMouseOverPosition(e.clientX - waveRef.current.getBoundingClientRect().left)}
+          onMouseMove={e => setMouseOverPosition(e.clientX - waveRef.current.getBoundingClientRect().left)}
+          onMouseLeave={_e => setMouseOverPosition(undefined)}
+          onMouseDown={e => onChange({
             ...checkPoint,
-            time
+            time: (e.clientX - waveRef.current.getBoundingClientRect().left)
+              / waveRef.current.getBoundingClientRect().width
+              * tracks[trackId].length
+          })}
+        >
+          {mouseOverPosition && <div
+            className={css`
+              position: absolute;
+              top: 0px;
+              height: 100%;
+              width: 1px;
+              background: rgba(255, 255, 255, 0.8);
+              z-index: 999;
+            `}
+            style={{
+              left: mouseOverPosition
+            }}
+          />}
+        </div>
+        {/* 波形图 */}
+        <canvas
+          className={css`
+            height: 32px;
+            width: 100%;
+          `}
+          ref={waveRef}
+        />
+      </div>
+      <Paper
+        className={css`
+          width: calc(100$ - 32px);
+          margin: 16px;
+          padding: 16px;
+        `}
+      >
+        <TextField
+          variant='outlined'
+          value={Math.floor(tracks[trackId].checkPoints[checkPointId].time / 60)}
+          label='分钟'
+          margin='dense'
+          size='small'
+          onChange={e => /^[12345]?\d$/.test(e.target.value) && onChange({
+            ...checkPoint,
+            time: tracks[trackId].checkPoints[checkPointId].time
+              - Math.floor(tracks[trackId].checkPoints[checkPointId].time / 60) * 60
+              + (+e.target.value) * 60
           })}
         />
-      </FormControl>
+        <TextField
+          variant='outlined'
+          value={Math.floor(tracks[trackId].checkPoints[checkPointId].time % 60)}
+          label='秒'
+          margin='dense'
+          size='small'
+          onChange={e => /^[12345]?\d$/.test(e.target.value) && onChange({
+            ...checkPoint,
+            time: tracks[trackId].checkPoints[checkPointId].time
+              - Math.floor(tracks[trackId].checkPoints[checkPointId].time % 60)
+              + (+e.target.value)
+          })}
+        />
+        <TextField
+          variant='outlined'
+          value={Math.floor((tracks[trackId].checkPoints[checkPointId].time
+            - Math.floor(tracks[trackId].checkPoints[checkPointId].time)) * 10)}
+          label='百毫秒'
+          margin='dense'
+          size='small'
+          onChange={e => /^\d$/.test(e.target.value) && onChange({
+            ...checkPoint,
+            time: tracks[trackId].checkPoints[checkPointId].time
+              - (tracks[trackId].checkPoints[checkPointId].time
+                - Math.floor(tracks[trackId].checkPoints[checkPointId].time))
+              + (+e.target.value) * 0.1
+          })}
+        />
+      </Paper>
       <List>
         {checkPoint?.destinations && checkPoint?.destinations.map(({ condition, jumpTo }, destinationId) => <ListItem>
           <Paper>
@@ -169,10 +235,10 @@ export function CheckPointController({
                     <Grid container>
                       {[
                         { type: 'targetTrackId', label: '目标轨道' },
-                        { type: 'targetOffset', label: '目标轨道位置(s)' },
                         { type: 'fadeOutDelay', label: '渐出延迟时间(s)' },
-                        { type: 'fadeOutDuration', label: '渐出持续时间(s)' },
                         { type: 'targetFadeInDelay', label: '渐入延迟时间(s)' },
+                        { type: 'targetOffset', label: '目标轨道位置(s)' },
+                        { type: 'fadeOutDuration', label: '渐出持续时间(s)' },
                         { type: 'targetFadeInDuration', label: '渐入持续时间(s)' }
                       ].map(({ type, label }) => <Grid item xs={4}>
                         <TextField
