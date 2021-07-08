@@ -6,7 +6,8 @@ import {
   ListItem,
   TextField,
   FormControl,
-  Input,
+  Select,
+  MenuItem,
   InputLabel,
   Paper,
   Grid
@@ -165,114 +166,149 @@ export function CheckPointController({
           padding: 16px;
         `}
       >
-        <TextField
-          variant='outlined'
-          value={Math.floor(tracks[trackId].checkPoints[checkPointId].time / 60)}
-          label='分钟'
-          margin='dense'
-          size='small'
-          onChange={e => /^[12345]?\d$/.test(e.target.value) && onChange({
-            ...checkPoint,
-            time: tracks[trackId].checkPoints[checkPointId].time
-              - Math.floor(tracks[trackId].checkPoints[checkPointId].time / 60) * 60
-              + (+e.target.value) * 60
-          })}
-        />
-        <TextField
-          variant='outlined'
-          value={Math.floor(tracks[trackId].checkPoints[checkPointId].time % 60)}
-          label='秒'
-          margin='dense'
-          size='small'
-          onChange={e => /^[12345]?\d$/.test(e.target.value) && onChange({
-            ...checkPoint,
-            time: tracks[trackId].checkPoints[checkPointId].time
-              - Math.floor(tracks[trackId].checkPoints[checkPointId].time % 60)
-              + (+e.target.value)
-          })}
-        />
-        <TextField
-          variant='outlined'
-          value={Math.floor((tracks[trackId].checkPoints[checkPointId].time
-            - Math.floor(tracks[trackId].checkPoints[checkPointId].time)) * 10)}
-          label='百毫秒'
-          margin='dense'
-          size='small'
-          onChange={e => /^\d$/.test(e.target.value) && onChange({
-            ...checkPoint,
-            time: tracks[trackId].checkPoints[checkPointId].time
-              - (tracks[trackId].checkPoints[checkPointId].time
-                - Math.floor(tracks[trackId].checkPoints[checkPointId].time))
-              + (+e.target.value) * 0.1
-          })}
-        />
+        <Grid container spacing={1}>
+          <Grid item xs={2}>
+            <TextField
+              variant='outlined'
+              value={Math.floor(tracks[trackId].checkPoints[checkPointId].time / 60)}
+              label='分钟'
+              margin='dense'
+              size='small'
+              onChange={e => /^[12345]?\d$/.test(e.target.value) && onChange({
+                ...checkPoint,
+                time: tracks[trackId].checkPoints[checkPointId].time
+                  - Math.floor(tracks[trackId].checkPoints[checkPointId].time / 60) * 60
+                  + (+e.target.value) * 60
+              })}
+              fullWidth
+            />
+          </Grid>
+          <Grid item xs={2}>
+            <TextField
+              variant='outlined'
+              value={Math.floor(tracks[trackId].checkPoints[checkPointId].time % 60)}
+              label='秒'
+              margin='dense'
+              size='small'
+              onChange={e => /^[12345]?\d$/.test(e.target.value) && onChange({
+                ...checkPoint,
+                time: tracks[trackId].checkPoints[checkPointId].time
+                  - Math.floor(tracks[trackId].checkPoints[checkPointId].time % 60)
+                  + (+e.target.value)
+              })}
+              fullWidth
+            />
+          </Grid>
+          <Grid item xs={2}>
+            <TextField
+              variant='outlined'
+              value={Math.floor((tracks[trackId].checkPoints[checkPointId].time
+                - Math.floor(tracks[trackId].checkPoints[checkPointId].time)) * 10)}
+              label='百毫秒'
+              margin='dense'
+              size='small'
+              onChange={e => /^\d$/.test(e.target.value) && onChange({
+                ...checkPoint,
+                time: tracks[trackId].checkPoints[checkPointId].time
+                  - (tracks[trackId].checkPoints[checkPointId].time
+                    - Math.floor(tracks[trackId].checkPoints[checkPointId].time))
+                  + (+e.target.value) * 0.1
+              })}
+              fullWidth
+            />
+          </Grid>
+          <Grid item />
+        </Grid>
       </Paper>
       <List>
         {checkPoint?.destinations && checkPoint?.destinations.map(({ condition, jumpTo }, destinationId) => <ListItem>
           <Paper>
-            <TextField
-              variant='outlined'
-              value={condition}
-              margin='dense'
-              size='small'
-              onChange={e => onChange({
-                ...checkPoint,
-                destinations: [
-                  ...checkPoint.destinations.slice(0, destinationId),
-                  {
-                    condition: e.target.value,
-                    jumpTo: checkPoint.destinations[destinationId].jumpTo
-                  },
-                  ...checkPoint.destinations.slice(destinationId + 1)
-                ]
-              })}
-              fullWidth
-            />
-            <Paper>
-              <List>
-                {jumpTo.map((jumpToData, jumpToId) => <ListItem>
-                  <Paper>
-                    <Grid container>
-                      {[
-                        { type: 'targetTrackId', label: '目标轨道' },
-                        { type: 'fadeOutDelay', label: '渐出延迟时间(s)' },
-                        { type: 'targetFadeInDelay', label: '渐入延迟时间(s)' },
-                        { type: 'targetOffset', label: '目标轨道位置(s)' },
-                        { type: 'fadeOutDuration', label: '渐出持续时间(s)' },
-                        { type: 'targetFadeInDuration', label: '渐入持续时间(s)' }
-                      ].map(({ type, label }) => <Grid item xs={4}>
-                        <TextField
-                          variant='outlined'
-                          value={jumpToData[type]}
-                          label={label}
-                          margin='dense'
-                          size='small'
-                          onChange={e => onChange({
-                            ...checkPoint,
-                            destinations: [
-                              ...checkPoint.destinations.slice(0, destinationId),
+            <List>
+              {jumpTo.map((jumpToData, jumpToId) => <ListItem>
+                <Grid container spacing={1}>
+                  <Grid item xs={12}>
+                    <TextField
+                      variant='outlined'
+                      value={condition}
+                      onChange={e => onChange({
+                        ...checkPoint,
+                        destinations: [
+                          ...checkPoint.destinations.slice(0, destinationId),
+                          {
+                            condition: e.target.value,
+                            jumpTo: checkPoint.destinations[destinationId].jumpTo
+                          },
+                          ...checkPoint.destinations.slice(destinationId + 1)
+                        ]
+                      })}
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid item xs={4}>
+                    <FormControl variant='outlined' fullWidth>
+                      <InputLabel>目标轨道</InputLabel>
+                      <Select
+                        value={(console.log(jumpToData.targetTrackId), jumpToData.targetTrackId)}
+                        onChange={e => onChange({
+                          ...checkPoint,
+                          destinations: [
+                            ...checkPoint.destinations.slice(0, destinationId),
+                            {
+                              condition: checkPoint.destinations[destinationId].condition,
+                              jumpTo: [
+                                ...checkPoint.destinations[destinationId].jumpTo.slice(0, jumpToId),
+                                {
+                                  ...checkPoint.destinations[destinationId].jumpTo[jumpToId],
+                                  targetTrackId: e.target.value as string
+                                },
+                                ...checkPoint.destinations[destinationId].jumpTo.slice(jumpToId + 1)
+                              ]
+                            },
+                            ...checkPoint.destinations.slice(destinationId + 1)
+                          ]
+                        })}
+                        label="目标轨道"
+                      >
+                        {tracks.map(({ name }) => <MenuItem value={name}>{name}</MenuItem>)}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  {[
+                    { type: 'fadeOutDelay', label: '渐出延迟时间(s)' },
+                    { type: 'targetFadeInDelay', label: '渐入延迟时间(s)' },
+                    { type: 'targetOffset', label: '目标轨道位置(s)' },
+                    { type: 'fadeOutDuration', label: '渐出持续时间(s)' },
+                    { type: 'targetFadeInDuration', label: '渐入持续时间(s)' }
+                  ].map(({ type, label }) => <Grid item xs={4}>
+                    <TextField
+                      variant='outlined'
+                      value={jumpToData[type]}
+                      label={label}
+                      type='number'
+                      onChange={e => onChange({
+                        ...checkPoint,
+                        destinations: [
+                          ...checkPoint.destinations.slice(0, destinationId),
+                          {
+                            condition: checkPoint.destinations[destinationId].condition,
+                            jumpTo: [
+                              ...checkPoint.destinations[destinationId].jumpTo.slice(0, jumpToId),
                               {
-                                condition: checkPoint.destinations[destinationId].condition,
-                                jumpTo: [
-                                  ...checkPoint.destinations[destinationId].jumpTo.slice(0, jumpToId),
-                                  {
-                                    ...checkPoint.destinations[destinationId].jumpTo[jumpToId],
-                                    [type]: e.target.value
-                                  },
-                                  ...checkPoint.destinations[destinationId].jumpTo.slice(jumpToId + 1)
-                                ]
+                                ...checkPoint.destinations[destinationId].jumpTo[jumpToId],
+                                [type]: e.target.value
                               },
-                              ...checkPoint.destinations.slice(destinationId + 1)
+                              ...checkPoint.destinations[destinationId].jumpTo.slice(jumpToId + 1)
                             ]
-                          })}
-                          fullWidth
-                        />
-                      </Grid>)}
-                    </Grid>
-                  </Paper>
-                </ListItem>)}
-              </List>
-            </Paper>
+                          },
+                          ...checkPoint.destinations.slice(destinationId + 1)
+                        ]
+                      })}
+                      fullWidth
+                    />
+                  </Grid>)}
+                </Grid>
+              </ListItem>)}
+            </List>
           </Paper>
         </ListItem>)}
       </List>
