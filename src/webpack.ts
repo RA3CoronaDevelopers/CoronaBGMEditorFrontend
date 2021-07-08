@@ -68,11 +68,17 @@ export async function clientSideMiddleware(
         <head>
           <title>日冕BGM编辑器</title>
           <meta name='viewport' content='width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no'>
+          <style>
+            html, body { margin: 0px; padding: 0px; }
+            body { background: #22272e; }
+          </style>
         </head>
         <body>
           <div id='root'>
-            <h3>Please wait...</h3>
-            <noscript>Your browser cannot support JavaScript. The application cannot be launched successful.</noscript>
+            <div style='position: fixed; left: 0px; top: 0px; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;'>
+              <h3 style='color: white;'>Please wait...</h3>
+              <noscript style='color: white;'>Your browser cannot support JavaScript. The application cannot be launched successful.</noscript>
+            </div>
           </div>
           ${
             (ctx.query.debug === '1' &&

@@ -12,10 +12,6 @@ try {
     createElement(function () {
       return (
         <>
-          <style>{`
-          html, body { margin: 0px; padding: 0px; }
-          body { background: #22272e; }
-        `}</style>
           <ThemeProvider
             theme={createMuiTheme({
               palette: {
@@ -35,17 +31,23 @@ try {
       );
     }),
     document.querySelector('#root')
-  );  
-} catch(e) {
-  document.appendChild((() => {
-    let node = document.createElement('h3');
-    node.innerText = 'Error';
+  );
+} catch (e) {
+  let node = document.createElement('div');
+  node.appendChild((() => {
+    let node = document.createElement('div');
+    node.innerText = `${e}`;
     node.style.color = 'red';
     return node;
   })());
-  document.appendChild((() => {
-    let node = document.createElement('p');
-    node.innerText = `${e}`;
-    return node;
-  })());
+  node.style.position = 'fixed';
+  node.style.left = '0px';
+  node.style.top = '0px';
+  node.style.width = '100%';
+  node.style.height = '100%';
+  node.style.background = 'rgba(0, 0, 0, 0.8)';
+  node.style.display = 'flex';
+  node.style.alignItems = 'center';
+  node.style.justifyContent = 'center';
+  document.body.appendChild(node);
 }
