@@ -7,31 +7,45 @@ import { Store } from './utils/storeContext';
 import './utils/websocketClient';
 import { Main } from './components/main';
 
-render(
-  createElement(function () {
-    return (
-      <>
-        <style>{`
-        html, body { margin: 0px; padding: 0px; }
-        body { background: #22272e; }
-      `}</style>
-        <ThemeProvider
-          theme={createMuiTheme({
-            palette: {
-              type: 'dark',
-              primary: blue,
-              secondary: blue,
-            },
-          })}
-        >
-          <SnackbarProvider maxSnack={3}>
-            <Store>
-              <Main />
-            </Store>
-          </SnackbarProvider>
-        </ThemeProvider>
-      </>
-    );
-  }),
-  document.querySelector('#root')
-);
+try {
+  render(
+    createElement(function () {
+      return (
+        <>
+          <style>{`
+          html, body { margin: 0px; padding: 0px; }
+          body { background: #22272e; }
+        `}</style>
+          <ThemeProvider
+            theme={createMuiTheme({
+              palette: {
+                type: 'dark',
+                primary: blue,
+                secondary: blue,
+              },
+            })}
+          >
+            <SnackbarProvider maxSnack={3}>
+              <Store>
+                <Main />
+              </Store>
+            </SnackbarProvider>
+          </ThemeProvider>
+        </>
+      );
+    }),
+    document.querySelector('#root')
+  );  
+} catch(e) {
+  document.appendChild((() => {
+    let node = document.createElement('h3');
+    node.innerText = 'Error';
+    node.style.color = 'red';
+    return node;
+  })());
+  document.appendChild((() => {
+    let node = document.createElement('p');
+    node.innerText = `${e}`;
+    return node;
+  })());
+}

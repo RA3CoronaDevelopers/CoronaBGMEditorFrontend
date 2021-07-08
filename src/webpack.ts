@@ -70,7 +70,10 @@ export async function clientSideMiddleware(
           <meta name='viewport' content='width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no'>
         </head>
         <body>
-          <div id='root'></div>
+          <div id='root'>
+            <h3>Please wait...</h3>
+            <noscript>Your browser cannot support JavaScript. The application cannot be launched successful.</noscript>
+          </div>
           ${
             (ctx.query.debug === '1' &&
               `
