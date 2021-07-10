@@ -16,8 +16,7 @@ export async function send(type: string, data: { [key: string]: any }) {
   });
 }
 
-ipcRenderer.on('asynchronous-reply', (_event, raw) => {
-  const { type, id, data } = JSON.parse(raw);
+ipcRenderer.on('asynchronous-reply', (_event, { type, id, data }) => {
   console.log('IPC Receive:', type, id);
   if (receivers[id]) {
     receivers[id](data);
