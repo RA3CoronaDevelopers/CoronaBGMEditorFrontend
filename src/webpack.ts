@@ -1,16 +1,7 @@
-import * as Koa from 'koa';
 import { join } from 'path';
 import * as webpack from 'webpack';
-import { Volume, IFs } from 'memfs';
-import { Union } from 'unionfs';
-import * as realFs from 'fs';
-import { Script, createContext } from 'vm';
+import * as TerserPlugin from 'terser-webpack-plugin';
 import { watch as watchFiles } from 'chokidar';
-import {
-  setWsConnectionReceiver,
-  wsConnectionSender,
-  useStaticMiddleware,
-} from './index';
 
 const globalConfig = {
   context: __dirname,
@@ -38,68 +29,15 @@ const globalConfig = {
   resolveLoader: {
     modules: [join(__dirname, '../node_modules'), 'node_modules'],
   },
-};
-
-const fs: IFs = (new Union() as any).use(realFs).use(
-  Volume.fromJSON({
-    [join(__dirname, './__client.ts')]: `require('${join(
-      __dirname,
-      './clientEntry.tsx'
-    )
-      .split('\\')
-      .join('\\\\')}');`,
-    [join(__dirname, './__server.ts')]: `require('${join(
-      __dirname,
-      './serverEntry.ts'
-    )
-      .split('\\')
-      .join('\\\\')}');`,
-  })
-);
-fs['join'] = join;
-
-export async function clientSideMiddleware(
-  ctx: Koa.Context,
-  next: () => Promise<unknown>
-) {
-  switch (ctx.path) {
-    case '/':
-      ctx.body = `<html>
-        <head>
-          <title>日冕BGM编辑器</title>
-          <meta name='viewport' content='width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no'>
-          <style>
-            html, body { margin: 0px; padding: 0px; }
-            body { background: #22272e; }
-          </style>
-        </head>
-        <body>
-          <div id='root'>
-            <div style='position: fixed; left: 0px; top: 0px; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;'>
-              <h3 style='color: white;'>Please wait...</h3>
-              <noscript style='color: white;'>Your browser cannot support JavaScript. The application cannot be launched successful.</noscript>
-            </div>
-          </div>
-          ${
-            (ctx.query.debug === '1' &&
-              `
-          <script src='//cdn.jsdelivr.net/npm/eruda'></script><script>eruda.init();</script>
-          `) ||
-            ``
-          }
-          <script src='/entry'></script>
-        </body>
-      </html>`;
-      ctx.type = 'text/html';
-      break;
-    case '/entry':
-      ctx.body = fs.readFileSync(join(__dirname, '__client.bundle.js'), 'utf8');
-      ctx.type = 'text/javascript';
-      break;
-    default:
-      await next();
+  optimization: {
+    minimize: true,
+    minimizer: [
+      new TerserPlugin({
+        extractComments: false
+      }),
+    ],
   }
-}
+};
 
 let watcherWaitingState = {
   firstChange: false,
@@ -115,13 +53,13 @@ function watcherTrigger() {
     const compiler = webpack([
       {
         ...globalConfig,
-        entry: join(__dirname, './__client.ts'),
+        entry: join(__dirname, './clientEntry.tsx'),
         mode:
           process.env.NODE_ENV === 'development' ? 'development' : 'production',
-        target: 'web',
+        target: 'electron-renderer',
         output: {
-          filename: '__client.bundle.js',
-          path: __dirname,
+          filename: 'client.bundle.js',
+          path: join(__dirname, '../res/'),
         },
         cache: {
           type: 'memory',
@@ -131,12 +69,12 @@ function watcherTrigger() {
       },
       {
         ...globalConfig,
-        entry: join(__dirname, './__server.ts'),
+        entry: join(__dirname, './serverEntry.ts'),
         mode: 'development',
-        target: 'node',
+        target: 'electron-main',
         output: {
-          filename: '__server.bundle.js',
-          path: __dirname,
+          filename: 'server.bundle.js',
+          path: join(__dirname, '../res/'),
         },
         cache: {
           type: 'memory',
@@ -144,8 +82,6 @@ function watcherTrigger() {
         devtool: 'inline-source-map',
       },
     ]);
-    compiler.inputFileSystem = fs;
-    compiler.outputFileSystem = fs;
 
     setTimeout(
       () =>
@@ -168,34 +104,6 @@ function watcherTrigger() {
             console.error(Error(errStr));
           } else {
             console.log('Compiled the codes.');
-
-            // Server reboot.
-            const script = new Script(
-              fs.readFileSync(
-                join(__dirname, './__server.bundle.js'),
-                'utf8'
-              ) as string,
-              {
-                filename: 'serverEntry.js',
-              }
-            );
-            const context = createContext({
-              receive: setWsConnectionReceiver,
-              send: wsConnectionSender,
-              useStaticMiddleware,
-              console,
-              process,
-              require,
-              setInterval,
-              setTimeout,
-              clearInterval,
-              clearTimeout,
-            });
-            try {
-              script.runInContext(context);
-            } catch (e) {
-              console.error(e);
-            }
           }
         }),
       0

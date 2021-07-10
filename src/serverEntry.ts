@@ -1,11 +1,3 @@
-declare global {
-  function receive(receiver: (msg: any) => void): void;
-  function send(msg: any): void;
-  function useStaticMiddleware(path: string): string;
-}
-
-export {};
-
 import { diskinfo } from '@dropb/diskinfo';
 import {
   readdirSync,
@@ -16,6 +8,7 @@ import {
   writeFileSync,
 } from 'fs';
 import { join, isAbsolute, dirname, basename } from 'path';
+import { app, BrowserWindow, ipcMain } from 'electron';
 
 const middlewares: {
   [type: string]: (data: any) => Promise<any>;
@@ -167,10 +160,8 @@ const middlewares: {
             (obj, name) => ({
               ...obj,
               [name]: isAbsolute(musicFiles[name])
-                ? `/${useStaticMiddleware(musicFiles[name])}`
-                : `/${useStaticMiddleware(
-                    join(dirname(path), musicFiles[name])
-                  )}`,
+                ? musicFiles[name]
+                : join(dirname(path), musicFiles[name]),
             }),
             {}
           ),
@@ -214,7 +205,7 @@ const middlewares: {
         return {
           hasSuccess: true,
           fileName: /^(.+)\.mp3$/.exec(basename(path))[1],
-          httpRoutePath: `/${useStaticMiddleware(path)}`,
+          httpRoutePath: path,
         };
       } else {
         return {
@@ -231,19 +222,27 @@ const middlewares: {
   },
 };
 
-receive((msg: any) => {
-  if (!msg.type || !middlewares[msg.type]) {
-    console.error('WS Unknown type', msg.type);
-  } else if (!msg.id) {
-    console.error('WS Non id', msg.type);
-  } else {
-    console.log('WS Trigger', msg.type, msg.id);
-    middlewares[msg.type](msg.data).then(data =>
-      send({
-        type: msg.type,
-        id: msg.id,
-        data,
+let win: BrowserWindow;
+app.whenReady().then(() => {
+  ipcMain.on('asynchronous-message', (event, raw) => {
+    console.log('IPC Message', raw);
+    const { type, id, data } = JSON.parse(raw);
+    middlewares[type](data).then(data =>
+      event.reply('asynchronous-reply', {
+        type, id, data
       })
     );
-  }
+  });
+
+  win = new BrowserWindow({
+    width: 800,
+    height: 600,
+    backgroundColor: '#22272e',
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false
+    }
+  });
+
+  win.loadFile(join(__dirname, '../res/index.html'));
 });

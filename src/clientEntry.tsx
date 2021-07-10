@@ -37,7 +37,6 @@ try {
   node.appendChild((() => {
     let node = document.createElement('div');
     node.innerText = `${e}`;
-    node.style.color = 'red';
     return node;
   })());
   node.style.position = 'fixed';
