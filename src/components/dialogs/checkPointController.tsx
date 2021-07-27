@@ -324,26 +324,29 @@ export function CheckPointController({
                   <Grid item xs={1}>
                     <div
                       className={css`
-                          width: 100%;
-                          height: 100%;
-                          display: flex;
-                          justify-content: center;
-                          align-items: center;
+                        width: 100%;
+                        height: 100%;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
                       `}
                     >
                       <IconButton
                         size='small'
                         onClick={() => onChange({
                           ...checkPoint,
-                          destinations: [
+                          destinations: checkPoint.destinations[destinationId].jumpTo.length > 1 ? [
                             ...checkPoint.destinations.slice(0, destinationId),
-                            {
+                             {
                               condition: checkPoint.destinations[destinationId].condition,
                               jumpTo: [
                                 ...checkPoint.destinations[destinationId].jumpTo.slice(0, jumpToId),
                                 ...checkPoint.destinations[destinationId].jumpTo.slice(jumpToId + 1)
                               ]
                             },
+                            ...checkPoint.destinations.slice(destinationId + 1)
+                          ] : [
+                            ...checkPoint.destinations.slice(0, destinationId),
                             ...checkPoint.destinations.slice(destinationId + 1)
                           ]
                         })}
