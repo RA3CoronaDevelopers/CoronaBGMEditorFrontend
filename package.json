@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "build": "ts-node ./src/webpack.ts",
+    "watch": "ts-node ./src/webpack.ts --watch",
     "start": "electron ./res/server.bundle.js",
     "test": "jest --watch"
   },

@@ -33,10 +33,10 @@ const globalConfig = {
     minimize: true,
     minimizer: [
       new TerserPlugin({
-        extractComments: false
+        extractComments: false,
       }),
     ],
-  }
+  },
 };
 
 let watcherWaitingState = {
@@ -114,13 +114,17 @@ function watcherTrigger() {
   }
 }
 
-watchFiles(__dirname, {
-  ignored: /^(node_modules)|(\.git)$/,
-}).on('all', () => {
-  if (!watcherWaitingState.firstChange) {
-    watcherWaitingState.firstChange = true;
-    setTimeout(watcherTrigger, 3000);
-  } else {
-    watcherWaitingState.continueChange = true;
-  }
-});
+if (process.argv.indexOf('--watch') >= 0) {
+  watchFiles(__dirname, {
+    ignored: /^(node_modules)|(\.git)$/,
+  }).on('all', () => {
+    if (!watcherWaitingState.firstChange) {
+      watcherWaitingState.firstChange = true;
+      setTimeout(watcherTrigger, 3000);
+    } else {
+      watcherWaitingState.continueChange = true;
+    }
+  });
+} else {
+  watcherTrigger();
+}
