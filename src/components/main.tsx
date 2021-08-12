@@ -27,7 +27,6 @@ import {
 } from '@mdi/js';
 import { Scrollbars } from 'react-custom-scrollbars';
 import { useSnackbar } from 'notistack';
-import { Howler } from 'howler';
 
 import { StoreContext } from '../utils/storeContext';
 import { send } from '../utils/websocketClient';
@@ -63,14 +62,6 @@ export function Main() {
   ] = useState('新轨道');
   const audioPlayerRef = useRef({} as { [audioName: string]: any });
   const audioOriginDataRef = useRef({} as { [audioName: string]: Float32Array });
-
-  useEffect(() => {
-    if (editorSituation === 'Mute') {
-      Howler.mute(true);
-    } else {
-      Howler.mute(false);
-    }
-  }, [editorSituation]);
 
   return (
     <div
