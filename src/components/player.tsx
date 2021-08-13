@@ -39,7 +39,7 @@ export function Player({
     new (window['AudioContext'] ||
       window['webkitAudioContext'] ||
       window['mozAudioContext'] ||
-      window['oAudioContext'])()
+      window['oAudioContext'])() as AudioContext
   );
   const viewAnimationFrameRefreshFlagRef = useRef(false);
 
@@ -64,18 +64,29 @@ export function Player({
   }, []);
 
   useEffect(() => {
-    function loop() {
+    function loop(offsetTime: number) {
+      // offsetTime 是为 AudioContext 不按照音频本身时长记录进度而设定的补充参数
+      // AudioContext.currentTime 追踪的是硬件播放时长，只增不减，在第一次之后的播放不会清零，而是继续记录数值
+
       if (viewAnimationFrameRefreshFlagRef.current) {
-        // TODO - 这里有严重的卡顿问题，我正在考虑让播放进度控制与 React 的内部事件循环完全脱钩，直接靠 DOM 覆写更新
         setStore((store) => ({
           ...store,
           state: {
             ...store.state,
-            nowPlayingProgress: 0,
+            nowPlayingProgress:
+              audioContextRef.current.currentTime + offsetTime,
           },
         }));
-        console.log('Playing track', trackId);
-        requestAnimationFrame(loop);
+        console.log(
+          'Playing track',
+          trackId,
+          ', time:',
+          audioContextRef.current.currentTime + offsetTime
+        );
+        // 为了降低更新频率、不阻塞渲染层，所以这里的循环是采用 requestAnimationFrame + setTimeout 双重延迟实现的
+        setTimeout(() => {
+          requestAnimationFrame(() => loop(offsetTime));
+        }, 50);
       }
     }
     if (nowPlayingTrack === trackId && isPlaying) {
@@ -94,20 +105,23 @@ export function Player({
         // 在使用 AudioBufferSourceNode 时，每次重新尝试播放都需要完全重新新建一次该对象
         // 这是刻意为之的，因为在 H5 标准的设计中，这本就是一种“阅后即焚”的对象
         // 所幸，由于 PCM 波形数据是可以被引用的，创建这种对象的代价不是很大，不会造成太大的性能负担
-        const context: AudioContext = audioContextRef.current;
         const player = (audioPlayerRef.current[trackId] =
-          context.createBufferSource());
+          audioContextRef.current.createBufferSource());
         player.buffer = audioOriginDataRef.current[trackId];
-        player.connect(context.destination);
-        player.start(nowPlayingProgress);
+        // TODO - 除了第一个轨道以外，其余轨道均无法播放，需要修复
+        //        从 MDN 文档针对 AudioDestinationNode 的介绍中，推测原因可能是全局最多只准许一个输入节点
+        player.connect(audioContextRef.current.destination);
+        player.start(0, nowPlayingProgress);
 
+        // 通过 React.Ref，让以远超 React 内部事件循环频率的 requestAnimationFrame 能够及时响应外围操作
         viewAnimationFrameRefreshFlagRef.current = true;
-        loop();
+        loop(nowPlayingProgress - audioContextRef.current.currentTime);
       }
     }
     if (nowPlayingTrack !== trackId || !isPlaying) {
       viewAnimationFrameRefreshFlagRef.current = false;
       audioPlayerRef.current[trackId]?.stop();
+      audioPlayerRef.current[trackId]?.disconnect();
     }
   }, [isPlaying, nowPlayingTrack]);
 
