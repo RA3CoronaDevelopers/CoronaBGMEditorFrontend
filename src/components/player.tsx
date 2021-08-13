@@ -277,18 +277,23 @@ export function Player({
               }
               onMouseLeave={(_e) => setMouseOverPosition(undefined)}
               onMouseDown={(e) =>
-                setStore((store) => ({
-                  ...store,
-                  state: {
-                    ...store.state,
-                    nowPlayingTrack: trackId,
-                    nowPlayingProgress:
-                      ((e.clientX -
-                        waveRef.current.getBoundingClientRect().left) /
-                        waveRef.current.getBoundingClientRect().width) *
-                      track.length,
-                  },
-                }))
+                setStore((store) =>
+                  ({
+                    ...store,
+                    state: {
+                      ...store.state,
+                      // 任意跳转时会强制暂停，其实是刻意设计成这样的，方便精确定位时间轴、防止还没来得及暂停时间轴就跑了
+                      // 后续如果大部分人赞成保持原播放状态（即正在播放时，跳转完成后就恢复播放状态），可以再补充控制逻辑
+                      isPlaying: false,
+                      nowPlayingTrack: trackId,
+                      nowPlayingProgress:
+                        ((e.clientX -
+                          waveRef.current.getBoundingClientRect().left) /
+                          waveRef.current.getBoundingClientRect().width) *
+                        track.length,
+                    },
+                  })
+                )
               }
             >
               {mouseOverPosition && (
