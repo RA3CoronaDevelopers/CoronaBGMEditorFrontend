@@ -111,6 +111,15 @@ export function Player({
         // TODO - 除了第一个轨道以外，其余轨道均无法播放，需要修复
         //        从 MDN 文档针对 AudioDestinationNode 的介绍中，推测原因可能是全局最多只准许一个输入节点
         player.connect(audioContextRef.current.destination);
+        player.onended = () => {
+          setStore((store) => ({
+            ...store,
+            state: {
+              ...store.state,
+              isPlaying: false,
+            },
+          }));
+        };
         player.start(0, nowPlayingProgress);
 
         // 通过 React.Ref，让以远超 React 内部事件循环频率的 requestAnimationFrame 能够及时响应外围操作
