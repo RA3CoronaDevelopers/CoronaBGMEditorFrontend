@@ -6,7 +6,7 @@ import {
   ListItem,
   ListItemText,
   ListItemSecondaryAction,
-  TextField
+  TextField,
 } from '@material-ui/core';
 import { css } from '@emotion/css';
 import { StoreContext } from '../../utils/storeContext';
@@ -23,7 +23,7 @@ export function FsmConfig() {
     <DialogBase
       open={fsmConfigDialogOpen}
       onClose={() =>
-        setStore(store => ({
+        setStore((store) => ({
           ...store,
           state: {
             ...store.state,
@@ -57,7 +57,7 @@ export function FsmConfig() {
         <>
           <Button
             onClick={() =>
-              setStore(store => ({
+              setStore((store) => ({
                 ...store,
                 state: {
                   ...store.state,
@@ -76,8 +76,8 @@ export function FsmConfig() {
           'interval',
           'fightThreshold',
           'advantageThreshold',
-          'disadvantageThreshold'
-        ].map(name => (
+          'disadvantageThreshold',
+        ].map((name) => (
           <ListItem>
             <ListItemText primary={name} />
             <ListItemSecondaryAction>
@@ -86,16 +86,19 @@ export function FsmConfig() {
                 value={fsmConfig[name] || ''}
                 margin='dense'
                 size='small'
-                onChange={e => /^\d*$/.test(e.target.value) && setStore(store => ({
-                  ...store,
-                  data: {
-                    ...store.data,
-                    unitWeight: {
-                      ...store.data.unitWeight,
-                      [name]: e.target.value
-                    }
-                  }
-                }))}
+                onChange={(e) =>
+                  /^\d*$/.test(e.target.value) &&
+                  setStore((store) => ({
+                    ...store,
+                    data: {
+                      ...store.data,
+                      unitWeight: {
+                        ...store.data.unitWeight,
+                        [name]: e.target.value,
+                      },
+                    },
+                  }))
+                }
               />
             </ListItemSecondaryAction>
           </ListItem>

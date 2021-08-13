@@ -6,7 +6,7 @@ import {
   ListItem,
   ListItemText,
   ListItemSecondaryAction,
-  TextField
+  TextField,
 } from '@material-ui/core';
 import { css } from '@emotion/css';
 import { StoreContext } from '../../utils/storeContext';
@@ -16,14 +16,14 @@ export function UnitWeightConfig() {
   const {
     setStore,
     data: { unitWeight },
-    state: { unitWeightConfigDialogOpen }
+    state: { unitWeightConfigDialogOpen },
   } = useContext(StoreContext);
 
   return (
     <DialogBase
       open={unitWeightConfigDialogOpen}
       onClose={() =>
-        setStore(store => ({
+        setStore((store) => ({
           ...store,
           state: {
             ...store.state,
@@ -57,7 +57,7 @@ export function UnitWeightConfig() {
         <>
           <Button
             onClick={() =>
-              setStore(store => ({
+              setStore((store) => ({
                 ...store,
                 state: {
                   ...store.state,
@@ -109,8 +109,8 @@ export function UnitWeightConfig() {
           'AlliedBaseDefense',
           'AlliedBaseDefenseAdvanced',
           'AlliedSuperWeaponAdvanced',
-          'AlliedSuperWeapon'
-        ].map(name => (
+          'AlliedSuperWeapon',
+        ].map((name) => (
           <ListItem>
             <ListItemText primary={name} />
             <ListItemSecondaryAction>
@@ -119,16 +119,19 @@ export function UnitWeightConfig() {
                 value={unitWeight[name] || ''}
                 margin='dense'
                 size='small'
-                onChange={e => /^\d*$/.test(e.target.value) && setStore(store => ({
-                  ...store,
-                  data: {
-                    ...store.data,
-                    unitWeight: {
-                      ...store.data.unitWeight,
-                      [name]: e.target.value
-                    }
-                  }
-                }))}
+                onChange={(e) =>
+                  /^\d*$/.test(e.target.value) &&
+                  setStore((store) => ({
+                    ...store,
+                    data: {
+                      ...store.data,
+                      unitWeight: {
+                        ...store.data.unitWeight,
+                        [name]: e.target.value,
+                      },
+                    },
+                  }))
+                }
               />
             </ListItemSecondaryAction>
           </ListItem>

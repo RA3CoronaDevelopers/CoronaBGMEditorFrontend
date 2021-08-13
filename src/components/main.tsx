@@ -47,21 +47,21 @@ export function Main() {
       editorSituation,
       nowPlayingProgress,
       jsonFileSelectorDialogOpen,
-      musicFileSelectorDialogOpen
+      musicFileSelectorDialogOpen,
     },
   } = useContext(StoreContext);
-  const [jsonSelectMenuAnchorEl, jsonXmlSelectMenuAnchorEl] = useState(undefined);
-  const [generateNewTrackDialogOpen, setGenerateNewTrackDialogOpen] = useState(false);
-  const [
-    generateNewTrackDialogSelected,
-    setGenerateNewTrackDialogSelected,
-  ] = useState(0);
-  const [
-    generateNewTrackDialogTrackName,
-    setGenerateNewTrackDialogTrackName,
-  ] = useState('新轨道');
-  const audioPlayerRef = useRef({} as { [audioName: string]: any });
-  const audioOriginDataRef = useRef({} as { [audioName: string]: Float32Array });
+  const [jsonSelectMenuAnchorEl, jsonXmlSelectMenuAnchorEl] =
+    useState(undefined);
+  const [generateNewTrackDialogOpen, setGenerateNewTrackDialogOpen] =
+    useState(false);
+  const [generateNewTrackDialogSelected, setGenerateNewTrackDialogSelected] =
+    useState(0);
+  const [generateNewTrackDialogTrackName, setGenerateNewTrackDialogTrackName] =
+    useState('新轨道');
+  const audioPlayerRef = useRef(
+    {} as { [audioName: string]: AudioBufferSourceNode }
+  );
+  const audioOriginDataRef = useRef({} as { [audioName: string]: AudioBuffer });
 
   return (
     <div
@@ -117,15 +117,16 @@ export function Main() {
               user-select: none;
             `}
           >
-            {''
-              + `${Math.floor(nowPlayingProgress / 60) < 10 ? '0' : ''}`
-              + Math.floor(nowPlayingProgress / 60)
-              + ':'
-              + `${nowPlayingProgress % 60 < 10 ? '0' : ''}`
-              + Math.floor(nowPlayingProgress % 60)
-              + '.'
-              + Math.floor((nowPlayingProgress - Math.floor(nowPlayingProgress)) * 10)
-            }
+            {'' +
+              `${Math.floor(nowPlayingProgress / 60) < 10 ? '0' : ''}` +
+              Math.floor(nowPlayingProgress / 60) +
+              ':' +
+              `${nowPlayingProgress % 60 < 10 ? '0' : ''}` +
+              Math.floor(nowPlayingProgress % 60) +
+              '.' +
+              Math.floor(
+                (nowPlayingProgress - Math.floor(nowPlayingProgress)) * 10
+              )}
           </Typography>
           <div
             className={css`
@@ -134,7 +135,7 @@ export function Main() {
           >
             <IconButton
               onClick={() =>
-                setStore(store => ({
+                setStore((store) => ({
                   ...store,
                   state: {
                     ...store.state,
@@ -193,7 +194,7 @@ export function Main() {
             <Tooltip title='选择文件'>
               <IconButton
                 size='small'
-                onClick={e => jsonXmlSelectMenuAnchorEl(e.currentTarget)}
+                onClick={(e) => jsonXmlSelectMenuAnchorEl(e.currentTarget)}
               >
                 <Icon path={mdiFileSettingsOutline} size={0.8} color='#fff' />
               </IconButton>
@@ -216,7 +217,7 @@ export function Main() {
               <ListItem
                 button
                 onClick={() => (
-                  setStore(store => ({
+                  setStore((store) => ({
                     ...store,
                     state: {
                       ...store.state,
@@ -233,7 +234,7 @@ export function Main() {
                 onClick={() => (
                   navigator.clipboard
                     .readText()
-                    .then(text =>
+                    .then((text) =>
                       send('readJsonFile', { path: text }).then(
                         ({
                           hasSuccess,
@@ -244,23 +245,23 @@ export function Main() {
                           unitWeight,
                         }) =>
                           hasSuccess
-                            ? (setStore(store => ({
-                              ...store,
-                              data: {
-                                ...store.data,
-                                sourceJsonPath: text,
-                                musicFilePathMap: musicFiles,
-                                tracks,
-                                fsmConfig,
-                                unitWeight,
-                              },
-                            })),
+                            ? (setStore((store) => ({
+                                ...store,
+                                data: {
+                                  ...store.data,
+                                  sourceJsonPath: text,
+                                  musicFilePathMap: musicFiles,
+                                  tracks,
+                                  fsmConfig,
+                                  unitWeight,
+                                },
+                              })),
                               enqueueSnackbar('获取成功', {
                                 variant: 'success',
                               }))
                             : enqueueSnackbar(`获取失败：${reason}`, {
-                              variant: 'error',
-                            })
+                                variant: 'error',
+                              })
                       )
                     )
                     .catch(() =>
@@ -347,7 +348,7 @@ export function Main() {
           <IconButton
             size='small'
             onClick={() =>
-              setStore(store => ({
+              setStore((store) => ({
                 ...store,
                 state: {
                   ...store.state,
@@ -374,7 +375,7 @@ export function Main() {
             `}
           >
             <List>
-              {Object.keys(musicFilePathMap).map(id => (
+              {Object.keys(musicFilePathMap).map((id) => (
                 <ListItem>
                   <ListItemText primary={id} />
                   <ListItemSecondaryAction>
@@ -447,7 +448,7 @@ export function Main() {
               title='新建轨道'
               open={generateNewTrackDialogOpen}
               onConfirm={() => (
-                setStore(store => ({
+                setStore((store) => ({
                   ...store,
                   data: {
                     ...store.data,
@@ -455,9 +456,10 @@ export function Main() {
                       ...store.data.tracks,
                       {
                         name: generateNewTrackDialogTrackName,
-                        musicId: Object.keys(musicFilePathMap)[
-                          generateNewTrackDialogSelected
-                        ],
+                        musicId:
+                          Object.keys(musicFilePathMap)[
+                            generateNewTrackDialogSelected
+                          ],
                         startOffset: 0,
                         length: 0,
                         beatsPerMinutes: 0,
@@ -477,7 +479,7 @@ export function Main() {
                 <InputLabel>{'使用的音乐素材'}</InputLabel>
                 <Select
                   value={generateNewTrackDialogSelected}
-                  onChange={e =>
+                  onChange={(e) =>
                     setGenerateNewTrackDialogSelected(
                       +(e.target.value as string)
                     )
@@ -493,7 +495,7 @@ export function Main() {
                 variant='filled'
                 fullWidth
                 value={generateNewTrackDialogTrackName}
-                onChange={e =>
+                onChange={(e) =>
                   setGenerateNewTrackDialogTrackName(e.target.value)
                 }
               />
@@ -505,7 +507,7 @@ export function Main() {
       <FileSelector
         fileNameRegExp={/\.json$/}
         open={jsonFileSelectorDialogOpen}
-        onSelect={path =>
+        onSelect={(path) =>
           send('readJsonFile', { path }).then(
             ({
               hasSuccess,
@@ -516,23 +518,23 @@ export function Main() {
               unitWeight,
             }) =>
               hasSuccess
-                ? (setStore(store => ({
-                  ...store,
-                  data: {
-                    ...store.data,
-                    sourceJsonPath: path,
-                    musicFilePathMap: musicFiles,
-                    tracks,
-                    fsmConfig,
-                    unitWeight,
-                  },
-                })),
+                ? (setStore((store) => ({
+                    ...store,
+                    data: {
+                      ...store.data,
+                      sourceJsonPath: path,
+                      musicFilePathMap: musicFiles,
+                      tracks,
+                      fsmConfig,
+                      unitWeight,
+                    },
+                  })),
                   enqueueSnackbar('获取成功', { variant: 'success' }))
                 : enqueueSnackbar(`获取失败：${reason}`, { variant: 'error' })
           )
         }
         onClose={() =>
-          setStore(store => ({
+          setStore((store) => ({
             ...store,
             state: {
               ...store.state,
@@ -544,28 +546,28 @@ export function Main() {
       <FileSelector
         fileNameRegExp={/\.mp3$/}
         open={musicFileSelectorDialogOpen}
-        onSelect={path =>
+        onSelect={(path) =>
           send('loadMusicFile', { path }).then(
             ({ hasSuccess, reason, fileName, httpRoutePath }) =>
               hasSuccess
-                ? (setStore(store => ({
-                  ...store,
-                  data: {
-                    ...store.data,
-                    musicFilePathMap: {
-                      ...store.data.musicFilePathMap,
-                      [fileName]: httpRoutePath,
+                ? (setStore((store) => ({
+                    ...store,
+                    data: {
+                      ...store.data,
+                      musicFilePathMap: {
+                        ...store.data.musicFilePathMap,
+                        [fileName]: httpRoutePath,
+                      },
                     },
-                  },
-                })),
+                  })),
                   enqueueSnackbar('文件添加成功', { variant: 'success' }))
                 : enqueueSnackbar(`文件添加失败：${reason}`, {
-                  variant: 'error',
-                })
+                    variant: 'error',
+                  })
           )
         }
         onClose={() =>
-          setStore(store => ({
+          setStore((store) => ({
             ...store,
             state: {
               ...store.state,

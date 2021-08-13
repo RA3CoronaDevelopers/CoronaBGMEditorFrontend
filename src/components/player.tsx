@@ -17,8 +17,10 @@ export function Player({
 }: {
   trackId: number;
   track: ITrack;
-  audioPlayerRef: { [audioName: string]: any };
-  audioOriginDataRef: React.RefObject<{ [audioName: string]: Float32Array }>;
+  audioPlayerRef: React.RefObject<{
+    [audioName: string]: AudioBufferSourceNode;
+  }>;
+  audioOriginDataRef: React.RefObject<{ [audioName: string]: AudioBuffer }>;
 }) {
   const { enqueueSnackbar } = useSnackbar();
   const {
@@ -39,6 +41,7 @@ export function Player({
       window['mozAudioContext'] ||
       window['oAudioContext'])()
   );
+  const viewAnimationFrameRefreshFlagRef = useRef(false);
 
   useEffect(() => {
     if (waveRef.current) {
@@ -47,10 +50,14 @@ export function Player({
         const originBuffer = await (
           await fetch(musicFilePathMap[track.musicId])
         ).arrayBuffer();
-        const buffer = await context.decodeAudioData(originBuffer);
-        audioOriginDataRef.current[trackId] = buffer.getChannelData(0);
-        track.length = buffer.length / buffer.sampleRate;
-        drawWaveform(audioOriginDataRef.current[trackId], waveRef.current);
+        const buffer = (audioOriginDataRef.current[trackId] =
+          await context.decodeAudioData(originBuffer));
+
+        track.length = buffer.getChannelData(0).length / buffer.sampleRate;
+        drawWaveform(
+          audioOriginDataRef.current[trackId].getChannelData(0),
+          waveRef.current
+        );
         setReady(true);
       })();
     }
@@ -58,21 +65,21 @@ export function Player({
 
   useEffect(() => {
     function loop() {
-      if (nowPlayingTrack === trackId && isPlaying) {
+      if (viewAnimationFrameRefreshFlagRef.current) {
+        // TODO - 这里有严重的卡顿问题，我正在考虑让播放进度控制与 React 的内部事件循环完全脱钩，直接靠 DOM 覆写更新
         setStore((store) => ({
           ...store,
           state: {
             ...store.state,
-            nowPlayingProgress: 0, // audioPlayerRef.current[trackId].seek(),
+            nowPlayingProgress: 0,
           },
         }));
+        console.log('Playing track', trackId);
         requestAnimationFrame(loop);
       }
     }
     if (nowPlayingTrack === trackId && isPlaying) {
-      // audioPlayerRef.current[trackId].seek(nowPlayingProgress);
-      // audioPlayerRef.current[trackId].play();
-      if (false) {
+      if (!audioOriginDataRef.current[trackId]) {
         enqueueSnackbar('音频尚未准备完成，请稍后再点击播放', {
           variant: 'warning',
         });
@@ -84,12 +91,23 @@ export function Player({
           },
         }));
       } else {
-        // TODO - 在正式对接入新 API 之前，贸然测试会导致创建大量的 requestAnimationFrame 实体，进而导致卡顿
-        // loop();
+        // 在使用 AudioBufferSourceNode 时，每次重新尝试播放都需要完全重新新建一次该对象
+        // 这是刻意为之的，因为在 H5 标准的设计中，这本就是一种“阅后即焚”的对象
+        // 所幸，由于 PCM 波形数据是可以被引用的，创建这种对象的代价不是很大，不会造成太大的性能负担
+        const context: AudioContext = audioContextRef.current;
+        const player = (audioPlayerRef.current[trackId] =
+          context.createBufferSource());
+        player.buffer = audioOriginDataRef.current[trackId];
+        player.connect(context.destination);
+        player.start(nowPlayingProgress);
+
+        viewAnimationFrameRefreshFlagRef.current = true;
+        loop();
       }
     }
-    if (nowPlayingTrack !== trackId && !isPlaying) {
-      // audioPlayerRef.current[trackId].stop();
+    if (nowPlayingTrack !== trackId || !isPlaying) {
+      viewAnimationFrameRefreshFlagRef.current = false;
+      audioPlayerRef.current[trackId]?.stop();
     }
   }, [isPlaying, nowPlayingTrack]);
 

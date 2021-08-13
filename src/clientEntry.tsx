@@ -34,11 +34,13 @@ try {
   );
 } catch (e) {
   let node = document.createElement('div');
-  node.appendChild((() => {
-    let node = document.createElement('div');
-    node.innerText = `${e}`;
-    return node;
-  })());
+  node.appendChild(
+    (() => {
+      let node = document.createElement('div');
+      node.innerText = `${e}`;
+      return node;
+    })()
+  );
   node.style.position = 'fixed';
   node.style.left = '0px';
   node.style.top = '0px';

@@ -34,10 +34,10 @@ import { DialogBase } from '../dialogBase';
 
 const DEFAULT_FILE_NAME = 'tracks.json';
 const DEFAULT_FILE_VALUE = JSON.stringify({
-  'musicFiles': {},
-  'unitWeight': defaultUnitWeight,
-  'fsmConfig': defaultFsmConfig,
-  'tracks': [],
+  musicFiles: {},
+  unitWeight: defaultUnitWeight,
+  fsmConfig: defaultFsmConfig,
+  tracks: [],
 });
 
 export function FileSelector({
@@ -60,17 +60,15 @@ export function FileSelector({
     HTMLButtonElement | undefined
   >(undefined);
   const [createFileDialogOpen, setCreateFileDialogOpen] = useState(undefined);
-  const [createFolderDialogOpen, setCreateFolderDialogOpen] = useState(
-    undefined
-  );
-  const [createFileDialogValue, setCreateFileDialogValue] = useState(
-    DEFAULT_FILE_NAME
-  );
+  const [createFolderDialogOpen, setCreateFolderDialogOpen] =
+    useState(undefined);
+  const [createFileDialogValue, setCreateFileDialogValue] =
+    useState(DEFAULT_FILE_NAME);
   const [createFolderDialogValue, setCreateFolderDialogValue] = useState('');
 
   useEffect(() => {
     send('getProcessDir', {}).then(({ path, dirContent }) =>
-      setStore(store => ({
+      setStore((store) => ({
         ...store,
         state: {
           ...store.state,
@@ -80,7 +78,7 @@ export function FileSelector({
       }))
     );
     send('getDiskList', {}).then(({ disks }) =>
-      setStore(store => ({
+      setStore((store) => ({
         ...store,
         state: {
           ...store.state,
@@ -121,7 +119,7 @@ export function FileSelector({
               <Tooltip title='选择驱动器'>
                 <IconButton
                   size='small'
-                  onClick={e => setDiskSelectorAnchorEl(e.currentTarget)}
+                  onClick={(e) => setDiskSelectorAnchorEl(e.currentTarget)}
                 >
                   <Icon path={mdiServerNetwork} size={0.8} />
                 </IconButton>
@@ -140,14 +138,14 @@ export function FileSelector({
                 }}
               >
                 <List>
-                  {fileSelectorDiskList.map(name => (
+                  {fileSelectorDiskList.map((name) => (
                     <ListItem
                       button
                       onClick={() => (
                         send('getDir', {
                           path: name,
                         }).then(({ path, dirContent }) =>
-                          setStore(store => ({
+                          setStore((store) => ({
                             ...store,
                             state: {
                               ...store.state,
@@ -188,7 +186,7 @@ export function FileSelector({
                     send('getPreviousDir', {
                       path: fileSelectorPath,
                     }).then(({ path, dirContent }) =>
-                      setStore(store => ({
+                      setStore((store) => ({
                         ...store,
                         state: {
                           ...store.state,
@@ -216,7 +214,7 @@ export function FileSelector({
                     send('getDir', {
                       path: fileSelectorPath,
                     }).then(({ path, dirContent }) =>
-                      setStore(store => ({
+                      setStore((store) => ({
                         ...store,
                         state: {
                           ...store.state,
@@ -233,8 +231,8 @@ export function FileSelector({
             </div>
             {fileSelectorPath
               .split(/[\\\/]/)
-              .filter(n => n.length > 0)
-              .map(name => (
+              .filter((n) => n.length > 0)
+              .map((name) => (
                 <Typography
                   className={css`
                     user-select: none;
@@ -281,7 +279,7 @@ export function FileSelector({
       }
     >
       <List>
-        {Object.keys(fileSelectorDirContent).map(name => (
+        {Object.keys(fileSelectorDirContent).map((name) => (
           <ListItem
             button
             onClick={() =>
@@ -290,7 +288,7 @@ export function FileSelector({
                     path: `${fileSelectorPath}\\${name}`,
                     dirName: name,
                   }).then(({ path, dirContent }) =>
-                    setStore(store => ({
+                    setStore((store) => ({
                       ...store,
                       state: {
                         ...store.state,
@@ -337,7 +335,7 @@ export function FileSelector({
             hasSuccess
               ? (setCreateFileDialogOpen(false),
                 enqueueSnackbar(`文件创建成功`, { variant: 'success' }),
-                setStore(store => ({
+                setStore((store) => ({
                   ...store,
                   state: {
                     ...store.state,
@@ -360,7 +358,7 @@ export function FileSelector({
           variant='filled'
           fullWidth
           value={createFileDialogValue}
-          onChange={e => setCreateFileDialogValue(e.target.value)}
+          onChange={(e) => setCreateFileDialogValue(e.target.value)}
         />
       </PromptBase>
       {/* 新建文件夹的命名窗口 */}
@@ -375,7 +373,7 @@ export function FileSelector({
             hasSuccess
               ? (setCreateFolderDialogOpen(false),
                 enqueueSnackbar(`文件夹创建成功`, { variant: 'success' }),
-                setStore(store => ({
+                setStore((store) => ({
                   ...store,
                   state: {
                     ...store.state,
@@ -397,7 +395,7 @@ export function FileSelector({
           variant='filled'
           fullWidth
           value={createFolderDialogValue}
-          onChange={e => setCreateFolderDialogValue(e.target.value)}
+          onChange={(e) => setCreateFolderDialogValue(e.target.value)}
         />
       </PromptBase>
     </DialogBase>

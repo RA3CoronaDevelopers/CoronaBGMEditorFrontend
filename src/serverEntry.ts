@@ -74,7 +74,7 @@ const middlewares: {
   },
   async getDiskList() {
     return {
-      disks: (await diskinfo()).map(n => join(n.target + '/')),
+      disks: (await diskinfo()).map((n) => join(n.target + '/')),
     };
   },
   async createFile({ path, name, initContent }) {
@@ -227,9 +227,11 @@ app.whenReady().then(() => {
   ipcMain.on('asynchronous-message', (event, raw) => {
     console.log('IPC Message', raw);
     const { type, id, data } = JSON.parse(raw);
-    middlewares[type](data).then(data =>
+    middlewares[type](data).then((data) =>
       event.reply('asynchronous-reply', {
-        type, id, data
+        type,
+        id,
+        data,
       })
     );
   });
@@ -240,8 +242,8 @@ app.whenReady().then(() => {
     backgroundColor: '#22272e',
     webPreferences: {
       nodeIntegration: true,
-      contextIsolation: false
-    }
+      contextIsolation: false,
+    },
   });
 
   win.loadFile(join(__dirname, '../res/index.html'));

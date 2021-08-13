@@ -4,20 +4,23 @@ export function drawWaveform(wave: Float32Array, canvas: HTMLCanvasElement) {
   const step = Math.ceil(wave.length / width);
   let bounds = [];
   for (let i = 0; i < width; ++i) {
-    bounds = [...bounds, wave.slice(i * step, i * step + step).reduce(
-      (total, v) => ({
-        max: v > total.max ? v : total.max,
-        min: v < total.min ? v : total.min
-      }),
-      { max: -1.0, min: 1.0 }
-    )];
+    bounds = [
+      ...bounds,
+      wave.slice(i * step, i * step + step).reduce(
+        (total, v) => ({
+          max: v > total.max ? v : total.max,
+          min: v < total.min ? v : total.min,
+        }),
+        { max: -1.0, min: 1.0 }
+      ),
+    ];
   }
 
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   const canvasSize = {
     height: (canvas.height = height),
-    width: (canvas.width = width)
+    width: (canvas.width = width),
   };
   ctx.fillStyle = '#fff';
   ctx.strokeStyle = '#777';
@@ -32,4 +35,4 @@ export function drawWaveform(wave: Float32Array, canvas: HTMLCanvasElement) {
     ctx.lineTo(x + width / 2, y + height);
   });
   ctx.stroke();
-};
+}

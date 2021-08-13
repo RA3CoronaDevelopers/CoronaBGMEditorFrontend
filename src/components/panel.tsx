@@ -41,8 +41,8 @@ export function Panel() {
         <InputLabel>{'当前轨道'}</InputLabel>
         <Select
           value={nowPlayingTrack}
-          onChange={e =>
-            setStore(store => ({
+          onChange={(e) =>
+            setStore((store) => ({
               ...store,
               state: {
                 ...store.state,
@@ -61,8 +61,8 @@ export function Panel() {
         <InputLabel>{'状态'}</InputLabel>
         <Select
           value={editorSituation}
-          onChange={e =>
-            setStore(store => ({
+          onChange={(e) =>
+            setStore((store) => ({
               ...store,
               state: {
                 ...store.state,
@@ -94,8 +94,8 @@ export function Panel() {
         type='number'
         label='BPM'
         value={trackBpm}
-        onChange={e =>
-          setStore(store => ({
+        onChange={(e) =>
+          setStore((store) => ({
             ...store,
             state: {
               ...store.state,
@@ -115,7 +115,7 @@ export function Panel() {
             <Switch
               checked={trackAllowBeats}
               onChange={(_e, checked) =>
-                setStore(store => ({
+                setStore((store) => ({
                   ...store,
                   state: {
                     ...store.state,
@@ -134,8 +134,8 @@ export function Panel() {
         disabled={!trackAllowBeats}
         label='节拍偏移'
         value={trackBeatsOffset}
-        onChange={e =>
-          setStore(store => ({
+        onChange={(e) =>
+          setStore((store) => ({
             ...store,
             state: {
               ...store.state,
@@ -164,8 +164,8 @@ export function Panel() {
         disabled={!trackAllowBeats}
         label='每节拍数'
         value={trackBeatsPerBar}
-        onChange={e =>
-          setStore(store => ({
+        onChange={(e) =>
+          setStore((store) => ({
             ...store,
             state: {
               ...store.state,
@@ -183,7 +183,7 @@ export function Panel() {
         fullWidth
         variant='outlined'
         onClick={() =>
-          setStore(store => ({
+          setStore((store) => ({
             ...store,
             state: {
               ...store.state,
@@ -198,7 +198,7 @@ export function Panel() {
         fullWidth
         variant='outlined'
         onClick={() =>
-          setStore(store => ({
+          setStore((store) => ({
             ...store,
             state: {
               ...store.state,

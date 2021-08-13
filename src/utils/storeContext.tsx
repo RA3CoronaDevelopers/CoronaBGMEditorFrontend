@@ -1,9 +1,17 @@
 import React, { createContext, useState } from 'react';
 import { ITrack, IFsmConfig, IUnitWeight } from './jsonConfigTypes';
 
-export type IEditorSituation = 'Mute'
-  | 'MenuTrack' | 'Peace' | 'TinyFight' | 'Fight' | 'Advantage' | 'Disadvantage'
-  | 'Disaster' | 'PostGameVictory' | 'PostGameDefeat';
+export type IEditorSituation =
+  | 'Mute'
+  | 'MenuTrack'
+  | 'Peace'
+  | 'TinyFight'
+  | 'Fight'
+  | 'Advantage'
+  | 'Disadvantage'
+  | 'Disaster'
+  | 'PostGameVictory'
+  | 'PostGameDefeat';
 
 interface IStore {
   data: {
