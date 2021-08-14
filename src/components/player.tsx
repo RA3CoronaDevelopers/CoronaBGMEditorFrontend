@@ -15,7 +15,7 @@ export function Player({
   audioPlayerRef,
   audioOriginDataRef,
 }: {
-  trackId: number;
+  trackId: string;
   track: ITrack;
   audioPlayerRef: React.RefObject<{
     [audioName: string]: AudioBufferSourceNode;
@@ -161,7 +161,7 @@ export function Player({
             align-items: center;
           `}
         >
-          <Typography variant='h6'>{`#${trackId}`}</Typography>
+          <Typography variant='h6'>{`#${track.order}`}</Typography>
           <IconButton size='small'>
             <Icon path={mdiDotsVertical} size={0.8} />
           </IconButton>

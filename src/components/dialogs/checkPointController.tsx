@@ -31,7 +31,7 @@ export function CheckPointController({
   onClose,
 }: {
   open: boolean;
-  trackId: number;
+  trackId: string;
   checkPointId: number;
   audioOriginDataRef: React.RefObject<{ [trackId: string]: AudioBuffer }>;
   onClose: () => void;
@@ -51,9 +51,9 @@ export function CheckPointController({
       ...store,
       data: {
         ...store.data,
-        tracks: [
-          ...store.data.tracks.slice(0, trackId),
-          {
+        tracks: {
+          ...store.data.tracks,
+          [trackId]: {
             ...store.data.tracks[trackId],
             checkPoints: [
               ...store.data.tracks[trackId].checkPoints.slice(0, checkPointId),
@@ -61,8 +61,7 @@ export function CheckPointController({
               ...store.data.tracks[trackId].checkPoints.slice(checkPointId + 1),
             ],
           },
-          ...store.data.tracks.slice(trackId + 1),
-        ],
+        },
       },
     }));
   }
@@ -357,8 +356,10 @@ export function CheckPointController({
                                     }
                                     label='目标轨道'
                                   >
-                                    {tracks.map(({ name }) => (
-                                      <MenuItem value={name}>{name}</MenuItem>
+                                    {Object.keys(tracks).map((id) => (
+                                      <MenuItem value={tracks[id].name}>
+                                        {tracks[id].name}
+                                      </MenuItem>
                                     ))}
                                   </Select>
                                 </FormControl>

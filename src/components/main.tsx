@@ -27,6 +27,7 @@ import {
 } from '@mdi/js';
 import { Scrollbars } from 'react-custom-scrollbars';
 import { useSnackbar } from 'notistack';
+import { generate } from 'shortid';
 
 import { StoreContext } from '../utils/storeContext';
 import { send } from '../utils/websocketClient';
@@ -44,6 +45,7 @@ export function Main() {
     data: { sourceJsonPath, tracks, musicFilePathMap },
     state: {
       isPlaying,
+      // TODO - 尽快加入各个 Player 对 GainNode 的控制，以做到渐变效果
       editorSituation,
       nowPlayingProgress,
       jsonFileSelectorDialogOpen,
@@ -417,10 +419,10 @@ export function Main() {
               box-sizing: border-box;
             `}
           >
-            {tracks.map((track, index) => (
+            {Object.keys(tracks).map((id) => (
               <Player
-                track={track}
-                trackId={index}
+                track={tracks[id]}
+                trackId={id}
                 audioPlayerRef={audioPlayerRef}
                 audioOriginDataRef={audioOriginDataRef}
               />
@@ -452,10 +454,11 @@ export function Main() {
                   ...store,
                   data: {
                     ...store.data,
-                    tracks: [
+                    tracks: {
                       ...store.data.tracks,
-                      {
+                      [generate()] : {
                         name: generateNewTrackDialogTrackName,
+                        trackOrder: Object.keys(store.data.tracks).length,
                         musicId:
                           Object.keys(musicFilePathMap)[
                             generateNewTrackDialogSelected
@@ -467,7 +470,7 @@ export function Main() {
                         checkPoints: [],
                         defaultCheckPoints: [],
                       },
-                    ],
+                    },
                   },
                 })),
                 setGenerateNewTrackDialogOpen(false),

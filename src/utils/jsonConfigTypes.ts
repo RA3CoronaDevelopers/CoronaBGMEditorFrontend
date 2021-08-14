@@ -56,6 +56,7 @@ export interface IFsmConfig {
 
 export interface ITrack {
   name: string;
+  order: number;
   musicId: string;
   startOffset: number;
   length: number;

@@ -19,7 +19,7 @@ interface IStore {
     musicFilePathMap: {
       [id: string]: string;
     };
-    tracks: ITrack[];
+    tracks: { [key: string]: ITrack };
     fsmConfig: IFsmConfig;
     unitWeight: IUnitWeight;
   };
@@ -29,7 +29,7 @@ interface IStore {
     fileSelectorDiskList: string[];
 
     editorSituation: IEditorSituation;
-    nowPlayingTrack: number;
+    nowPlayingTrack: string;
     nowPlayingProgress: number;
     isPlaying: boolean;
 
@@ -56,7 +56,7 @@ export function Store({ children }: any) {
     data: {
       sourceJsonPath: '',
       musicFilePathMap: {},
-      tracks: [],
+      tracks: {},
       fsmConfig: {},
       unitWeight: {},
     },
@@ -66,7 +66,7 @@ export function Store({ children }: any) {
       fileSelectorDiskList: [],
 
       editorSituation: 'Mute',
-      nowPlayingTrack: 0,
+      nowPlayingTrack: '',
       nowPlayingProgress: 0,
       isPlaying: false,
 

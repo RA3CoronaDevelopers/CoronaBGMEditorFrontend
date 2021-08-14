@@ -46,15 +46,17 @@ export function Panel() {
               ...store,
               state: {
                 ...store.state,
-                nowPlayingTrack: +e.target.value as number,
+                nowPlayingTrack: e.target.value as string,
                 nowPlayingProgress: 0,
               },
             }))
           }
         >
-          {tracks.map((track, index) => (
-            <MenuItem value={index}>{`${track.name}(#${index})`}</MenuItem>
-          ))}
+          {Object.keys(tracks)
+            .sort((left, right) => tracks[left].order - tracks[right].order)
+            .map((id, order) => (
+              <MenuItem value={id}>{`${tracks[id].name}(#${order})`}</MenuItem>
+            ))}
         </Select>
       </FormControl>
       <FormControl fullWidth variant='filled'>
