@@ -33,7 +33,6 @@ export function Player({
     undefined as undefined | number
   );
   const [checkPointControllerOpen, setCheckPointControllerOpen] = useState(-1);
-  const radiusEffectRef = useRef(undefined as undefined | HTMLDivElement);
   const waveRef = useRef(undefined as undefined | HTMLCanvasElement);
   const audioContextRef = useRef(
     new (window['AudioContext'] ||
@@ -134,26 +133,6 @@ export function Player({
     }
   }, [isPlaying, nowPlayingTrack]);
 
-  useEffect(() => {
-    const offset = audioOriginDataRef.current[nowPlayingTrack]
-      ? 100 -
-        (audioOriginDataRef.current[nowPlayingTrack][
-          Math.ceil(
-            (nowPlayingProgress / track.length) *
-              audioOriginDataRef.current[nowPlayingTrack].length
-          )
-        ] +
-          1) *
-          0.5 *
-          30
-      : 100;
-    if (radiusEffectRef.current) {
-      radiusEffectRef.current.style.background = `radial-gradient(transparent ${
-        isPlaying ? offset : 100
-      }%, rgba(102, 204, 255, 0.4) 100%)`;
-    }
-  }, [nowPlayingProgress, isPlaying]);
-
   return (
     <div
       className={css`
@@ -162,19 +141,6 @@ export function Player({
         display: flex;
       `}
     >
-      {/* 音频播放径向渐变特效 */}
-      <div
-        className={css`
-          position: fixed;
-          z-index: 10000;
-          top: 0px;
-          left: 0px;
-          height: 100%;
-          width: 100%;
-          pointer-events: none;
-        `}
-        ref={radiusEffectRef}
-      />
       {/* 播放器画布 */}
       <div
         className={css`
