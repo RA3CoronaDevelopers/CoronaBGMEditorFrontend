@@ -10,7 +10,7 @@ import {
 } from '@material-ui/core';
 import { css } from '@emotion/css';
 import { StoreContext } from '../../utils/storeContext';
-import { DialogBase } from '../dialogBase';
+import { DialogBase } from './dialogBase';
 
 export function UnitWeightConfig() {
   const {

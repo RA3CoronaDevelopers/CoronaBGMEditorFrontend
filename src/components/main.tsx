@@ -31,12 +31,12 @@ import { generate } from 'shortid';
 
 import { StoreContext } from '../utils/storeContext';
 import { send } from '../utils/websocketClient';
-import { PromptBase } from './promptBase';
+import { PromptBase } from './models/promptBase';
 import { Panel } from './panel';
 import { Player } from './player';
-import { FileSelector } from './dialogs/fileSelector';
-import { UnitWeightConfig } from './dialogs/unitWeightConfig';
-import { FsmConfig } from './dialogs/fsmConfig';
+import { FileSelector } from './models/fileSelector';
+import { UnitWeightConfig } from './models/unitWeightConfig';
+import { FsmConfig } from './models/fsmConfig';
 
 export function Main() {
   const { enqueueSnackbar } = useSnackbar();

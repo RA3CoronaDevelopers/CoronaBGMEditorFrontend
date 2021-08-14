@@ -29,8 +29,8 @@ import {
   defaultUnitWeight,
   defaultFsmConfig,
 } from '../../utils/jsonConfigTypes';
-import { PromptBase } from '../promptBase';
-import { DialogBase } from '../dialogBase';
+import { PromptBase } from './promptBase';
+import { DialogBase } from './dialogBase';
 
 const DEFAULT_FILE_NAME = 'tracks.json';
 const DEFAULT_FILE_VALUE = JSON.stringify({

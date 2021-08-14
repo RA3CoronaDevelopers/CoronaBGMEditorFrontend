@@ -7,7 +7,7 @@ import { useSnackbar } from 'notistack';
 import { StoreContext } from '../utils/storeContext';
 import { ITrack } from '../utils/jsonConfigTypes';
 import { drawWaveform } from '../utils/waveformDrawer';
-import { CheckPointController } from './dialogs/checkPointController';
+import { CheckPointController } from './models/checkPointController';
 
 export function Player({
   trackId,

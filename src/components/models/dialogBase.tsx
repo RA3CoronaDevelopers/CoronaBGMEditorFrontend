@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import { Drawer } from '@material-ui/core';
 import { css } from '@emotion/css';
 import { Scrollbars } from 'react-custom-scrollbars';
-import { StoreContext } from '../utils/storeContext';
+import { StoreContext } from '../../utils/storeContext';
 
 export function DialogBase({
   open,

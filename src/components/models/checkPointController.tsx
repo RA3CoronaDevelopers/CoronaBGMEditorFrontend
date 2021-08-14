@@ -21,7 +21,7 @@ import { mdiClose, mdiPlus } from '@mdi/js';
 import { StoreContext } from '../../utils/storeContext';
 import { ICheckPoint } from '../../utils/jsonConfigTypes';
 import { drawWaveform } from '../../utils/waveformDrawer';
-import { DialogBase } from '../dialogBase';
+import { DialogBase } from './dialogBase';
 
 export function CheckPointController({
   open,
