@@ -27,16 +27,16 @@ import {
 } from '@mdi/js';
 import { Scrollbars } from 'react-custom-scrollbars';
 import { useSnackbar } from 'notistack';
-import { generate } from 'shortid';
+import { v4 as generate } from 'uuid';
 
-import { StoreContext } from '../utils/storeContext';
-import { send } from '../utils/websocketClient';
-import { PromptBase } from './models/promptBase';
+import { StoreContext } from '../routes/storeContext';
+import { send } from '../utils/remoteConnection';
+import { PromptBase } from '../components/promptBase';
 import { Panel } from './panel';
 import { Player } from './player';
-import { FileSelector } from './models/fileSelector';
-import { UnitWeightConfig } from './models/unitWeightConfig';
-import { FsmConfig } from './models/fsmConfig';
+import { FileSelector } from './fileSelector';
+import { UnitWeightConfig } from './unitWeightConfig';
+import { FsmConfig } from './fsmConfig';
 
 export function Main() {
   const { enqueueSnackbar } = useSnackbar();
@@ -458,7 +458,7 @@ export function Main() {
                       ...store.data.tracks,
                       [generate()] : {
                         name: generateNewTrackDialogTrackName,
-                        trackOrder: Object.keys(store.data.tracks).length,
+                        order: Object.keys(store.data.tracks).length,
                         musicId:
                           Object.keys(musicFilePathMap)[
                             generateNewTrackDialogSelected

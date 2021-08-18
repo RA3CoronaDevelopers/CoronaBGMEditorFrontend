@@ -23,14 +23,14 @@ import {
   mdiRefresh,
 } from '@mdi/js';
 import { useSnackbar } from 'notistack';
-import { StoreContext } from '../../utils/storeContext';
-import { send } from '../../utils/websocketClient';
+import { StoreContext } from '../routes/storeContext';
+import { send } from '../utils/remoteConnection';
 import {
   defaultUnitWeight,
   defaultFsmConfig,
-} from '../../utils/jsonConfigTypes';
-import { PromptBase } from './promptBase';
-import { DialogBase } from './dialogBase';
+} from '../utils/jsonConfigTypes';
+import { PromptBase } from '../components/promptBase';
+import { DialogBase } from '../components/dialogBase';
 
 const DEFAULT_FILE_NAME = 'tracks.json';
 const DEFAULT_FILE_VALUE = JSON.stringify({

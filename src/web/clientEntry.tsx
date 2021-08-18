@@ -3,9 +3,9 @@ import { render } from 'react-dom';
 import { SnackbarProvider } from 'notistack';
 import { ThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import { blue } from '@material-ui/core/colors';
-import { Store } from './utils/storeContext';
-import './utils/websocketClient';
-import { Main } from './components/main';
+import { Store } from './routes/storeContext';
+import './utils/remoteConnection';
+import { Main } from './views';
 
 try {
   render(

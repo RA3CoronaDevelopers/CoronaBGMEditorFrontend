@@ -9,25 +9,25 @@ import {
   TextField,
 } from '@material-ui/core';
 import { css } from '@emotion/css';
-import { StoreContext } from '../../utils/storeContext';
-import { DialogBase } from './dialogBase';
+import { StoreContext } from '../routes/storeContext';
+import { DialogBase } from '../components/dialogBase';
 
-export function FsmConfig() {
+export function UnitWeightConfig() {
   const {
     setStore,
-    data: { fsmConfig },
-    state: { fsmConfigDialogOpen },
+    data: { unitWeight },
+    state: { unitWeightConfigDialogOpen },
   } = useContext(StoreContext);
 
   return (
     <DialogBase
-      open={fsmConfigDialogOpen}
+      open={unitWeightConfigDialogOpen}
       onClose={() =>
         setStore((store) => ({
           ...store,
           state: {
             ...store.state,
-            fsmConfigDialogOpen: false,
+            unitWeightConfigDialogOpen: false,
           },
         }))
       }
@@ -39,7 +39,7 @@ export function FsmConfig() {
               user-select: none;
             `}
           >
-            {'全局权值调整'}
+            {'单位权值调整'}
           </Typography>
           <Typography
             variant='caption'
@@ -48,7 +48,7 @@ export function FsmConfig() {
             `}
           >
             {
-              '全局权值是 BGM 播放器判断是否切换对局状态的依据，一般情况下无需更改'
+              '单位权值是 BGM 播放器判断是否切换对局状态的依据，一般情况下无需更改'
             }
           </Typography>
         </>
@@ -61,7 +61,7 @@ export function FsmConfig() {
                 ...store,
                 state: {
                   ...store.state,
-                  fsmConfigDialogOpen: false,
+                  unitWeightConfigDialogOpen: false,
                 },
               }))
             }
@@ -73,17 +73,50 @@ export function FsmConfig() {
     >
       <List>
         {[
-          'interval',
-          'fightThreshold',
-          'advantageThreshold',
-          'disadvantageThreshold',
+          'AlliedScoutInfantry',
+          'AlliedAntiInfantryInfantry',
+          'AlliedAntiVehicleInfantry',
+          'AlliedEngineer',
+          'AlliedInfiltrationInfantry',
+          'AlliedCommandoTech1',
+          'AlliedMiner',
+          'AlliedAntiInfantryVehicle',
+          'AlliedAntiAirVehicleTech1',
+          'AlliedAntiVehicleVehicleTech1',
+          'AlliedAntiStructureVehicle',
+          'AlliedAntiVehicleVehicleTech3',
+          'AlliedMCV',
+          'AlliedAntiGroundAircraft',
+          'AlliedFighterAircraft',
+          'AlliedSupportAircraft',
+          'AlliedBomberAircraft',
+          'AlliedSupersonicBomber',
+          'AlliedAntiNavalScout',
+          'AlliedAntiAirShip',
+          'AlliedAntiNavyShipTech1',
+          'AlliedAntiStructureShip',
+          'AlliedConstructionYard',
+          'AlliedOutPost',
+          'AlliedPowerPlant',
+          'AlliedBarracks',
+          'AlliedRefinery',
+          'AlliedWarFactory',
+          'AlliedNavalYard',
+          'AlliedAirfield',
+          'AlliedTechStructure',
+          'AlliedWallPiece',
+          'AlliedWallSegmentPiece',
+          'AlliedBaseDefense',
+          'AlliedBaseDefenseAdvanced',
+          'AlliedSuperWeaponAdvanced',
+          'AlliedSuperWeapon',
         ].map((name) => (
           <ListItem>
             <ListItemText primary={name} />
             <ListItemSecondaryAction>
               <TextField
                 variant='outlined'
-                value={fsmConfig[name] || ''}
+                value={unitWeight[name] || ''}
                 margin='dense'
                 size='small'
                 onChange={(e) =>

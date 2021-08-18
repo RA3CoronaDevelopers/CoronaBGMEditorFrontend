@@ -18,10 +18,10 @@ import {
 import { css } from '@emotion/css';
 import { Icon } from '@mdi/react';
 import { mdiClose, mdiPlus } from '@mdi/js';
-import { StoreContext } from '../../utils/storeContext';
-import { ICheckPoint } from '../../utils/jsonConfigTypes';
-import { drawWaveform } from '../../utils/waveformDrawer';
-import { DialogBase } from './dialogBase';
+import { StoreContext } from '../routes/storeContext';
+import { ICheckPoint } from '../utils/jsonConfigTypes';
+import { drawWaveform } from '../utils/waveformDrawer';
+import { DialogBase } from '../components/dialogBase';
 
 export function CheckPointController({
   open,

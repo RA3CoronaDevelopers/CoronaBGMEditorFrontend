@@ -53,7 +53,7 @@ function watcherTrigger() {
     const compiler = webpack([
       {
         ...globalConfig,
-        entry: join(__dirname, './clientEntry.tsx'),
+        entry: join(__dirname, './web/clientEntry.tsx'),
         mode:
           process.env.NODE_ENV === 'development' ? 'development' : 'production',
         target: 'electron-renderer',
@@ -69,7 +69,7 @@ function watcherTrigger() {
       },
       {
         ...globalConfig,
-        entry: join(__dirname, './serverEntry.ts'),
+        entry: join(__dirname, './frontend/serverEntry.ts'),
         mode: 'development',
         target: 'electron-main',
         output: {

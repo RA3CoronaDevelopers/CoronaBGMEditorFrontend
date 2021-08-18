@@ -4,7 +4,7 @@
   "scripts": {
     "build": "ts-node ./src/webpack.ts",
     "watch": "ts-node ./src/webpack.ts --watch",
-    "start": "electron ./res/server.bundle.js",
+    "start": "chcp 65001 && electron ./res/server.bundle.js",
     "test": "jest --watch"
   },
   "dependencies": {
@@ -20,7 +20,7 @@
     "react-dom": "^17.0.1",
     "react-draggable": "^4.4.3",
     "react-transition-group": "^4.4.1",
-    "shortid": "^2.2.16"
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@babel/core": "^7.12.10",

@@ -4,10 +4,10 @@ import { css } from '@emotion/css';
 import { Icon } from '@mdi/react';
 import { mdiDotsVertical } from '@mdi/js';
 import { useSnackbar } from 'notistack';
-import { StoreContext } from '../utils/storeContext';
+import { StoreContext } from '../routes/storeContext';
 import { ITrack } from '../utils/jsonConfigTypes';
 import { drawWaveform } from '../utils/waveformDrawer';
-import { CheckPointController } from './models/checkPointController';
+import { CheckPointController } from './checkPointController';
 
 export function Player({
   trackId,
