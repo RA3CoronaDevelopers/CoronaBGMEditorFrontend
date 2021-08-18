@@ -21,6 +21,7 @@ export function Player(props: IProps) {
 
     waveRef,
     audioOriginDataRef,
+
     onMouseDown,
   } = useData(props);
 

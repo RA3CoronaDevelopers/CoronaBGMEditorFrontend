@@ -144,6 +144,7 @@ export function useData({
 
     waveRef,
     audioOriginDataRef,
+
     onMouseDown(e) {
       setStore((store) => ({
         ...store,

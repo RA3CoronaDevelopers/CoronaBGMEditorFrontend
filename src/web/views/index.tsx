@@ -9,7 +9,10 @@ import {
   ListItemText,
   TextField,
   FormControl,
+  FormControlLabel,
   InputLabel,
+  InputAdornment,
+  Switch,
   Select,
   MenuItem,
   ListItemSecondaryAction,
@@ -29,41 +32,48 @@ import { Scrollbars } from 'react-custom-scrollbars';
 import { useSnackbar } from 'notistack';
 import { v4 as generate } from 'uuid';
 
-import { StoreContext } from '../utils/storeContext';
+import { IEditorSituation, StoreContext } from '../utils/storeContext';
 import { send } from '../utils/remoteConnection';
 import { PromptBase } from '../components/promptBase';
-import { Panel } from './panel';
 import { Player } from './player';
 import { FileSelector } from './fileSelector';
 import { UnitWeightConfig } from './unitWeightConfig';
 import { FsmConfig } from './fsmConfig';
+import { useData } from '../models';
 
 export function Main() {
-  const { enqueueSnackbar } = useSnackbar();
   const {
+    sourceJsonPath,
+    tracks,
+    musicFilePathMap,
+
+    isPlaying,
+    editorSituation,
+    nowPlayingProgress,
+    jsonFileSelectorDialogOpen,
+    musicFileSelectorDialogOpen,
+    nowPlayingTrack,
+    trackBpm,
+    trackAllowBeats,
+    trackBeatsOffset,
+    trackBeatsPerBar,
+
+    jsonSelectMenuAnchorEl,
+    setJsonSelectMenuAnchorEl,
+    generateNewTrackDialogOpen,
+    setGenerateNewTrackDialogOpen,
+    generateNewTrackDialogSelected,
+    setGenerateNewTrackDialogSelected,
+    generateNewTrackDialogTrackName,
+    setGenerateNewTrackDialogTrackName,
+    enqueueSnackbar,
+
+    audioPlayerRef,
+    audioOriginDataRef,
+    
+    // TODO - 清理所有的 setStore，点击事件完全移交到 model 层处理
     setStore,
-    data: { sourceJsonPath, tracks, musicFilePathMap },
-    state: {
-      isPlaying,
-      // TODO - 尽快加入各个 Player 对 GainNode 的控制，以做到渐变效果
-      editorSituation,
-      nowPlayingProgress,
-      jsonFileSelectorDialogOpen,
-      musicFileSelectorDialogOpen,
-    },
-  } = useContext(StoreContext);
-  const [jsonSelectMenuAnchorEl, jsonXmlSelectMenuAnchorEl] =
-    useState(undefined);
-  const [generateNewTrackDialogOpen, setGenerateNewTrackDialogOpen] =
-    useState(false);
-  const [generateNewTrackDialogSelected, setGenerateNewTrackDialogSelected] =
-    useState(0);
-  const [generateNewTrackDialogTrackName, setGenerateNewTrackDialogTrackName] =
-    useState('新轨道');
-  const audioPlayerRef = useRef(
-    {} as { [audioName: string]: AudioBufferSourceNode }
-  );
-  const audioOriginDataRef = useRef({} as { [audioName: string]: AudioBuffer });
+  } = useData();
 
   return (
     <div
@@ -196,7 +206,7 @@ export function Main() {
             <Tooltip title='选择文件'>
               <IconButton
                 size='small'
-                onClick={(e) => jsonXmlSelectMenuAnchorEl(e.currentTarget)}
+                onClick={(e) => setJsonSelectMenuAnchorEl(e.currentTarget)}
               >
                 <Icon path={mdiFileSettingsOutline} size={0.8} color='#fff' />
               </IconButton>
@@ -205,7 +215,7 @@ export function Main() {
           <Popover
             open={!!jsonSelectMenuAnchorEl}
             anchorEl={jsonSelectMenuAnchorEl}
-            onClose={() => jsonXmlSelectMenuAnchorEl(undefined)}
+            onClose={() => setJsonSelectMenuAnchorEl(undefined)}
             anchorOrigin={{
               vertical: 'bottom',
               horizontal: 'right',
@@ -226,7 +236,7 @@ export function Main() {
                       jsonFileSelectorDialogOpen: true,
                     },
                   })),
-                  jsonXmlSelectMenuAnchorEl(undefined)
+                  setJsonSelectMenuAnchorEl(undefined)
                 )}
               >
                 <ListItemText primary='选择文件...' />
@@ -269,7 +279,7 @@ export function Main() {
                     .catch(() =>
                       enqueueSnackbar('无法读取剪贴板', { variant: 'error' })
                     ),
-                  jsonXmlSelectMenuAnchorEl(undefined)
+                  setJsonSelectMenuAnchorEl(undefined)
                 )}
               >
                 <ListItemText primary='从剪贴板中获取路径' />
@@ -313,7 +323,207 @@ export function Main() {
                 padding: 12px;
               `}
             >
-              <Panel />
+              <div
+                className={css`
+                  width: 100%;
+                  display: flex;
+                  flex-direction: column;
+                  justify-content: center;
+                  align-items: flex-start;
+                `}
+              >
+                <FormControl fullWidth variant='filled'>
+                  <InputLabel>{'当前轨道'}</InputLabel>
+                  <Select
+                    value={nowPlayingTrack}
+                    onChange={(e) =>
+                      setStore((store) => ({
+                        ...store,
+                        state: {
+                          ...store.state,
+                          nowPlayingTrack: e.target.value as string,
+                          nowPlayingProgress: 0,
+                        },
+                      }))
+                    }
+                  >
+                    {Object.keys(tracks)
+                      .sort(
+                        (left, right) =>
+                          tracks[left].order - tracks[right].order
+                      )
+                      .map((id, order) => (
+                        <MenuItem
+                          value={id}
+                        >{`${tracks[id].name}(#${order})`}</MenuItem>
+                      ))}
+                  </Select>
+                </FormControl>
+                <FormControl fullWidth variant='filled'>
+                  <InputLabel>{'状态'}</InputLabel>
+                  <Select
+                    value={editorSituation}
+                    onChange={(e) =>
+                      setStore((store) => ({
+                        ...store,
+                        state: {
+                          ...store.state,
+                          editorSituation: e.target.value as IEditorSituation,
+                        },
+                      }))
+                    }
+                  >
+                    <MenuItem value='Mute'>{'Mute(静音)'}</MenuItem>
+                    <MenuItem value='MenuTrack'>{'MenuTrack(主菜单)'}</MenuItem>
+                    <MenuItem value='Peace'>{'Peace(和平)'}</MenuItem>
+                    <MenuItem value='TinyFight'>
+                      {'TinyFight(小规模战斗)'}
+                    </MenuItem>
+                    <MenuItem value='Fight'>{'Fight(大规模战斗)'}</MenuItem>
+                    <MenuItem value='Advantage'>
+                      {'Advantage(处于优势)'}
+                    </MenuItem>
+                    <MenuItem value='Disadvantage'>
+                      {'Disadvantage(处于劣势)'}
+                    </MenuItem>
+                    <MenuItem value='Disaster'>
+                      {'Disaster(遭受战术打击)'}
+                    </MenuItem>
+                    <MenuItem value='PostGameVictory'>
+                      {'PostGameVictory(胜利)'}
+                    </MenuItem>
+                    <MenuItem value='PostGameDefeat'>
+                      {'PostGameDefeat(失败)'}
+                    </MenuItem>
+                  </Select>
+                </FormControl>
+                <div
+                  className={css`
+                    margin: 8px 0px;
+                  `}
+                />
+                <TextField
+                  fullWidth
+                  variant='filled'
+                  type='number'
+                  label='BPM'
+                  value={trackBpm}
+                  onChange={(e) =>
+                    setStore((store) => ({
+                      ...store,
+                      state: {
+                        ...store.state,
+                        trackBpm: +e.target.value,
+                      },
+                    }))
+                  }
+                />
+                <div
+                  className={css`
+                    margin-left: 16px;
+                  `}
+                >
+                  <FormControlLabel
+                    label='启用节拍器'
+                    control={
+                      <Switch
+                        checked={trackAllowBeats}
+                        onChange={(_e, checked) =>
+                          setStore((store) => ({
+                            ...store,
+                            state: {
+                              ...store.state,
+                              trackAllowBeats: checked,
+                            },
+                          }))
+                        }
+                      />
+                    }
+                  />
+                </div>
+                <TextField
+                  fullWidth
+                  variant='filled'
+                  type='number'
+                  disabled={!trackAllowBeats}
+                  label='节拍偏移'
+                  value={trackBeatsOffset}
+                  onChange={(e) =>
+                    setStore((store) => ({
+                      ...store,
+                      state: {
+                        ...store.state,
+                        trackBeatsOffset: +e.target.value,
+                      },
+                    }))
+                  }
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position='end'>
+                        <div
+                          className={css`
+                            margin-top: 16px;
+                          `}
+                        >
+                          {'ms'}
+                        </div>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+                <TextField
+                  fullWidth
+                  variant='filled'
+                  type='number'
+                  disabled={!trackAllowBeats}
+                  label='每节拍数'
+                  value={trackBeatsPerBar}
+                  onChange={(e) =>
+                    setStore((store) => ({
+                      ...store,
+                      state: {
+                        ...store.state,
+                        trackBeatsPerBar: +e.target.value,
+                      },
+                    }))
+                  }
+                />
+                <div
+                  className={css`
+                    margin: 8px 0px;
+                  `}
+                />
+                <Button
+                  fullWidth
+                  variant='outlined'
+                  onClick={() =>
+                    setStore((store) => ({
+                      ...store,
+                      state: {
+                        ...store.state,
+                        unitWeightConfigDialogOpen: true,
+                      },
+                    }))
+                  }
+                >
+                  {'调整单位权值'}
+                </Button>
+                <Button
+                  fullWidth
+                  variant='outlined'
+                  onClick={() =>
+                    setStore((store) => ({
+                      ...store,
+                      state: {
+                        ...store.state,
+                        fsmConfigDialogOpen: true,
+                      },
+                    }))
+                  }
+                >
+                  {'调整全局权值'}
+                </Button>
+              </div>
             </div>
           </Scrollbars>
         </div>
@@ -456,7 +666,7 @@ export function Main() {
                     ...store.data,
                     tracks: {
                       ...store.data.tracks,
-                      [generate()] : {
+                      [generate()]: {
                         name: generateNewTrackDialogTrackName,
                         order: Object.keys(store.data.tracks).length,
                         musicId:
