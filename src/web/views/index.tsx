@@ -29,7 +29,7 @@ import { Scrollbars } from 'react-custom-scrollbars';
 import { useSnackbar } from 'notistack';
 import { v4 as generate } from 'uuid';
 
-import { StoreContext } from '../routes/storeContext';
+import { StoreContext } from '../utils/storeContext';
 import { send } from '../utils/remoteConnection';
 import { PromptBase } from '../components/promptBase';
 import { Panel } from './panel';

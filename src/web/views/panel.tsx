@@ -11,7 +11,7 @@ import {
   InputAdornment,
 } from '@material-ui/core';
 import { css } from '@emotion/css';
-import { IEditorSituation, StoreContext } from '../routes/storeContext';
+import { IEditorSituation, StoreContext } from '../utils/storeContext';
 
 export function Panel() {
   const {

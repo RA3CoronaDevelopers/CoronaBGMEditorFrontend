@@ -23,7 +23,7 @@ import {
   mdiRefresh,
 } from '@mdi/js';
 import { useSnackbar } from 'notistack';
-import { StoreContext } from '../routes/storeContext';
+import { StoreContext } from '../utils/storeContext';
 import { send } from '../utils/remoteConnection';
 import {
   defaultUnitWeight,

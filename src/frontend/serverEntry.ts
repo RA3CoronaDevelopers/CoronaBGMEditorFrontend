@@ -226,10 +226,10 @@ let win: BrowserWindow;
 app.whenReady().then(() => {
   ipcMain.on('asynchronous-message', (event, raw) => {
     const { type, id, data } = JSON.parse(raw);
-    console.log('Receive:', id, type, data);
+    console.log('Receive:', id, type);
     middlewares[type](data).then(
       (data) => (
-        console.log('Send:', id, type, data),
+        console.log('Send:', id, type),
         event.reply('asynchronous-reply', {
           type,
           id,

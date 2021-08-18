@@ -9,7 +9,7 @@ import {
   TextField,
 } from '@material-ui/core';
 import { css } from '@emotion/css';
-import { StoreContext } from '../routes/storeContext';
+import { StoreContext } from '../utils/storeContext';
 import { DialogBase } from '../components/dialogBase';
 
 export function UnitWeightConfig() {

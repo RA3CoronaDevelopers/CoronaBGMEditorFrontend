@@ -1,5 +1,5 @@
 import React, { createContext, useState } from 'react';
-import { ITrack, IFsmConfig, IUnitWeight } from '../utils/jsonConfigTypes';
+import { ITrack, IFsmConfig, IUnitWeight } from './jsonConfigTypes';
 
 export type IEditorSituation =
   | 'Mute'
