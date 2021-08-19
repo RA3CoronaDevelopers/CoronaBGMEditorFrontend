@@ -23,7 +23,7 @@ generated_code = true
 # - Our assembly doesn't need to be used from other .NET languages,
 #   so we don't need it to be CLS compliant
 dotnet_diagnostic.CA1014.severity = none
-dotnet_code_quality.CA1062.excluded_symbol_names = Program
+dotnet_diagnostic.CA1062.severity = none
 
 # Formatting
 dotnet_diagnostic.IDE0055.severity = warning
