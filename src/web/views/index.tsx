@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect, useRef } from 'react';
+import React, { useState, useContext, useEffect, useRef } from "react";
 import {
   Typography,
   IconButton,
@@ -17,9 +17,9 @@ import {
   MenuItem,
   ListItemSecondaryAction,
   Tooltip,
-} from '@material-ui/core';
-import { css } from '@emotion/css';
-import { Icon } from '@mdi/react';
+} from "@material-ui/core";
+import { css } from "@emotion/css";
+import { Icon } from "@mdi/react";
 import {
   mdiContentSave,
   mdiDotsVertical,
@@ -27,19 +27,16 @@ import {
   mdiPause,
   mdiPlay,
   mdiPlus,
-} from '@mdi/js';
-import { Scrollbars } from 'react-custom-scrollbars';
-import { useSnackbar } from 'notistack';
-import { v4 as generate } from 'uuid';
+} from "@mdi/js";
+import { Scrollbars } from "react-custom-scrollbars";
 
-import { IEditorSituation, StoreContext } from '../utils/storeContext';
-import { send } from '../utils/remoteConnection';
-import { PromptBase } from '../components/promptBase';
-import { Player } from './player';
-import { FileSelector } from './fileSelector';
-import { UnitWeightConfig } from './unitWeightConfig';
-import { FsmConfig } from './fsmConfig';
-import { useData } from '../models';
+import { IEditorSituation, StoreContext } from "../utils/storeContext";
+import { PromptBase } from "../components/promptBase";
+import { Player } from "./player";
+import { FileSelector } from "./fileSelector";
+import { UnitWeightConfig } from "./unitWeightConfig";
+import { FsmConfig } from "./fsmConfig";
+import { useData } from "../models";
 
 export function Main() {
   const {
@@ -66,13 +63,28 @@ export function Main() {
     setGenerateNewTrackDialogSelected,
     generateNewTrackDialogTrackName,
     setGenerateNewTrackDialogTrackName,
-    enqueueSnackbar,
 
     audioPlayerRef,
     audioOriginDataRef,
-    
-    // TODO - 清理所有的 setStore，点击事件完全移交到 model 层处理
-    setStore,
+
+    onTogglePlayingState,
+    onOpenJsonFileDialog,
+    onOpenJsonFileFromClipboard,
+    onSaveJsonFile,
+    onChangeTrack,
+    onChangeEditorSituation,
+    onChangeBPM,
+    onChangeTrackBeatsOffset,
+    onChangeTrackBeatsPerBar,
+    onToggleTrackAllowBeats,
+    onOpenChangeUnitWeightConfigDialog,
+    onOpenChangeFsmConfigDialog,
+    onAddNewMaterial,
+    onAddNewTrack,
+    onReadJsonFile,
+    onCloseJsonFileDialog,
+    onReadMaterial,
+    onCloseMaterialSelectDialog,
   } = useData();
 
   return (
@@ -103,12 +115,12 @@ export function Main() {
         `}
       >
         <Typography
-          variant='h5'
+          variant="h5"
           className={css`
             user-select: none;
           `}
         >
-          {'日冕 BGM 编辑器'}
+          {"日冕 BGM 编辑器"}
         </Typography>
         <div
           className={css`
@@ -124,18 +136,18 @@ export function Main() {
           `}
         >
           <Typography
-            variant='h6'
+            variant="h6"
             className={css`
               user-select: none;
             `}
           >
-            {'' +
-              `${Math.floor(nowPlayingProgress / 60) < 10 ? '0' : ''}` +
+            {"" +
+              `${Math.floor(nowPlayingProgress / 60) < 10 ? "0" : ""}` +
               Math.floor(nowPlayingProgress / 60) +
-              ':' +
-              `${nowPlayingProgress % 60 < 10 ? '0' : ''}` +
+              ":" +
+              `${nowPlayingProgress % 60 < 10 ? "0" : ""}` +
               Math.floor(nowPlayingProgress % 60) +
-              '.' +
+              "." +
               Math.floor(
                 (nowPlayingProgress - Math.floor(nowPlayingProgress)) * 10
               )}
@@ -146,16 +158,8 @@ export function Main() {
             `}
           >
             <IconButton
-              onClick={() =>
-                setStore((store) => ({
-                  ...store,
-                  state: {
-                    ...store.state,
-                    isPlaying: !store.state.isPlaying,
-                  },
-                }))
-              }
-              disabled={sourceJsonPath === ''}
+              onClick={onTogglePlayingState}
+              disabled={sourceJsonPath === ""}
             >
               <Icon path={isPlaying ? mdiPause : mdiPlay} size={1} />
             </IconButton>
@@ -170,12 +174,12 @@ export function Main() {
           `}
         >
           <Typography
-            variant='caption'
+            variant="caption"
             className={css`
-              ${sourceJsonPath === '' ? 'user-select: none;' : ''}
+              ${sourceJsonPath === "" ? "user-select: none;" : ""}
             `}
           >
-            {sourceJsonPath === '' ? `未打开文件` : sourceJsonPath}
+            {sourceJsonPath === "" ? `未打开文件` : sourceJsonPath}
           </Typography>
           <div
             className={css`
@@ -183,19 +187,13 @@ export function Main() {
               flex-direction: row;
             `}
           >
-            <Tooltip title='保存文件'>
+            <Tooltip title="保存文件">
               <IconButton
-                size='small'
-                onClick={() =>
-                  send('saveXMLFile', {
-                    path: sourceJsonPath,
-                    tracks,
-                    musicFiles: musicFilePathMap,
-                  })
-                }
-                disabled={sourceJsonPath === ''}
+                size="small"
+                onClick={onSaveJsonFile}
+                disabled={sourceJsonPath === ""}
               >
-                <Icon path={mdiContentSave} size={0.8} color='#fff' />
+                <Icon path={mdiContentSave} size={0.8} color="#fff" />
               </IconButton>
             </Tooltip>
             <div
@@ -203,12 +201,12 @@ export function Main() {
                 width: 8px;
               `}
             />
-            <Tooltip title='选择文件'>
+            <Tooltip title="选择文件">
               <IconButton
-                size='small'
+                size="small"
                 onClick={(e) => setJsonSelectMenuAnchorEl(e.currentTarget)}
               >
-                <Icon path={mdiFileSettingsOutline} size={0.8} color='#fff' />
+                <Icon path={mdiFileSettingsOutline} size={0.8} color="#fff" />
               </IconButton>
             </Tooltip>
           </div>
@@ -217,72 +215,20 @@ export function Main() {
             anchorEl={jsonSelectMenuAnchorEl}
             onClose={() => setJsonSelectMenuAnchorEl(undefined)}
             anchorOrigin={{
-              vertical: 'bottom',
-              horizontal: 'right',
+              vertical: "bottom",
+              horizontal: "right",
             }}
             transformOrigin={{
-              vertical: 'top',
-              horizontal: 'center',
+              vertical: "top",
+              horizontal: "center",
             }}
           >
             <List>
-              <ListItem
-                button
-                onClick={() => (
-                  setStore((store) => ({
-                    ...store,
-                    state: {
-                      ...store.state,
-                      jsonFileSelectorDialogOpen: true,
-                    },
-                  })),
-                  setJsonSelectMenuAnchorEl(undefined)
-                )}
-              >
-                <ListItemText primary='选择文件...' />
+              <ListItem button onClick={onOpenJsonFileDialog}>
+                <ListItemText primary="选择文件..." />
               </ListItem>
-              <ListItem
-                button
-                onClick={() => (
-                  navigator.clipboard
-                    .readText()
-                    .then((text) =>
-                      send('readJsonFile', { path: text }).then(
-                        ({
-                          hasSuccess,
-                          reason,
-                          musicFiles,
-                          tracks,
-                          fsmConfig,
-                          unitWeight,
-                        }) =>
-                          hasSuccess
-                            ? (setStore((store) => ({
-                                ...store,
-                                data: {
-                                  ...store.data,
-                                  sourceJsonPath: text,
-                                  musicFilePathMap: musicFiles,
-                                  tracks,
-                                  fsmConfig,
-                                  unitWeight,
-                                },
-                              })),
-                              enqueueSnackbar('获取成功', {
-                                variant: 'success',
-                              }))
-                            : enqueueSnackbar(`获取失败：${reason}`, {
-                                variant: 'error',
-                              })
-                      )
-                    )
-                    .catch(() =>
-                      enqueueSnackbar('无法读取剪贴板', { variant: 'error' })
-                    ),
-                  setJsonSelectMenuAnchorEl(undefined)
-                )}
-              >
-                <ListItemText primary='从剪贴板中获取路径' />
+              <ListItem button onClick={onOpenJsonFileFromClipboard}>
+                <ListItemText primary="从剪贴板中获取路径" />
               </ListItem>
               {/* TODO - 在做好配置文件存储之后，加上历史文件功能 */}
             </List>
@@ -332,20 +278,11 @@ export function Main() {
                   align-items: flex-start;
                 `}
               >
-                <FormControl fullWidth variant='filled'>
-                  <InputLabel>{'当前轨道'}</InputLabel>
+                <FormControl fullWidth variant="filled">
+                  <InputLabel>{"当前轨道"}</InputLabel>
                   <Select
                     value={nowPlayingTrack}
-                    onChange={(e) =>
-                      setStore((store) => ({
-                        ...store,
-                        state: {
-                          ...store.state,
-                          nowPlayingTrack: e.target.value as string,
-                          nowPlayingProgress: 0,
-                        },
-                      }))
-                    }
+                    onChange={(e) => onChangeTrack(e)}
                   >
                     {Object.keys(tracks)
                       .sort(
@@ -359,41 +296,33 @@ export function Main() {
                       ))}
                   </Select>
                 </FormControl>
-                <FormControl fullWidth variant='filled'>
-                  <InputLabel>{'状态'}</InputLabel>
+                <FormControl fullWidth variant="filled">
+                  <InputLabel>{"状态"}</InputLabel>
                   <Select
                     value={editorSituation}
-                    onChange={(e) =>
-                      setStore((store) => ({
-                        ...store,
-                        state: {
-                          ...store.state,
-                          editorSituation: e.target.value as IEditorSituation,
-                        },
-                      }))
-                    }
+                    onChange={(e) => onChangeEditorSituation(e)}
                   >
-                    <MenuItem value='Mute'>{'Mute(静音)'}</MenuItem>
-                    <MenuItem value='MenuTrack'>{'MenuTrack(主菜单)'}</MenuItem>
-                    <MenuItem value='Peace'>{'Peace(和平)'}</MenuItem>
-                    <MenuItem value='TinyFight'>
-                      {'TinyFight(小规模战斗)'}
+                    <MenuItem value="Mute">{"Mute(静音)"}</MenuItem>
+                    <MenuItem value="MenuTrack">{"MenuTrack(主菜单)"}</MenuItem>
+                    <MenuItem value="Peace">{"Peace(和平)"}</MenuItem>
+                    <MenuItem value="TinyFight">
+                      {"TinyFight(小规模战斗)"}
                     </MenuItem>
-                    <MenuItem value='Fight'>{'Fight(大规模战斗)'}</MenuItem>
-                    <MenuItem value='Advantage'>
-                      {'Advantage(处于优势)'}
+                    <MenuItem value="Fight">{"Fight(大规模战斗)"}</MenuItem>
+                    <MenuItem value="Advantage">
+                      {"Advantage(处于优势)"}
                     </MenuItem>
-                    <MenuItem value='Disadvantage'>
-                      {'Disadvantage(处于劣势)'}
+                    <MenuItem value="Disadvantage">
+                      {"Disadvantage(处于劣势)"}
                     </MenuItem>
-                    <MenuItem value='Disaster'>
-                      {'Disaster(遭受战术打击)'}
+                    <MenuItem value="Disaster">
+                      {"Disaster(遭受战术打击)"}
                     </MenuItem>
-                    <MenuItem value='PostGameVictory'>
-                      {'PostGameVictory(胜利)'}
+                    <MenuItem value="PostGameVictory">
+                      {"PostGameVictory(胜利)"}
                     </MenuItem>
-                    <MenuItem value='PostGameDefeat'>
-                      {'PostGameDefeat(失败)'}
+                    <MenuItem value="PostGameDefeat">
+                      {"PostGameDefeat(失败)"}
                     </MenuItem>
                   </Select>
                 </FormControl>
@@ -404,19 +333,11 @@ export function Main() {
                 />
                 <TextField
                   fullWidth
-                  variant='filled'
-                  type='number'
-                  label='BPM'
+                  variant="filled"
+                  type="number"
+                  label="BPM"
                   value={trackBpm}
-                  onChange={(e) =>
-                    setStore((store) => ({
-                      ...store,
-                      state: {
-                        ...store.state,
-                        trackBpm: +e.target.value,
-                      },
-                    }))
-                  }
+                  onChange={(e) => onChangeBPM(e)}
                 />
                 <div
                   className={css`
@@ -424,18 +345,12 @@ export function Main() {
                   `}
                 >
                   <FormControlLabel
-                    label='启用节拍器'
+                    label="启用节拍器"
                     control={
                       <Switch
                         checked={trackAllowBeats}
                         onChange={(_e, checked) =>
-                          setStore((store) => ({
-                            ...store,
-                            state: {
-                              ...store.state,
-                              trackAllowBeats: checked,
-                            },
-                          }))
+                          onToggleTrackAllowBeats(checked)
                         }
                       />
                     }
@@ -443,29 +358,21 @@ export function Main() {
                 </div>
                 <TextField
                   fullWidth
-                  variant='filled'
-                  type='number'
+                  variant="filled"
+                  type="number"
                   disabled={!trackAllowBeats}
-                  label='节拍偏移'
+                  label="节拍偏移"
                   value={trackBeatsOffset}
-                  onChange={(e) =>
-                    setStore((store) => ({
-                      ...store,
-                      state: {
-                        ...store.state,
-                        trackBeatsOffset: +e.target.value,
-                      },
-                    }))
-                  }
+                  onChange={(e) => onChangeTrackBeatsOffset(e)}
                   InputProps={{
                     endAdornment: (
-                      <InputAdornment position='end'>
+                      <InputAdornment position="end">
                         <div
                           className={css`
                             margin-top: 16px;
                           `}
                         >
-                          {'ms'}
+                          {"ms"}
                         </div>
                       </InputAdornment>
                     ),
@@ -473,20 +380,12 @@ export function Main() {
                 />
                 <TextField
                   fullWidth
-                  variant='filled'
-                  type='number'
+                  variant="filled"
+                  type="number"
                   disabled={!trackAllowBeats}
-                  label='每节拍数'
+                  label="每节拍数"
                   value={trackBeatsPerBar}
-                  onChange={(e) =>
-                    setStore((store) => ({
-                      ...store,
-                      state: {
-                        ...store.state,
-                        trackBeatsPerBar: +e.target.value,
-                      },
-                    }))
-                  }
+                  onChange={(e) => onChangeTrackBeatsPerBar(e)}
                 />
                 <div
                   className={css`
@@ -495,33 +394,17 @@ export function Main() {
                 />
                 <Button
                   fullWidth
-                  variant='outlined'
-                  onClick={() =>
-                    setStore((store) => ({
-                      ...store,
-                      state: {
-                        ...store.state,
-                        unitWeightConfigDialogOpen: true,
-                      },
-                    }))
-                  }
+                  variant="outlined"
+                  onClick={onOpenChangeUnitWeightConfigDialog}
                 >
-                  {'调整单位权值'}
+                  {"调整单位权值"}
                 </Button>
                 <Button
                   fullWidth
-                  variant='outlined'
-                  onClick={() =>
-                    setStore((store) => ({
-                      ...store,
-                      state: {
-                        ...store.state,
-                        fsmConfigDialogOpen: true,
-                      },
-                    }))
-                  }
+                  variant="outlined"
+                  onClick={onOpenChangeFsmConfigDialog}
                 >
-                  {'调整全局权值'}
+                  {"调整全局权值"}
                 </Button>
               </div>
             </div>
@@ -555,20 +438,12 @@ export function Main() {
               user-select: none;
             `}
           >
-            <Typography variant='h6'>{'素材库'}</Typography>
+            <Typography variant="h6">{"素材库"}</Typography>
           </div>
           <IconButton
-            size='small'
-            onClick={() =>
-              setStore((store) => ({
-                ...store,
-                state: {
-                  ...store.state,
-                  musicFileSelectorDialogOpen: true,
-                },
-              }))
-            }
-            disabled={sourceJsonPath === ''}
+            size="small"
+            onClick={onAddNewMaterial}
+            disabled={sourceJsonPath === ""}
           >
             <Icon path={mdiPlus} size={0.8} />
           </IconButton>
@@ -591,7 +466,7 @@ export function Main() {
                 <ListItem>
                   <ListItemText primary={id} />
                   <ListItemSecondaryAction>
-                    <IconButton size='small'>
+                    <IconButton size="small">
                       <Icon path={mdiDotsVertical} size={0.8} />
                     </IconButton>
                   </ListItemSecondaryAction>
@@ -644,7 +519,7 @@ export function Main() {
             >
               <Button
                 onClick={() => setGenerateNewTrackDialogOpen(true)}
-                disabled={sourceJsonPath === ''}
+                disabled={sourceJsonPath === ""}
               >
                 <Icon path={mdiPlus} size={1} />
                 <div
@@ -652,44 +527,18 @@ export function Main() {
                     width: 8px;
                   `}
                 />
-                {'新建轨道'}
+                {"新建轨道"}
               </Button>
             </div>
             {/* 新建轨道的命名窗口 */}
             <PromptBase
-              title='新建轨道'
+              title="新建轨道"
               open={generateNewTrackDialogOpen}
-              onConfirm={() => (
-                setStore((store) => ({
-                  ...store,
-                  data: {
-                    ...store.data,
-                    tracks: {
-                      ...store.data.tracks,
-                      [generate()]: {
-                        name: generateNewTrackDialogTrackName,
-                        order: Object.keys(store.data.tracks).length,
-                        musicId:
-                          Object.keys(musicFilePathMap)[
-                            generateNewTrackDialogSelected
-                          ],
-                        startOffset: 0,
-                        length: 0,
-                        beatsPerMinutes: 0,
-                        beatsPerBar: 0,
-                        checkPoints: [],
-                        defaultCheckPoints: [],
-                      },
-                    },
-                  },
-                })),
-                setGenerateNewTrackDialogOpen(false),
-                setGenerateNewTrackDialogSelected(0)
-              )}
+              onConfirm={() => onAddNewTrack}
               onClose={() => setGenerateNewTrackDialogOpen(false)}
             >
-              <FormControl fullWidth variant='filled'>
-                <InputLabel>{'使用的音乐素材'}</InputLabel>
+              <FormControl fullWidth variant="filled">
+                <InputLabel>{"使用的音乐素材"}</InputLabel>
                 <Select
                   value={generateNewTrackDialogSelected}
                   onChange={(e) =>
@@ -704,8 +553,8 @@ export function Main() {
                 </Select>
               </FormControl>
               <TextField
-                label='轨道名'
-                variant='filled'
+                label="轨道名"
+                variant="filled"
                 fullWidth
                 value={generateNewTrackDialogTrackName}
                 onChange={(e) =>
@@ -720,74 +569,14 @@ export function Main() {
       <FileSelector
         fileNameRegExp={/\.json$/}
         open={jsonFileSelectorDialogOpen}
-        onSelect={(path) =>
-          send('readJsonFile', { path }).then(
-            ({
-              hasSuccess,
-              reason,
-              musicFiles,
-              tracks,
-              fsmConfig,
-              unitWeight,
-            }) =>
-              hasSuccess
-                ? (setStore((store) => ({
-                    ...store,
-                    data: {
-                      ...store.data,
-                      sourceJsonPath: path,
-                      musicFilePathMap: musicFiles,
-                      tracks,
-                      fsmConfig,
-                      unitWeight,
-                    },
-                  })),
-                  enqueueSnackbar('获取成功', { variant: 'success' }))
-                : enqueueSnackbar(`获取失败：${reason}`, { variant: 'error' })
-          )
-        }
-        onClose={() =>
-          setStore((store) => ({
-            ...store,
-            state: {
-              ...store.state,
-              jsonFileSelectorDialogOpen: false,
-            },
-          }))
-        }
+        onSelect={(path) => onReadJsonFile(path)}
+        onClose={onCloseJsonFileDialog}
       />
       <FileSelector
         fileNameRegExp={/\.mp3$/}
         open={musicFileSelectorDialogOpen}
-        onSelect={(path) =>
-          send('loadMusicFile', { path }).then(
-            ({ hasSuccess, reason, fileName, httpRoutePath }) =>
-              hasSuccess
-                ? (setStore((store) => ({
-                    ...store,
-                    data: {
-                      ...store.data,
-                      musicFilePathMap: {
-                        ...store.data.musicFilePathMap,
-                        [fileName]: httpRoutePath,
-                      },
-                    },
-                  })),
-                  enqueueSnackbar('文件添加成功', { variant: 'success' }))
-                : enqueueSnackbar(`文件添加失败：${reason}`, {
-                    variant: 'error',
-                  })
-          )
-        }
-        onClose={() =>
-          setStore((store) => ({
-            ...store,
-            state: {
-              ...store.state,
-              musicFileSelectorDialogOpen: false,
-            },
-          }))
-        }
+        onSelect={(path) => onReadMaterial(path)}
+        onClose={onCloseMaterialSelectDialog}
       />
       <UnitWeightConfig />
       <FsmConfig />
