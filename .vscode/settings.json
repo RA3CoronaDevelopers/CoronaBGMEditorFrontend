@@ -1,4 +1,7 @@
 {
   "omnisharp.enableEditorConfigSupport": true,
-  "omnisharp.enableRoslynAnalyzers": true
+  "omnisharp.enableRoslynAnalyzers": true,
+
+  "prettier.jsxSingleQuote": true,
+  "prettier.singleQuote": true
 }
