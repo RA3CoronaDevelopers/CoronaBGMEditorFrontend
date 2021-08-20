@@ -20,6 +20,10 @@ const globalConfig = {
           plugins: ['@babel/plugin-transform-runtime'],
         },
       },
+      {
+        test: /\.s[ac]ss$/,
+        use: ['style-loader', 'css-loader', 'sass-loader'],
+      },
     ],
   },
   resolve: {
