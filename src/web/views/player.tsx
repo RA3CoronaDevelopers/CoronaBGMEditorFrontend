@@ -1,10 +1,11 @@
-import React from 'react';
-import { Typography, IconButton, CircularProgress } from '@material-ui/core';
-import { css } from '@emotion/css';
-import { Icon } from '@mdi/react';
-import { mdiDotsVertical } from '@mdi/js';
-import { CheckPointController } from './checkPointController';
-import { IProps, useData } from '../models/player';
+import React from "react";
+import { Typography, IconButton, CircularProgress } from "@material-ui/core";
+import { css } from "@emotion/css";
+import { Icon } from "@mdi/react";
+import { mdiDotsVertical } from "@mdi/js";
+import { CheckPointController } from "./checkPointController";
+import { IProps, useData } from "../models/player";
+import { Waveform } from "../components/waveform";
 
 export function Player(props: IProps) {
   const {
@@ -19,7 +20,6 @@ export function Player(props: IProps) {
     checkPointControllerOpen,
     setCheckPointControllerOpen,
 
-    waveRef,
     audioOriginDataRef,
 
     onMouseDown,
@@ -53,12 +53,12 @@ export function Player(props: IProps) {
             align-items: center;
           `}
         >
-          <Typography variant='h6'>{`#${track.order}`}</Typography>
-          <IconButton size='small'>
+          <Typography variant="h6">{`#${track.order}`}</Typography>
+          <IconButton size="small">
             <Icon path={mdiDotsVertical} size={0.8} />
           </IconButton>
         </div>
-        <Typography variant='caption'>{track.name}</Typography>
+        <Typography variant="caption">{track.name}</Typography>
       </div>
       <div
         className={css`
@@ -83,87 +83,27 @@ export function Player(props: IProps) {
               position: relative;
             `}
           >
-            {/* 时间轴对齐图层 */}
-            {track.checkPoints.map(({ time }) => (
+            {isReady && (
               <div
                 className={css`
-                  position: absolute;
+                  left: 0px;
                   top: 0px;
+                  width: 100%;
                   height: 100%;
-                  width: 1px;
-                  background: rgba(255, 255, 255, 0.4);
-                `}
-                style={{
-                  left: `${Math.min((time / track.length) * 100, 100)}%`,
-                }}
-              />
-            ))}
-            {/* 播放状态轴对齐图层 */}
-            {nowPlayingTrack === trackId && (
-              <div
-                className={css`
                   position: absolute;
-                  top: 0px;
-                  height: 100%;
-                  width: 2px;
-                  background: rgba(102, 204, 255, 0.8);
+                  z-index: -1;
                 `}
-                style={{
-                  left: `${(nowPlayingProgress / track.length) * 100}%`,
-                }}
-              />
-            )}
-            {/* 鼠标游标轴图层 */}
-            <div
-              className={css`
-                position: absolute;
-                top: 0px;
-                left: 0px;
-                height: 100%;
-                width: 100%;
-                z-index: 1000;
-              `}
-              onMouseEnter={(e) =>
-                setMouseOverPosition(
-                  e.clientX - waveRef.current.getBoundingClientRect().left
-                )
-              }
-              onMouseMove={(e) =>
-                setMouseOverPosition(
-                  e.clientX - waveRef.current.getBoundingClientRect().left
-                )
-              }
-              onMouseLeave={(_e) => setMouseOverPosition(undefined)}
-              onMouseDown={(e) => onMouseDown(e)}
-            >
-              {mouseOverPosition && (
-                <div
-                  className={css`
-                    position: absolute;
-                    top: 0px;
-                    height: 100%;
-                    width: 1px;
-                    background: rgba(255, 255, 255, 0.8);
-                    z-index: 999;
-                  `}
-                  style={{
-                    left: mouseOverPosition,
-                  }}
+              >
+                <Waveform
+                  audioOriginDataRef={audioOriginDataRef}
+                  trackId={trackId}
+                  selectedPoints={track.checkPoints.map(({ time }) =>
+                    Math.min((time / track.length) * 100, 100)
+                  )}
+                  onClick={onMouseDown}
                 />
-              )}
-            </div>
-            {/* 波形图 */}
-            <canvas
-              className={css`
-                position: absolute;
-                top: 0px;
-                left: 0px;
-                height: 100%;
-                width: 100%;
-                z-index: -1;
-              `}
-              ref={waveRef}
-            />
+              </div>
+            )}
             {/* 加载圈 */}
             <div
               className={css`
@@ -173,7 +113,7 @@ export function Player(props: IProps) {
                 user-select: none;
               `}
             >
-              <Typography variant='caption'>{track.musicId}</Typography>
+              <Typography variant="caption">{track.musicId}</Typography>
             </div>
             <div
               className={css`
@@ -265,7 +205,7 @@ export function Player(props: IProps) {
                         user-select: none;
                       `}
                     >
-                      {'(默认跳转)'}
+                      {"(默认跳转)"}
                     </div>
                   ))}
                 </div>

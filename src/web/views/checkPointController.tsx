@@ -1,4 +1,4 @@
-import React, { useContext, useRef, useEffect, useState } from 'react';
+import React, { useContext, useRef, useEffect, useState } from "react";
 import {
   Typography,
   Button,
@@ -14,14 +14,14 @@ import {
   Grid,
   GridSize,
   Divider,
-} from '@material-ui/core';
-import { css } from '@emotion/css';
-import { Icon } from '@mdi/react';
-import { mdiClose, mdiPlus } from '@mdi/js';
-import { StoreContext } from '../utils/storeContext';
-import { ICheckPoint } from '../utils/jsonConfigTypes';
-import { drawWaveform } from '../utils/waveformDrawer';
-import { DialogBase } from '../components/dialogBase';
+} from "@material-ui/core";
+import { css } from "@emotion/css";
+import { Icon } from "@mdi/react";
+import { mdiClose, mdiPlus } from "@mdi/js";
+import { StoreContext } from "../utils/storeContext";
+import { ICheckPoint } from "../utils/jsonConfigTypes";
+import { DialogBase } from "../components/dialogBase";
+import { Waveform } from "../components/waveform";
 
 export function CheckPointController({
   open,
@@ -40,10 +40,6 @@ export function CheckPointController({
     setStore,
     data: { tracks },
   } = useContext(StoreContext);
-  const [mouseOverPosition, setMouseOverPosition] = useState(
-    undefined as undefined | number
-  );
-  const waveRef = useRef(undefined as undefined | HTMLCanvasElement);
 
   const checkPoint = tracks[trackId].checkPoints[checkPointId];
   function onChange(obj: ICheckPoint) {
@@ -66,18 +62,6 @@ export function CheckPointController({
     }));
   }
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (waveRef.current && audioOriginDataRef.current[trackId]) {
-        drawWaveform(
-          audioOriginDataRef.current[trackId].getChannelData(0),
-          waveRef.current
-        );
-        clearInterval(interval);
-      }
-    }, 1000);
-  }, []);
-
   return (
     <DialogBase
       open={open}
@@ -85,101 +69,38 @@ export function CheckPointController({
       header={
         <>
           <Typography
-            variant='h5'
+            variant="h5"
             className={css`
               user-select: none;
             `}
           >
-            {'检查点'}
+            {"检查点"}
           </Typography>
         </>
       }
       footer={
         <>
-          <Button onClick={onClose}>{'关闭'}</Button>
+          <Button onClick={onClose}>{"关闭"}</Button>
         </>
       }
     >
-      <div
-        className={css`
-          height: 32px;
-          width: calc(100% - 32px);
-          margin: 16px;
-          border-radius: 4px;
-          position: relative;
-        `}
-      >
-        {/* 当前选择位置图层 */}
-        <div
-          className={css`
-            position: absolute;
-            top: 0px;
-            height: 100%;
-            width: 2px;
-            background: rgba(102, 204, 255, 0.8);
-          `}
-          style={{
-            left: `${
-              (tracks[trackId].checkPoints[checkPointId].time /
-                tracks[trackId].length) *
-              100
-            }%`,
-          }}
-        />
-        {/* 鼠标游标轴图层 */}
-        <div
-          className={css`
-            position: absolute;
-            top: 0px;
-            left: 0px;
-            height: 100%;
-            width: 100%;
-            z-index: 1000;
-          `}
-          onMouseEnter={(e) =>
-            setMouseOverPosition(
-              e.clientX - waveRef.current.getBoundingClientRect().left
-            )
-          }
-          onMouseMove={(e) =>
-            setMouseOverPosition(
-              e.clientX - waveRef.current.getBoundingClientRect().left
-            )
-          }
-          onMouseLeave={(_e) => setMouseOverPosition(undefined)}
-          onMouseDown={(e) =>
+      <div className={css`
+        height: 32px;
+        width: 100%;
+      `}>
+        <Waveform
+          audioOriginDataRef={audioOriginDataRef}
+          trackId={trackId}
+          selectedPoints={[
+            tracks[trackId].checkPoints[checkPointId].time /
+              tracks[trackId].length,
+          ]}
+          onClick={(pos) =>
             onChange({
               ...checkPoint,
-              time:
-                ((e.clientX - waveRef.current.getBoundingClientRect().left) /
-                  waveRef.current.getBoundingClientRect().width) *
-                tracks[trackId].length,
+              time: pos * tracks[trackId].length,
             })
           }
-        >
-          {mouseOverPosition && (
-            <div
-              className={css`
-                position: absolute;
-                top: 0px;
-                height: 100%;
-                width: 1px;
-                background: rgba(255, 255, 255, 0.8);
-                z-index: 999;
-              `}
-              style={{
-                left: mouseOverPosition,
-              }}
-            />
-          )}
-        </div>
-        {/* 波形图 */}
-        <canvas
-          className={css`
-            height: 32px;
-            width: 100%;
-          `}
-          ref={waveRef}
         />
       </div>
       <Paper
@@ -192,13 +113,13 @@ export function CheckPointController({
         <Grid container spacing={1}>
           <Grid item xs={2}>
             <TextField
-              variant='outlined'
+              variant="outlined"
               value={Math.floor(
                 tracks[trackId].checkPoints[checkPointId].time / 60
               )}
-              label='分钟'
-              margin='dense'
-              size='small'
+              label="分钟"
+              margin="dense"
+              size="small"
               onChange={(e) =>
                 /^[12345]?\d$/.test(e.target.value) &&
                 onChange({
@@ -217,13 +138,13 @@ export function CheckPointController({
           </Grid>
           <Grid item xs={2}>
             <TextField
-              variant='outlined'
+              variant="outlined"
               value={Math.floor(
                 tracks[trackId].checkPoints[checkPointId].time % 60
               )}
-              label='秒'
-              margin='dense'
-              size='small'
+              label="秒"
+              margin="dense"
+              size="small"
               onChange={(e) =>
                 /^[12345]?\d$/.test(e.target.value) &&
                 onChange({
@@ -241,15 +162,15 @@ export function CheckPointController({
           </Grid>
           <Grid item xs={2}>
             <TextField
-              variant='outlined'
+              variant="outlined"
               value={Math.floor(
                 (tracks[trackId].checkPoints[checkPointId].time -
                   Math.floor(tracks[trackId].checkPoints[checkPointId].time)) *
                   10
               )}
-              label='百毫秒'
-              margin='dense'
-              size='small'
+              label="百毫秒"
+              margin="dense"
+              size="small"
               onChange={(e) =>
                 /^\d$/.test(e.target.value) &&
                 onChange({
@@ -282,7 +203,7 @@ export function CheckPointController({
                       `}
                     >
                       <TextField
-                        variant='outlined'
+                        variant="outlined"
                         value={condition}
                         onChange={(e) =>
                           onChange({
@@ -315,7 +236,7 @@ export function CheckPointController({
                           <Grid item xs={11}>
                             <Grid container spacing={1}>
                               <Grid item xs={8}>
-                                <FormControl variant='outlined' fullWidth>
+                                <FormControl variant="outlined" fullWidth>
                                   <InputLabel>目标轨道</InputLabel>
                                   <Select
                                     value={jumpToData.targetTrackId}
@@ -354,7 +275,7 @@ export function CheckPointController({
                                         ],
                                       })
                                     }
-                                    label='目标轨道'
+                                    label="目标轨道"
                                   >
                                     {Object.keys(tracks).map((id) => (
                                       <MenuItem value={tracks[id].name}>
@@ -366,37 +287,37 @@ export function CheckPointController({
                               </Grid>
                               {[
                                 {
-                                  type: 'targetOffset',
-                                  label: '目标轨道位置(s)',
+                                  type: "targetOffset",
+                                  label: "目标轨道位置(s)",
                                   xs: 4,
                                 },
                                 {
-                                  type: 'fadeOutDelay',
-                                  label: '渐出延迟时间(s)',
+                                  type: "fadeOutDelay",
+                                  label: "渐出延迟时间(s)",
                                   xs: 3,
                                 },
                                 {
-                                  type: 'fadeOutDuration',
-                                  label: '渐出持续时间(s)',
+                                  type: "fadeOutDuration",
+                                  label: "渐出持续时间(s)",
                                   xs: 3,
                                 },
                                 {
-                                  type: 'targetFadeInDelay',
-                                  label: '渐入延迟时间(s)',
+                                  type: "targetFadeInDelay",
+                                  label: "渐入延迟时间(s)",
                                   xs: 3,
                                 },
                                 {
-                                  type: 'targetFadeInDuration',
-                                  label: '渐入持续时间(s)',
+                                  type: "targetFadeInDuration",
+                                  label: "渐入持续时间(s)",
                                   xs: 3,
                                 },
                               ].map(({ type, label, xs }) => (
                                 <Grid item xs={xs as GridSize}>
                                   <TextField
-                                    variant='outlined'
+                                    variant="outlined"
                                     value={jumpToData[type]}
                                     label={label}
-                                    type='number'
+                                    type="number"
                                     onChange={(e) =>
                                       onChange({
                                         ...checkPoint,
@@ -448,7 +369,7 @@ export function CheckPointController({
                               `}
                             >
                               <IconButton
-                                size='small'
+                                size="small"
                                 onClick={() =>
                                   onChange({
                                     ...checkPoint,
@@ -490,7 +411,7 @@ export function CheckPointController({
                                   })
                                 }
                               >
-                                <Icon path={mdiClose} size={1} color='#fff' />
+                                <Icon path={mdiClose} size={1} color="#fff" />
                               </IconButton>
                             </div>
                           </Grid>
@@ -541,7 +462,7 @@ export function CheckPointController({
                             width: 8px;
                           `}
                         />
-                        {'新建跳转目标'}
+                        {"新建跳转目标"}
                       </Button>
                     </div>
                   </List>
@@ -564,7 +485,7 @@ export function CheckPointController({
                   destinations: [
                     ...checkPoint.destinations,
                     {
-                      condition: '',
+                      condition: "",
                       jumpTo: [
                         {
                           targetTrackId: tracks[0].name,
@@ -586,7 +507,7 @@ export function CheckPointController({
                   width: 8px;
                 `}
               />
-              {'新建检查点'}
+              {"新建检查点"}
             </Button>
           </div>
         </ListItem>

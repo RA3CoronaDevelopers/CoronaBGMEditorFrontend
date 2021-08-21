@@ -1,8 +1,7 @@
-import React, { useContext, useState, useEffect, useRef } from 'react';
-import { useSnackbar } from 'notistack';
-import { StoreContext } from '../utils/storeContext';
-import { ITrack } from '../utils/jsonConfigTypes';
-import { drawWaveform } from '../utils/waveformDrawer';
+import React, { useContext, useState, useEffect, useRef } from "react";
+import { useSnackbar } from "notistack";
+import { StoreContext } from "../utils/storeContext";
+import { ITrack } from "../utils/jsonConfigTypes";
 
 export interface IProps {
   trackId: string;
@@ -30,33 +29,26 @@ export function useData({
     undefined as undefined | number
   );
   const [checkPointControllerOpen, setCheckPointControllerOpen] = useState(-1);
-  const waveRef = useRef(undefined as undefined | HTMLCanvasElement);
   const audioContextRef = useRef(
-    new (window['AudioContext'] ||
-      window['webkitAudioContext'] ||
-      window['mozAudioContext'] ||
-      window['oAudioContext'])() as AudioContext
+    new (window["AudioContext"] ||
+      window["webkitAudioContext"] ||
+      window["mozAudioContext"] ||
+      window["oAudioContext"])() as AudioContext
   );
   const viewAnimationFrameRefreshFlagRef = useRef(false);
 
   useEffect(() => {
-    if (waveRef.current) {
-      (async () => {
-        const context: AudioContext = audioContextRef.current;
-        const originBuffer = await (
-          await fetch(musicFilePathMap[track.musicId])
-        ).arrayBuffer();
-        const buffer = (audioOriginDataRef.current[trackId] =
-          await context.decodeAudioData(originBuffer));
+    (async () => {
+      const context: AudioContext = audioContextRef.current;
+      const originBuffer = await (
+        await fetch(musicFilePathMap[track.musicId])
+      ).arrayBuffer();
+      const buffer = (audioOriginDataRef.current[trackId] =
+        await context.decodeAudioData(originBuffer));
 
-        track.length = buffer.getChannelData(0).length / buffer.sampleRate;
-        drawWaveform(
-          audioOriginDataRef.current[trackId].getChannelData(0),
-          waveRef.current
-        );
-        setReady(true);
-      })();
-    }
+      track.length = buffer.getChannelData(0).length / buffer.sampleRate;
+      setReady(true);
+    })();
   }, []);
 
   useEffect(() => {
@@ -74,9 +66,9 @@ export function useData({
           },
         }));
         console.log(
-          'Playing track',
+          "Playing track",
           trackId,
-          ', time:',
+          ", time:",
           audioContextRef.current.currentTime + offsetTime
         );
         // 为了降低更新频率、不阻塞渲染层，所以这里的循环是采用 requestAnimationFrame + setTimeout 双重延迟实现的
@@ -87,8 +79,8 @@ export function useData({
     }
     if (nowPlayingTrack === trackId && isPlaying) {
       if (!audioOriginDataRef.current[trackId]) {
-        enqueueSnackbar('音频尚未准备完成，请稍后再点击播放', {
-          variant: 'warning',
+        enqueueSnackbar("音频尚未准备完成，请稍后再点击播放", {
+          variant: "warning",
         });
         setStore((store) => ({
           ...store,
@@ -142,10 +134,9 @@ export function useData({
     checkPointControllerOpen,
     setCheckPointControllerOpen,
 
-    waveRef,
     audioOriginDataRef,
 
-    onMouseDown(e) {
+    onMouseDown(pos: number) {
       setStore((store) => ({
         ...store,
         state: {
@@ -154,10 +145,7 @@ export function useData({
           // 后续如果大部分人赞成保持原播放状态（即正在播放时，跳转完成后就恢复播放状态），可以再补充控制逻辑
           isPlaying: false,
           nowPlayingTrack: trackId,
-          nowPlayingProgress:
-            ((e.clientX - waveRef.current.getBoundingClientRect().left) /
-              waveRef.current.getBoundingClientRect().width) *
-            track.length,
+          nowPlayingProgress: pos * store.data.tracks[trackId].length * pos,
         },
       }));
     },
