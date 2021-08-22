@@ -12,6 +12,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <AdditionalFiles Include="../../.editorconfig" />
+    <AdditionalFiles Include="./.editorconfig" />
   </ItemGroup>
 </Project>

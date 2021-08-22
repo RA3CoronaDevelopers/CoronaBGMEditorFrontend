@@ -6,9 +6,8 @@ using System.Security.Principal;
 using System.Text.Json;
 using System.Globalization;
 
-namespace Corona.Utils.BGMTrackEditor
+namespace IPCDemo.CS
 {
-  [SuppressMessage("Code Quality", "CA1819:Properties should not return arrays")]
   public record Msg(string Caller, string Callee, string[] Args) { }
 
   public static class Program
@@ -22,21 +21,10 @@ namespace Corona.Utils.BGMTrackEditor
               TokenImpersonationLevel.Impersonation);
       socketClient.Connect();
 
-      // 创建自己的命名管道，并将命名管道的名称交给对方
-      var socketServerAddress = Guid.NewGuid().ToString();
-      using var socketServer = new NamedPipeServerStream(socketServerAddress, PipeDirection.InOut, 1);
-      socketClient.Write(new Msg
-      (
-        Caller: "cs-" + Guid.NewGuid().ToString(),
-        Callee: "$shakehand",
-        Args: new[] { socketServerAddress }
-      ));
-      socketServer.WaitForConnection();
-
-      for (var s = socketServer.Read(); socketClient.IsConnected; s = socketServer.Read())
+      for (var s = socketClient.Read(); socketClient.IsConnected; s = socketClient.Read())
       {
         var num = int.Parse(s.Args[0], CultureInfo.InvariantCulture);
-        num += 7;
+        num += 1;
         socketClient.Write(new Msg
         (
           Caller: s.Caller,
@@ -76,4 +64,3 @@ namespace Corona.Utils.BGMTrackEditor
     }
   }
 }
-

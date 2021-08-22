@@ -1,6 +1,6 @@
 import { join } from 'path';
 import { Buffer } from 'buffer';
-import { createServer, createConnection, Socket } from 'net';
+import { createServer, Socket } from 'net';
 import { v4 as generateUUID } from 'uuid';
 
 interface IMsg {
@@ -11,8 +11,6 @@ interface IMsg {
 
 let outsideIPCServerConnection: Socket;
 let outsideIPCServerAddress: string = generateUUID();
-let outsideIPCClientConnection: Socket;
-let outsideIPCClientAddress: string;
 let outsideIPCServer = createServer((connect) => {
   console.log('已检测到连接');
   outsideIPCServerConnection = connect;
@@ -41,39 +39,7 @@ let outsideIPCServer = createServer((connect) => {
     bufferCache = bufferCache.slice(length + 2);
     console.log('入口:', caller, callee, args);
     switch (callee) {
-      case '$shakehand':
-        outsideIPCClientAddress = args[0];
-        outsideIPCClientConnection = createConnection(
-          join('\\\\?\\pipe', `\\${outsideIPCClientAddress}`),
-          () => {
-            console.log(
-              '双向 IPC 已握手',
-              outsideIPCClientAddress,
-              '<->',
-              outsideIPCServerAddress
-            );
-            // 创建连接后，发起第一次消息交换
-            const uuid = 'web-' + generateUUID();
-            console.log('出口:', uuid, 'test', ['0']);
-            const buffer = Buffer.from(
-              JSON.stringify({
-                caller: uuid,
-                callee: 'test',
-                args: [`${0}`],
-              } as IMsg)
-            );
-            outsideIPCClientConnection?.write(
-              Buffer.concat([
-                Buffer.from([
-                  Math.floor(buffer.byteLength / 256),
-                  buffer.byteLength % 256,
-                ]),
-                buffer,
-              ])
-            );
-          }
-        );
-        break;
+      default:
     }
   });
 }).listen(join('\\\\?\\pipe', `\\${outsideIPCServerAddress}`));
