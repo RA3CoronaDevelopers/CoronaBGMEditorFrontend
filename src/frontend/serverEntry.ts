@@ -241,8 +241,9 @@ app.whenReady().then(() => {
 
   win = new BrowserWindow({
     width: 1200,
-    height: 900,
+    height: 800,
     backgroundColor: '#22272e',
+    frame: false,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
