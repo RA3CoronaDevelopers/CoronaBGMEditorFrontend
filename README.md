@@ -1,6 +1,8 @@
-# Corona BGM Editor
+# Corona BGM Editor(old)
 
 这里是日冕 Mod 的游戏背景音乐播放器，是为应对 Red Alert 3 的 Mod SDK 没有办法定制背景音乐而特别制作的一系列工具链。
+
+> 提示：本项目现已合并入[日冕工具集项目](https://github.com/RA3CoronaDevelopers/CoronaDevelopmentTools)中，仓库目前已处于冻结状态。
 
 ## 调试
 
